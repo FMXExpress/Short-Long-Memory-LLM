@@ -5,3 +5,7 @@ accelerate
 peft
 trl
 bitsandbytes
+langchain
+unstructured
+nltk
+ragbuilder

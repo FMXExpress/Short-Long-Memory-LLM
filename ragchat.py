@@ -13,8 +13,15 @@ from transformers import (
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, PeftModel
 from trl import SFTTrainer
-from langchain.llms import HuggingFacePipeline
-from langchain.embeddings import OpenAIEmbeddings
+try:
+    from langchain_huggingface import HuggingFacePipeline
+except ImportError:
+    from langchain.llms import HuggingFacePipeline
+
+try:
+    from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+except ImportError:
+    from langchain.embeddings import HuggingFaceEmbeddings
 from ragbuilder import RAGBuilder
 
 # === Configuration Constants ===
@@ -185,15 +192,29 @@ def build_rag_pipeline(model, tokenizer):
     """
     # Wrap LoRA-augmented model in a HF text-generation pipeline
     hf_pipe = hf_pipeline(
-        "text-generation", model=model, tokenizer=tokenizer, device=DEVICE
+        "text-generation", model=model, tokenizer=tokenizer
     )
     llm = HuggingFacePipeline(pipeline=hf_pipe)
 
-    # Instantiate RAGBuilder on your JSONL history
+    # Load JSONL chat history into Document objects
+    from langchain.docstore.document import Document
+    docs = []
+    with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                rec = json.loads(line)
+                text = rec.get("input", "") + "\n" + rec.get("output", "")
+                if text.strip():
+                    docs.append(text)
+            except json.JSONDecodeError:
+                continue
+
+    # Instantiate RAGBuilder directly from in-memory documents
     builder = RAGBuilder.from_source_with_defaults(
-        input_source=CHAT_HISTORY_FILE,
+        input_source=docs,
+        test_dataset=docs,
         default_llm=llm,
-        default_embeddings=OpenAIEmbeddings(),
+        default_embeddings=HuggingFaceEmbeddings(),  # local HF embeddings
         n_trials=5,
     )
     # One-time optimization
