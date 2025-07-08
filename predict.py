@@ -1,6 +1,37 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
+import os
+
+from transformers import DataCollatorForLanguageModeling
+
+data_collator = DataCollatorForLanguageModeling(
+    tokenizer=tokenizer,
+    mlm=False
+)
+
+inference_prompt_style = """
+Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
+
+### Question:
+{}
+
+### Response:
+<analysis>
+"""
+
+from datasets import load_dataset
+
+dataset = load_dataset(
+    "mamachang/medical-reasoning",
+    split="train",
+    trust_remote_code=True,
+)
+dataset = dataset.map(
+    formatting_prompts_func,
+    batched=True,
+)
+print(dataset["text"][10])
 
 # Base model
 base_model_id = "unsloth/Magistral-Small-2506-bnb-4bit"
@@ -15,6 +46,29 @@ base_model = AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.bfloat16,
     trust_remote_code=True,
 )
+
+base_model.config.use_cache = False
+base_model.config.pretraining_tp = 1
+
+question = dataset[10]['input']
+question = question.replace("Q:", "")
+
+inputs = tokenizer(
+    [inference_prompt_style.format(question) + tokenizer.eos_token],
+    return_tensors="pt"
+).to("cuda")
+
+outputs = model.generate(
+    input_ids=inputs.input_ids,
+    attention_mask=inputs.attention_mask,
+    max_new_tokens=512,
+    eos_token_id=tokenizer.eos_token_id,
+    use_cache=True,
+)
+response = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+print(response[0].split("### Response:")[1])
+exit()
+
 
 # Attach the LoRA adapter
 #model = PeftModel.from_pretrained(
