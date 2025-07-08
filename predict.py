@@ -140,6 +140,13 @@ def train(chat_history_file, lora_file):
 #train(chat_history_file, lora_filename)
 #exit()
 
+train_prompt_style = """
+Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
+### Question:
+{}
+
+### Response:
+{}"""
 
 inference_prompt_style = """
 Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
