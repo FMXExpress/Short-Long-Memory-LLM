@@ -93,6 +93,12 @@ def train():
     print(dataset["text"][10])
 
 
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=False
+    )
+
+
     # Initialize the Trainer
     trainer = SFTTrainer(
         model=model,
