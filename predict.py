@@ -6,6 +6,7 @@ from datasets import load_dataset
 from transformers import DataCollatorForLanguageModeling
 from peft import LoraConfig, get_peft_model
 import gc, torch
+import json
 
 lora_filename = "chat_history"
 chat_history_file ="chat_history.jsonl"
@@ -243,12 +244,12 @@ exit()
 
 
 # Attach the LoRA adapter
-#model = PeftModel.from_pretrained(
-#    base_model,
-#    lora_filename,
-#    device_map="auto",
-#    trust_remote_code=True,
-#)
+model = PeftModel.from_pretrained(
+    base_model,
+    lora_filename,
+    device_map="auto",
+    trust_remote_code=True,
+)
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
