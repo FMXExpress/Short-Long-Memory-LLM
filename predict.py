@@ -63,6 +63,36 @@ def train():
         report_to="none"
     )
 
+    EOS_TOKEN = tokenizer.eos_token  # Must add EOS_TOKEN
+
+    def formatting_prompts_func(examples):
+        inputs = examples["input"]
+        outputs = examples["output"]
+        texts = []
+        for question, response in zip(inputs, outputs):
+            # Remove the "Q:" prefix from the question
+            question = question.replace("Q:", "")
+
+            # Append the EOS token to the response if it's not already there
+            if not response.endswith(tokenizer.eos_token):
+                response += tokenizer.eos_token
+
+            text = train_prompt_style.format(question, response)
+            texts.append(text)
+        return {"text": texts}
+
+    dataset = load_dataset(
+        "mamachang/medical-reasoning",
+        split="train",
+        trust_remote_code=True,
+    )
+    dataset = dataset.map(
+        formatting_prompts_func,
+        batched=True,
+    )
+    print(dataset["text"][10])
+
+
     # Initialize the Trainer
     trainer = SFTTrainer(
         model=model,
