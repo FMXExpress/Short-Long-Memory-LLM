@@ -94,17 +94,20 @@ def format_chat_dataset(history_file: str, tokenizer) -> torch.utils.data.Datase
     """
     ds = load_dataset("json", data_files=history_file, split="train")
 
-    def _format(ex):
-        q, a = ex["input"].lstrip("Q:"), ex["output"]
+    def _format_pair(inp: str, out: str) -> str:
+        q = inp.lstrip("Q:")
+        a = out
         if not a.endswith(tokenizer.eos_token):
             a += tokenizer.eos_token
-        return {"text": TRAIN_PROMPT_TEMPLATE.format(q, a)}
+        return TRAIN_PROMPT_TEMPLATE.format(q, a)
 
     return ds.map(
-        lambda batch: {"text": [_format(x)["text"] for x in zip(batch["input"], batch["output"]) ]},
+        lambda batch: {"text": [
+            _format_pair(inp, out)
+            for inp, out in zip(batch["input"], batch["output"])
+        ]},
         batched=True,
     )
-
 
 def train_lora():
     """
