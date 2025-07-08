@@ -7,8 +7,10 @@ from transformers import DataCollatorForLanguageModeling
 from peft import LoraConfig, get_peft_model
 import gc, torch
 
+lora_filename = "chat_history"
+chat_history_file ="chat_history.jsonl"
 
-def train():
+def train(chat_history_file, lora_file):
     train_prompt_style = """
     Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
     ### Question:
@@ -55,7 +57,7 @@ def train():
 
     # Training Arguments
     training_arguments = TrainingArguments(
-        output_dir="Magistral-Medical-Reasoning",
+        output_dir=lora_file,
         per_device_train_batch_size=1,
         per_device_eval_batch_size=1,
         gradient_accumulation_steps=2,
@@ -89,11 +91,17 @@ def train():
             texts.append(text)
         return {"text": texts}
 
+    #dataset = load_dataset(
+    #    "mamachang/medical-reasoning",
+    #    split="train",
+    #    trust_remote_code=True,
+    #)
     dataset = load_dataset(
-        "mamachang/medical-reasoning",
+        "json",
+        data_files=chat_history_file,
         split="train",
-        trust_remote_code=True,
     )
+
     dataset = dataset.map(
         formatting_prompts_func,
         batched=True,
@@ -121,13 +129,16 @@ def train():
     model.config.use_cache = False
     trainer.train()
 
+    model.save_pretrained(lora_file, safe_serialization=True)
+    tokenizer.save_pretrained(lora_file)
+
     del model
     del trainer
     torch.cuda.empty_cache()
 
 
-train()
-exit()
+#train(chat_history_file, lora_filename)
+#exit()
 
 
 inference_prompt_style = """
@@ -210,6 +221,15 @@ outputs = base_model.generate(
     use_cache=True,
 )
 response = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+
+os.makedirs(os.path.dirname(chat_history_file) or ".", exist_ok=True)
+record = {
+    "input": user_input,
+    "output": assistant_output
+}
+with open(chat_history_file, "a", encoding="utf-8") as f:
+    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
 print(response[0].split("### Response:")[1])
 exit()
 
@@ -218,7 +238,7 @@ exit()
 # Attach the LoRA adapter
 #model = PeftModel.from_pretrained(
 #    base_model,
-#    lora_adapter_id,
+#    lora_filename,
 #    device_map="auto",
 #    trust_remote_code=True,
 #)
