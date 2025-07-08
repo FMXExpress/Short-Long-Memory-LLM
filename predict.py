@@ -1,9 +1,89 @@
-rom transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
 import os
 from datasets import load_dataset
 from transformers import DataCollatorForLanguageModeling
+from peft import LoraConfig, get_peft_model
+import gc, torch
+
+
+def train():
+    model_dir = "unsloth/Magistral-Small-2506-bnb-4bit"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_dir,
+        device_map="auto",
+        torch_dtype=torch.bfloat16,
+    )
+
+    model.config.use_cache = False
+    model.config.pretraining_tp = 1
+
+    # LoRA config
+    peft_config = LoraConfig(
+        lora_alpha=16,                           # Scaling factor for LoRA
+        lora_dropout=0.05,                       # Add slight dropout for regularization
+        r=64,                                    # Rank of the LoRA update matrices
+        bias="none",                             # No bias reparameterization
+        task_type="CAUSAL_LM",                   # Task type: Causal Language Modeling
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],  # Target modules for LoRA
+    )
+
+    model = get_peft_model(model, peft_config)
+
+    from trl import SFTTrainer
+    from transformers import TrainingArguments
+
+
+    # Training Arguments
+    training_arguments = TrainingArguments(
+        output_dir="Magistral-Medical-Reasoning",
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
+        gradient_accumulation_steps=2,
+        optim="paged_adamw_32bit",
+        num_train_epochs=1,
+        logging_steps=0.2,
+        warmup_steps=10,
+        logging_strategy="steps",
+        learning_rate=2e-4,
+        fp16=False,
+        bf16=False,
+        group_by_length=True,
+        report_to="none"
+    )
+
+    # Initialize the Trainer
+    trainer = SFTTrainer(
+        model=model,
+        args=training_arguments,
+        train_dataset=dataset,
+        peft_config=peft_config,
+        data_collator=data_collator,
+    )
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    model.config.use_cache = False
+    trainer.train()
+
+    del model
+    del trainer
+    torch.cuda.empty_cache()
+
+
+train()
+exit()
 
 train_prompt_style = """
 Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
