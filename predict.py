@@ -9,6 +9,14 @@ import gc, torch
 
 
 def train():
+    train_prompt_style = """
+    Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
+    ### Question:
+    {}
+
+    ### Response:
+    {}"""
+
     model_dir = "unsloth/Magistral-Small-2506-bnb-4bit"
 
     tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=True)
@@ -121,13 +129,6 @@ def train():
 train()
 exit()
 
-train_prompt_style = """
-Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
-### Question:
-{}
-
-### Response:
-{}"""
 
 inference_prompt_style = """
 Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
