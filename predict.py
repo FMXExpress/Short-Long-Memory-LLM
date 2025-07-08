@@ -1,14 +1,17 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+rom transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
 import os
-
+from datasets import load_dataset
 from transformers import DataCollatorForLanguageModeling
 
-data_collator = DataCollatorForLanguageModeling(
-    tokenizer=tokenizer,
-    mlm=False
-)
+train_prompt_style = """
+Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
+### Question:
+{}
+
+### Response:
+{}"""
 
 inference_prompt_style = """
 Please answer with one of the options in the bracket. Write reasoning in between <analysis></analysis>. Write the answer in between <answer></answer>.
@@ -19,19 +22,6 @@ Please answer with one of the options in the bracket. Write reasoning in between
 ### Response:
 <analysis>
 """
-
-from datasets import load_dataset
-
-dataset = load_dataset(
-    "mamachang/medical-reasoning",
-    split="train",
-    trust_remote_code=True,
-)
-dataset = dataset.map(
-    formatting_prompts_func,
-    batched=True,
-)
-print(dataset["text"][10])
 
 # Base model
 base_model_id = "unsloth/Magistral-Small-2506-bnb-4bit"
@@ -50,6 +40,43 @@ base_model = AutoModelForCausalLM.from_pretrained(
 base_model.config.use_cache = False
 base_model.config.pretraining_tp = 1
 
+tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
+
+
+data_collator = DataCollatorForLanguageModeling(
+    tokenizer=tokenizer,
+    mlm=False
+)
+
+EOS_TOKEN = tokenizer.eos_token  # Must add EOS_TOKEN
+
+def formatting_prompts_func(examples):
+    inputs = examples["input"]
+    outputs = examples["output"]
+    texts = []
+    for question, response in zip(inputs, outputs):
+        # Remove the "Q:" prefix from the question
+        question = question.replace("Q:", "")
+
+        # Append the EOS token to the response if it's not already there
+        if not response.endswith(tokenizer.eos_token):
+            response += tokenizer.eos_token
+
+        text = train_prompt_style.format(question, response)
+        texts.append(text)
+    return {"text": texts}
+
+dataset = load_dataset(
+    "mamachang/medical-reasoning",
+    split="train",
+    trust_remote_code=True,
+)
+dataset = dataset.map(
+    formatting_prompts_func,
+    batched=True,
+)
+print(dataset["text"][10])
+
 question = dataset[10]['input']
 question = question.replace("Q:", "")
 
@@ -58,7 +85,7 @@ inputs = tokenizer(
     return_tensors="pt"
 ).to("cuda")
 
-outputs = model.generate(
+outputs = base_model.generate(
     input_ids=inputs.input_ids,
     attention_mask=inputs.attention_mask,
     max_new_tokens=512,
@@ -68,6 +95,7 @@ outputs = model.generate(
 response = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 print(response[0].split("### Response:")[1])
 exit()
+
 
 
 # Attach the LoRA adapter
