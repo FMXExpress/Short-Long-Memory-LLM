@@ -231,8 +231,8 @@ response = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
 os.makedirs(os.path.dirname(chat_history_file) or ".", exist_ok=True)
 record = {
-    "input": user_input,
-    "output": assistant_output
+    "input": question,
+    "output": response[0].split("### Response:")[1]
 }
 with open(chat_history_file, "a", encoding="utf-8") as f:
     f.write(json.dumps(record, ensure_ascii=False) + "\n")
