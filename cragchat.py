@@ -3,7 +3,7 @@ import json
 import gc
 import torch
 
-# Disable Chroma telemetry
+# disable Chroma telemetry as a workaround
 os.environ["ANONYMIZED_TELEMETRY"] = "FALSE"
 
 from transformers import (
@@ -17,6 +17,17 @@ from peft import LoraConfig, get_peft_model, PeftModel
 from trl import SFTTrainer
 
 # new imports for Chroma RAG
+def _disable_chroma_telemetry():
+    try:
+        import chromadb
+        # Try to monkey-patch telemetry capture to no-op
+        from chromadb.telemetry.telemetry import TelemetryProxy
+        TelemetryProxy.capture = lambda *args, **kwargs: None
+    except Exception:
+        pass
+
+_disable_chroma_telemetry()
+
 from chromadb import PersistentClient
 from chromadb.config import Settings, DEFAULT_TENANT, DEFAULT_DATABASE
 from sentence_transformers import SentenceTransformer
@@ -107,9 +118,23 @@ def ensure_chat_history():
             f.write(json.dumps(default_record, ensure_ascii=False) + "\n")
 
 
+# === Embedding Wrapper ===
+class ChromaEmbedder:
+    """
+    Wraps a SentenceTransformer model to match Chroma's embedding interface.
+    """
+    def __init__(self, model):
+        self.model = model
+
+    def __call__(self, texts):
+        # texts: List[str]
+        embeds = self.model.encode(texts, convert_to_numpy=True)
+        return embeds.tolist()
+
+
 # === ChromaDB RAG pieces ===
 
-def init_vectorstore(embedding_model):
+def init_vectorstore(embedding_fn):
     """
     Initializes or loads a local ChromaDB collection and ingests all chat_history entries.
     """
@@ -121,17 +146,16 @@ def init_vectorstore(embedding_model):
         database=DEFAULT_DATABASE,
     )
 
-    # list_collections now returns names
     existing = client.list_collections()
     if "chat_history" in existing:
         col = client.get_collection(
             name="chat_history",
-            embedding_function=embedding_model.encode
+            embedding_function=embedding_fn
         )
     else:
         col = client.create_collection(
             name="chat_history",
-            embedding_function=embedding_model.encode
+            embedding_function=embedding_fn
         )
         # ingest existing history
         with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
@@ -269,12 +293,14 @@ def chat_and_record(model, tokenizer, collection, embedder):
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    doc_id = str(len(collection.list()))
+    # add to vectorstore
+    doc_id = str(len(collection.query(query_texts=[question], n_results=1)["ids"]) + 1)
     collection.add(ids=[doc_id], documents=[question + " " + answer])
 
 
 def main():
-    embedder   = SentenceTransformer(EMBED_MODEL_NAME)
+    embed_model = SentenceTransformer(EMBED_MODEL_NAME)
+    embedder = ChromaEmbedder(embed_model)
     collection = init_vectorstore(embedder)
 
     model, tokenizer = load_model_with_lora()
