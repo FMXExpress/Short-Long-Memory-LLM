@@ -82,8 +82,8 @@ PEFT_CONFIG = LoraConfig(
     bias="none",
     task_type="CAUSAL_LM",
     target_modules=[
-        "q_proj", "k_proj", "v_proj", "o_proj",
-        "gate_proj", "up_proj", "down_proj",
+        "q_proj","k_proj","v_proj","o_proj",
+        "gate_proj","up_proj","down_proj",
     ],
 )
 TRAINING_ARGS = TrainingArguments(
@@ -151,7 +151,10 @@ def init_vectorstore(embedding_fn):
 def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
     total_docs = collection.count()
     k = min(k, total_docs)
-    results = collection.query(query_texts=[question], n_results=k)
+    results = collection.query(
+        query_texts=[question],
+        n_results=k,
+    )
     docs = results.get("documents", [[]])[0]
     ctx = "\n\n".join(f"- {d}" for d in docs if d.strip())
     return ctx or "No relevant context found."
@@ -164,7 +167,10 @@ def format_chat_dataset(history_file: str, tokenizer):
         a = out
         if not a.endswith(tokenizer.eos_token): a += tokenizer.eos_token
         return TRAIN_PROMPT_TEMPLATE.format(q, a, context="")
-    return ds.map(lambda batch: {"text": [_format_pair(i, o) for i, o in zip(batch["input"], batch["output"]) ]}, batched=True)
+    return ds.map(
+        lambda batch: {"text": [_format_pair(i, o) for i, o in zip(batch["input"], batch["output"]) ]},
+        batched=True,
+    )
 
 # LoRA training
 def train_lora():
@@ -174,7 +180,13 @@ def train_lora():
     model = get_peft_model(model, PEFT_CONFIG).to(DEVICE)
     ds = format_chat_dataset(CHAT_HISTORY_FILE, tokenizer)
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    trainer = SFTTrainer(model=model, args=TRAINING_ARGS, train_dataset=ds, peft_config=PEFT_CONFIG, data_collator=data_collator)
+    trainer = SFTTrainer(
+        model=model,
+        args=TRAINING_ARGS,
+        train_dataset=ds,
+        peft_config=PEFT_CONFIG,
+        data_collator=data_collator,
+    )
     gc.collect(); torch.cuda.empty_cache(); trainer.train()
     model.save_pretrained(LORA_DIR, safe_serialization=True); tokenizer.save_pretrained(LORA_DIR)
     del trainer, model; torch.cuda.empty_cache()
@@ -182,8 +194,14 @@ def train_lora():
 # Load or train LoRA
 def load_model_with_lora():
     ensure_chat_history()
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True, trust_remote_code=True)
-    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, torch_dtype=torch.bfloat16, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        BASE_MODEL_ID, use_fast=True, trust_remote_code=True
+    )
+    base_model = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL_ID,
+        torch_dtype=torch.bfloat16,
+        trust_remote_code=True,
+    )
     base_model.config.use_cache=False; base_model.to(DEVICE)
     if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR):
         model = PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE)
@@ -200,12 +218,12 @@ def chat_and_record(model, tokenizer, collection, embedder):
     inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
 
     # Setup streamer
-darunner
     streamer = TextIteratorStreamer(
         tokenizer,
         skip_prompt=True,
         skip_special_tokens=True,
     )
+
     # Launch generation on a background thread
     gen_kwargs = dict(
         input_ids=inputs.input_ids,
@@ -220,7 +238,6 @@ darunner
     # Stream tokens for analysis phase
     print("<analysis>", end="", flush=True)
     for token in streamer:
-        # detect end of analysis tag output
         print(token, end="", flush=True)
         if token.strip().endswith("</analysis>"):
             break
