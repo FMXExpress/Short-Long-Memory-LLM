@@ -6,6 +6,7 @@ import uuid
 
 # disable Chroma telemetry completely
 os.environ["ANONYMIZED_TELEMETRY"] = "FALSE"
+os.environ["CHROMA_TELEMETRY_ENABLED"] = "FALSE"
 
 def _disable_chroma_telemetry():
     try:
@@ -197,7 +198,7 @@ def chat_and_record(model, tokenizer, collection, embedder):
     context = retrieve_context(question, collection)
     prompt = INFER_PROMPT_PREFIX.format(question, context=context) + tokenizer.eos_token
     inputs = tokenizer([prompt], return_tensors="pt").to(DEVICE)
-    outputs = model.generate(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=512, eos_token_id=tokenizer.eos_token_id, use_cache=True)
+    outputs = model.generate(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=4096, eos_token_id=tokenizer.eos_token_id, use_cache=True)
     resp = tokenizer.decode(outputs[0], skip_special_tokens=True)
     answer = resp.split("### Response:")[-1].strip()
     print(answer)
