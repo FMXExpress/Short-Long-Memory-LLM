@@ -214,6 +214,7 @@ def load_model_with_lora():
 def chat_and_record(model, tokenizer, collection, embedder):
     question = input("Question: ").lstrip("Q:")
     context = retrieve_context(question, collection)
+    print("🛈 [RAG CONTEXT]\n", context, "\n🛈 end RAG CONTEXT\n")
     prompt = INFER_PROMPT_PREFIX.format(context=context, question=question) + tokenizer.eos_token
     inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
 
