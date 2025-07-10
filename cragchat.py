@@ -3,6 +3,9 @@ import json
 import gc
 import torch
 
+# Disable Chroma telemetry
+os.environ["ANONYMIZED_TELEMETRY"] = "FALSE"
+
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
@@ -118,8 +121,8 @@ def init_vectorstore(embedding_model):
         database=DEFAULT_DATABASE,
     )
 
-    # get (or create) a collection
-    existing = [c.name for c in client.list_collections()]
+    # list_collections now returns names
+    existing = client.list_collections()
     if "chat_history" in existing:
         col = client.get_collection(
             name="chat_history",
@@ -146,8 +149,7 @@ def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
     Returns a formatted string to inject into the prompt.
     """
     results = collection.query(query_texts=[question], n_results=k)
-    docs = results["documents"][0]
-    # join retrieved docs into a single context block
+    docs = results.get("documents", [[]])[0]
     ctx = "\n\n".join(f"- {d}" for d in docs if d.strip())
     return ctx or "No relevant context found."
 
@@ -165,7 +167,6 @@ def format_chat_dataset(history_file: str, tokenizer) -> torch.utils.data.Datase
         a = out
         if not a.endswith(tokenizer.eos_token):
             a += tokenizer.eos_token
-        # during training we'll just use empty context
         return TRAIN_PROMPT_TEMPLATE.format(q, a, context="")
 
     return ds.map(
@@ -229,7 +230,6 @@ def load_model_with_lora():
     base_model.config.use_cache = False
     base_model.to(DEVICE)
 
-    # Load or train LoRA
     if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR):
         model = PeftModel.from_pretrained(
             base_model, LORA_DIR
@@ -248,10 +248,8 @@ def chat_and_record(model, tokenizer, collection, embedder):
     Runs a single inference on DEVICE with RAG, prints and appends to chat history & vectorstore.
     """
     question = input("Question: ").lstrip("Q:")
-    # retrieve context
     context = retrieve_context(question, collection, k=TOP_K)
 
-    # build prompt with retrieved context
     prompt = INFER_PROMPT_PREFIX.format(context, question) + tokenizer.eos_token
     inputs = tokenizer([prompt], return_tensors="pt").to(DEVICE)
 
@@ -266,28 +264,24 @@ def chat_and_record(model, tokenizer, collection, embedder):
     answer = resp.split("### Response:")[-1].strip()
     print(answer)
 
-    # record to JSONL
     record = {"input": question, "output": answer}
     os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True)
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    # also add this new Q&A to Chroma
-    doc_id = str(collection.count() + 1)
+    doc_id = str(len(collection.list()))
     collection.add(ids=[doc_id], documents=[question + " " + answer])
 
 
 def main():
-    # initialize embeddings & vectorstore
     embedder   = SentenceTransformer(EMBED_MODEL_NAME)
     collection = init_vectorstore(embedder)
 
-    # load model + tokenizer
     model, tokenizer = load_model_with_lora()
 
-    # interactive loop
     while True:
         chat_and_record(model, tokenizer, collection, embedder)
+
 
 if __name__ == "__main__":
     main()
