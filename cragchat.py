@@ -96,7 +96,6 @@ TRAINING_ARGS = TrainingArguments(
     gradient_accumulation_steps=2,
     num_train_epochs=1,
     bf16=True,
-    gradient_checkpointing=True,
     optim="paged_adamw_32bit",
     learning_rate=2e-4,
     logging_strategy="steps",
@@ -151,7 +150,7 @@ def format_chat_dataset(history_file, tokenizer):
 def train_lora():
     ensure_chat_history()
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
-    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, quantization_config=bnb_config, device_map="auto"); base_model.gradient_checkpointing_enable()
+    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, quantization_config=bnb_config, device_map="auto");
     model = get_peft_model(base_model, PEFT_CONFIG).to(device)
     ds = format_chat_dataset(CHAT_HISTORY_FILE, tokenizer)
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
