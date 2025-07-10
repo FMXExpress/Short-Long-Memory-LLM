@@ -5,20 +5,19 @@ import torch
 import uuid
 import threading
 
-# disable Chroma telemetry completely
+# Environment configurations
 os.environ["ANONYMIZED_TELEMETRY"] = "FALSE"
 os.environ["CHROMA_TELEMETRY_ENABLED"] = "FALSE"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "garbage_collection_threshold:0.6,max_split_size_mb:128"
 
 def _disable_chroma_telemetry():
     try:
         import chromadb
         from chromadb.telemetry.telemetry import TelemetryProxy
-        # no-op telemetry calls
         TelemetryProxy.capture = staticmethod(lambda *args, **kwargs: None)
         TelemetryProxy.capture_event = staticmethod(lambda *args, **kwargs: None)
     except Exception:
         pass
-
 _disable_chroma_telemetry()
 
 from transformers import (
@@ -26,6 +25,7 @@ from transformers import (
     AutoModelForCausalLM,
     DataCollatorForLanguageModeling,
     TrainingArguments,
+    BitsAndBytesConfig,
     TextIteratorStreamer,
 )
 from datasets import load_dataset
@@ -44,7 +44,7 @@ EMBED_MODEL_NAME  = "sentence-transformers/all-MiniLM-L6-v2"
 TOP_K             = 5
 MAX_NEW_TOKENS    = 1024
 
-# Prompt templates (use named placeholders)
+# Prompt templates
 TRAIN_PROMPT_TEMPLATE = (
     """
 Context:
@@ -74,164 +74,127 @@ Write the answer in between <answer></answer>.
 <analysis>"""
 )
 
-# === LoRA Training Configuration ===
+# === LoRA & BitsAndBytes Config ===
 PEFT_CONFIG = LoraConfig(
     lora_alpha=16,
     lora_dropout=0.05,
     r=64,
     bias="none",
     task_type="CAUSAL_LM",
-    target_modules=[
-        "q_proj","k_proj","v_proj","o_proj",
-        "gate_proj","up_proj","down_proj",
-    ],
+    target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
 )
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+
 TRAINING_ARGS = TrainingArguments(
     output_dir=LORA_DIR,
     per_device_train_batch_size=1,
-    per_device_eval_batch_size=1,
     gradient_accumulation_steps=2,
-    optim="paged_adamw_32bit",
     num_train_epochs=1,
+    bf16=True,
+    gradient_checkpointing=True,
+    optim="paged_adamw_32bit",
     learning_rate=2e-4,
     logging_strategy="steps",
     warmup_steps=10,
     fp16=False,
-    bf16=False,
     group_by_length=True,
     report_to="none",
 )
 
-# Determine device
-if torch.cuda.is_available() and torch.cuda.device_count() > 1:
-    DEVICE = torch.device("cuda:1")
-elif torch.cuda.is_available():
-    DEVICE = torch.device("cuda:0")
-else:
-    DEVICE = torch.device("cpu")
+# Device
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# === Utility Functions ===
+ensure_chat_history = lambda: os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True) or (not os.path.exists(CHAT_HISTORY_FILE) and open(CHAT_HISTORY_FILE, "w").write(json.dumps({"input":"","output":""})+"\n"))
 
-def ensure_chat_history():
-    os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True)
-    if not os.path.exists(CHAT_HISTORY_FILE):
-        default_record = {"input": "", "output": ""}
-        with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
-            f.write(json.dumps(default_record, ensure_ascii=False) + "\n")
-
-# Embedding wrapper
 class ChromaEmbedder:
-    def __init__(self, model):
-        self.model = model
-    def __call__(self, input):
-        embeds = self.model.encode(input, convert_to_numpy=True)
-        return embeds.tolist()
+    def __init__(self, model): self.model = model
+    def __call__(self, input): return self.model.encode(input, convert_to_numpy=True).tolist()
 
-# Vectorstore init
+# === ChromaDB RAG ===
 def init_vectorstore(embedding_fn):
     os.makedirs(CHROMA_DIR, exist_ok=True)
-    client = PersistentClient(
-        path=CHROMA_DIR,
-        settings=Settings(anonymized_telemetry=False),
-        tenant=DEFAULT_TENANT,
-        database=DEFAULT_DATABASE,
-    )
-    existing = client.list_collections()
-    if "chat_history" in existing:
-        col = client.get_collection(name="chat_history", embedding_function=embedding_fn)
-    else:
-        col = client.create_collection(name="chat_history", embedding_function=embedding_fn)
-        with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
-            records = [json.loads(line) for line in f]
-        texts = [r["input"] + " " + r["output"] for r in records]
-        ids   = [str(i) for i in range(len(texts))]
-        col.add(ids=ids, documents=texts)
+    client = PersistentClient(path=CHROMA_DIR, settings=Settings(anonymized_telemetry=False), tenant=DEFAULT_TENANT, database=DEFAULT_DATABASE)
+    if "chat_history" in client.list_collections():
+        return client.get_collection(name="chat_history", embedding_function=embedding_fn)
+    col = client.create_collection(name="chat_history", embedding_function=embedding_fn)
+    records = [json.loads(l) for l in open(CHAT_HISTORY_FILE, encoding="utf-8")]
+    texts   = [r["input"]+" "+r["output"] for r in records]
+    ids     = [str(i) for i in range(len(texts))]
+    col.add(ids=ids, documents=texts)
     return col
 
-# Retrieve context
-def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
-    total_docs = collection.count()
-    k = min(k, total_docs)
-    results = collection.query(query_texts=[question], n_results=k)
-    docs = results.get("documents", [[]])[0]
+def retrieve_context(question, collection, k=TOP_K):
+    total = collection.count()
+    k = min(k, total)
+    docs = collection.query(query_texts=[question], n_results=k).get("documents", [[]])[0]
     return "\n\n".join(f"- {d}" for d in docs if d.strip()) or "No relevant context found."
 
-# Formatting dataset
-def format_chat_dataset(history_file: str, tokenizer):
+# === Dataset Formatting ===
+def format_chat_dataset(history_file, tokenizer):
     ds = load_dataset("json", data_files=history_file, split="train")
-    def _format_pair(inp, out):
-        return TRAIN_PROMPT_TEMPLATE.format(question=inp.lstrip("Q:"), response=(out + tokenizer.eos_token if not out.endswith(tokenizer.eos_token) else out), context="")
-    return ds.map(lambda batch: {"text": [_format_pair(i, o) for i, o in zip(batch["input"], batch["output"]) ]}, batched=True)
+    def tokenize_fn(example):
+        text = TRAIN_PROMPT_TEMPLATE.format(
+            context="", question=example["input"].lstrip("Q:"), response=example["output"] + tokenizer.eos_token
+        )
+        tok = tokenizer(text, padding=True, return_tensors="pt")
+        tok["labels"] = tok.input_ids.clone()
+        return tok
+    return ds.map(tokenize_fn, batched=False, remove_columns=["input","output"])
 
-# LoRA training
+# === LoRA Training ===
 def train_lora():
+    ensure_chat_history()
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
-    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, torch_dtype=torch.bfloat16)
-    model.config.use_cache=False; model.to(DEVICE)
-    model = get_peft_model(model, PEFT_CONFIG).to(DEVICE)
+    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, quantization_config=bnb_config, device_map="auto"); base_model.gradient_checkpointing_enable()
+    model = get_peft_model(base_model, PEFT_CONFIG).to(device)
     ds = format_chat_dataset(CHAT_HISTORY_FILE, tokenizer)
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    trainer = SFTTrainer(model=model, args=TRAINING_ARGS, train_dataset=ds, peft_config=PEFT_CONFIG, data_collator=data_collator)
-    gc.collect(); torch.cuda.empty_cache(); trainer.train()
-    model.save_pretrained(LORA_DIR, safe_serialization=True); tokenizer.save_pretrained(LORA_DIR)
-    del trainer, model; torch.cuda.empty_cache()
+    torch.cuda.empty_cache(); gc.collect()
+    trainer = SFTTrainer(model=model, args=TRAINING_ARGS, train_dataset=ds, data_collator=data_collator, peft_config=PEFT_CONFIG)
+    trainer.train(); model.save_pretrained(LORA_DIR, safe_serialization=True); tokenizer.save_pretrained(LORA_DIR)
 
-# Load or train LoRA
+# === Model Loading ===
 def load_model_with_lora():
-    ensure_chat_history()
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True, trust_remote_code=True)
-    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, torch_dtype=torch.bfloat16, trust_remote_code=True)
-    base_model.config.use_cache=False; base_model.to(DEVICE)
-    if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR):
-        model = PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE)
-    else:
-        train_lora()
-        model = PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE)
+    ensure_chat_history(); tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True, trust_remote_code=True)
+    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, quantization_config=bnb_config, device_map="auto"); base_model.gradient_checkpointing_enable()
+    if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR): model = PeftModel.from_pretrained(base_model, LORA_DIR).to(device)
+    else: train_lora(); model = PeftModel.from_pretrained(base_model, LORA_DIR).to(device)
     return model, tokenizer
 
-# Chat loop with streaming
+# === Chat/Inference ===
 def chat_and_record(model, tokenizer, collection, embedder):
     question = input("Question: ").lstrip("Q:")
-    context = retrieve_context(question, collection)
-    print("🛈 RAG context:\n", context)
-    prompt = INFER_PROMPT_PREFIX.format(context=context, question=question) + tokenizer.eos_token
-    inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
-
+    context  = retrieve_context(question, collection); print("🛈 RAG context:\n", context)
+    prompt   = INFER_PROMPT_PREFIX.format(context=context, question=question)
+    inputs   = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-    gen_kwargs = dict(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=MAX_NEW_TOKENS, eos_token_id=tokenizer.eos_token_id, streamer=streamer)
-    thread = threading.Thread(target=model.generate, kwargs=gen_kwargs)
-    thread.start()
-
+    thread = threading.Thread(target=model.generate, kwargs={**dict(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=MAX_NEW_TOKENS, eos_token_id=tokenizer.eos_token_id), 'streamer': streamer}); thread.start()
     print("<analysis>", end="", flush=True)
-    for token in streamer:
-        print(token, end="", flush=True)
-        if token.strip().endswith("</analysis>"):
-            break
+    for tok in streamer:
+        print(tok, end="", flush=True)
+        if tok.strip().endswith("</analysis>"): break
     print("</analysis>")
+    ans_tokens = []
+    for tok in streamer:
+        print(tok, end="", flush=True); ans_tokens.append(tok)
+    thread.join(); print()
+    answer = "".join(ans_tokens)
+    if "<answer>" in answer and "</answer>" not in answer: answer += "</answer>"
+    record = {"input": question, "output": answer}
+    with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f: f.write(json.dumps(record, ensure_ascii=False)+"\n")
+    collection.add(ids=[str(uuid.uuid4())], documents=[question+" "+answer])
 
-    answer_tokens = []
-    for token in streamer:
-        print(token, end="", flush=True)
-        answer_tokens.append(token)
-    thread.join()
-
-    full_answer = "".join(answer_tokens)
-    if "<answer>" in full_answer and "</answer>" not in full_answer:
-        full_answer += "</answer>"
-
-    print()  # newline
-    record = {"input": question, "output": full_answer}
-    with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    collection.add(ids=[str(uuid.uuid4())], documents=[question + " " + full_answer])
-
-# Main
+# === Main ===
 def main():
-    embed_model = SentenceTransformer(EMBED_MODEL_NAME)
-    embedder = ChromaEmbedder(embed_model)
-    collection = init_vectorstore(embedder)
+    embed_model = SentenceTransformer(EMBED_MODEL_NAME); embedder = ChromaEmbedder(embed_model)
+    collection  = init_vectorstore(embedder)
     model, tokenizer = load_model_with_lora()
-    while True:
-        chat_and_record(model, tokenizer, collection, embedder)
+    while True: chat_and_record(model, tokenizer, collection, embedder)
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
