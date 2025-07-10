@@ -20,6 +20,9 @@ def _disable_chroma_telemetry():
         pass
 _disable_chroma_telemetry()
 
+import transformers.integrations.sdpa_attention as _sdpa
+_sdpa.repeat_kv = lambda hidden_states, num_key_value_groups: hidden_states
+
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
