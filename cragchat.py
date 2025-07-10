@@ -14,8 +14,8 @@ from peft import LoraConfig, get_peft_model, PeftModel
 from trl import SFTTrainer
 
 # new imports for Chroma RAG
-import chromadb
-from chromadb.config import Settings
+from chromadb import PersistentClient
+from chromadb.config import Settings, DEFAULT_TENANT, DEFAULT_DATABASE
 from sentence_transformers import SentenceTransformer
 
 # === Configuration Constants ===
@@ -110,13 +110,26 @@ def init_vectorstore(embedding_model):
     """
     Initializes or loads a local ChromaDB collection and ingests all chat_history entries.
     """
-    client = chromadb.Client(Settings(chroma_db_impl="chromadb.db.duckdb.NativeDuckDB", persist_directory=CHROMA_DIR))
-    # get (or create) a collection
-    if "chat_history" in [c.name for c in client.list_collections()]:
-        col = client.get_collection("chat_history", embedding_function=embedding_model.encode)
-    else:
-        col = client.create_collection("chat_history", embedding_function=embedding_model.encode)
+    os.makedirs(CHROMA_DIR, exist_ok=True)
+    client = PersistentClient(
+        path=CHROMA_DIR,
+        settings=Settings(anonymized_telemetry=False),
+        tenant=DEFAULT_TENANT,
+        database=DEFAULT_DATABASE,
+    )
 
+    # get (or create) a collection
+    existing = [c.name for c in client.list_collections()]
+    if "chat_history" in existing:
+        col = client.get_collection(
+            name="chat_history",
+            embedding_function=embedding_model.encode
+        )
+    else:
+        col = client.create_collection(
+            name="chat_history",
+            embedding_function=embedding_model.encode
+        )
         # ingest existing history
         with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
             records = [json.loads(line) for line in f]
@@ -125,6 +138,7 @@ def init_vectorstore(embedding_model):
         col.add(ids=ids, documents=texts)
 
     return col
+
 
 def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
     """
@@ -136,6 +150,7 @@ def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
     # join retrieved docs into a single context block
     ctx = "\n\n".join(f"- {d}" for d in docs if d.strip())
     return ctx or "No relevant context found."
+
 
 # === original formatting & training functions, updated to pass context ===
 
@@ -260,6 +275,7 @@ def chat_and_record(model, tokenizer, collection, embedder):
     # also add this new Q&A to Chroma
     doc_id = str(collection.count() + 1)
     collection.add(ids=[doc_id], documents=[question + " " + answer])
+
 
 def main():
     # initialize embeddings & vectorstore

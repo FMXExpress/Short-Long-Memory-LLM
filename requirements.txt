@@ -5,7 +5,5 @@ accelerate
 peft
 trl
 bitsandbytes
-langchain
-unstructured
-nltk
-ragbuilder
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
