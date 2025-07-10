@@ -145,10 +145,18 @@ def init_vectorstore(embedding_fn):
 
 # Retrieve context
 def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
-    results = collection.query(query_texts=[question], n_results=k)
+    # figure out how many docs we actually have
+    total_docs = collection.count()       # number of items in this collection
+    k = min(k, total_docs)                # don’t request more than exist
+
+    results = collection.query(
+        query_texts=[question],
+        n_results=k,
+    )
     docs = results.get("documents", [[]])[0]
     ctx = "\n\n".join(f"- {d}" for d in docs if d.strip())
     return ctx or "No relevant context found."
+
 
 # Formatting dataset
 def format_chat_dataset(history_file: str, tokenizer):
