@@ -3,6 +3,7 @@ import json
 import gc
 import torch
 import uuid
+import threading
 
 # disable Chroma telemetry completely
 os.environ["ANONYMIZED_TELEMETRY"] = "FALSE"
@@ -25,6 +26,7 @@ from transformers import (
     AutoModelForCausalLM,
     DataCollatorForLanguageModeling,
     TrainingArguments,
+    TextIteratorStreamer,
 )
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, PeftModel
@@ -40,6 +42,7 @@ LORA_DIR           = "chat_history_lora"
 CHROMA_DIR         = "./chroma_db"
 EMBED_MODEL_NAME   = "sentence-transformers/all-MiniLM-L6-v2"
 TOP_K              = 5
+MAX_NEW_TOKENS     = 1024
 
 # Prompt templates
 TRAIN_PROMPT_TEMPLATE = (
@@ -146,18 +149,12 @@ def init_vectorstore(embedding_fn):
 
 # Retrieve context
 def retrieve_context(question: str, collection, k: int = TOP_K) -> str:
-    # figure out how many docs we actually have
-    total_docs = collection.count()       # number of items in this collection
-    k = min(k, total_docs)                # don’t request more than exist
-
-    results = collection.query(
-        query_texts=[question],
-        n_results=k,
-    )
+    total_docs = collection.count()
+    k = min(k, total_docs)
+    results = collection.query(query_texts=[question], n_results=k)
     docs = results.get("documents", [[]])[0]
     ctx = "\n\n".join(f"- {d}" for d in docs if d.strip())
     return ctx or "No relevant context found."
-
 
 # Formatting dataset
 def format_chat_dataset(history_file: str, tokenizer):
@@ -189,25 +186,65 @@ def load_model_with_lora():
     base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, torch_dtype=torch.bfloat16, trust_remote_code=True)
     base_model.config.use_cache=False; base_model.to(DEVICE)
     if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR):
-        return PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE), tokenizer
-    train_lora(); return PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE), tokenizer
+        model = PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE)
+    else:
+        train_lora()
+        model = PeftModel.from_pretrained(base_model, LORA_DIR).to(DEVICE)
+    return model, tokenizer
 
-# Chat loop
+# Chat loop with streaming
 def chat_and_record(model, tokenizer, collection, embedder):
     question = input("Question: ").lstrip("Q:")
     context = retrieve_context(question, collection)
-    prompt = INFER_PROMPT_PREFIX.format(question, context=context) + tokenizer.eos_token
-    inputs = tokenizer([prompt], return_tensors="pt").to(DEVICE)
-    outputs = model.generate(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=4096, eos_token_id=tokenizer.eos_token_id, use_cache=True)
-    resp = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    answer = resp.split("### Response:")[-1].strip()
-    print(answer)
-    record = {"input": question, "output": answer}
-    os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True)
+    prompt = INFER_PROMPT_PREFIX.format(context=context, question=question) + tokenizer.eos_token
+    inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
+
+    # Setup streamer
+darunner
+    streamer = TextIteratorStreamer(
+        tokenizer,
+        skip_prompt=True,
+        skip_special_tokens=True,
+    )
+    # Launch generation on a background thread
+    gen_kwargs = dict(
+        input_ids=inputs.input_ids,
+        attention_mask=inputs.attention_mask,
+        max_new_tokens=MAX_NEW_TOKENS,
+        eos_token_id=tokenizer.eos_token_id,
+        streamer=streamer,
+    )
+    thread = threading.Thread(target=model.generate, kwargs=gen_kwargs)
+    thread.start()
+
+    # Stream tokens for analysis phase
+    print("<analysis>", end="", flush=True)
+    for token in streamer:
+        # detect end of analysis tag output
+        print(token, end="", flush=True)
+        if token.strip().endswith("</analysis>"):
+            break
+    print("</analysis>")
+
+    # Collect remaining tokens for answer
+    answer_tokens = []
+    for token in streamer:
+        print(token, end="", flush=True)
+        answer_tokens.append(token)
+    thread.join()
+
+    full_answer = "".join(answer_tokens)
+    if "<answer>" in full_answer and "</answer>" not in full_answer:
+        full_answer += "</answer>"
+
+    print()  # newline after streaming
+
+    # Record Q/A
+    record = {"input": question, "output": full_answer}
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
     doc_id = str(uuid.uuid4())
-    collection.add(ids=[doc_id], documents=[question + " " + answer])
+    collection.add(ids=[doc_id], documents=[question + " " + full_answer])
 
 # Main
 def main():
