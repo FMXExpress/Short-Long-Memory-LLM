@@ -19,6 +19,18 @@ def _disable_chroma_telemetry():
         pass
 _disable_chroma_telemetry()
 
+# === SDPA‐attention fix: flatten extra dims ===
+import transformers.integrations.sdpa_attention as _sdpa
+
+def repeat_kv(hidden_states, num_key_value_groups):
+    # collapse (batch, groups, heads, seq_len, head_dim) → (batch, groups*heads, seq_len, head_dim)
+    if hidden_states.ndim == 5:
+        b, g, h, seq_len, head_dim = hidden_states.shape
+        return hidden_states.reshape(b, g * h, seq_len, head_dim)
+    return hidden_states
+
+_sdpa.repeat_kv = repeat_kv
+
 # === MemCube Configuration ===
 from memos.configs.mem_os import MOSConfig
 from memos.mem_os.main import MOS
