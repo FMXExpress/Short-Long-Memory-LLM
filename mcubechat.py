@@ -42,7 +42,7 @@ from memos.mem_os.main import MOS
 BASE_MODEL_ID      = "unsloth/Magistral-Small-2506-bnb-4bit"
 CHAT_HISTORY_FILE  = "chat_history.jsonl"
 LORA_DIR           = "chat_history_lora"
-MEMOS_CONFIG_PATH  = "memos_config.json"
+MEMOS_CONFIG_PATH  = "examples/data/config/simple_memos_config.json"
 MEM_CUBE_PATH      = "examples/data/mem_cube_2"
 USER_ID            = "b41a34d5-5cae-4b46-8c49-d03794d206f5"
 TOP_K              = 5
