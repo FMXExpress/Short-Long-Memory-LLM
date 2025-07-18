@@ -134,11 +134,14 @@ def retrieve_context(question: str, memory: MOS, user_id: str, k: int = TOP_K) -
     Retrieve top-k memories for the question from MemCube.
     """
     results = memory.search(query=question, user_id=user_id)
-    texts = results.get('text_mem', [])
-    if not texts:
+    items = results.get('text_mem', [])
+    if not items:
         return "No relevant context found."
-    snippets = texts[:k]
-    return "\n\n".join(f"- {s}" for s in snippets if s.strip()) or "No relevant context found."
+    # extract the 'memory' field from each item dict
+    snippets = [item.get('memory', '') for item in items[:k] if item.get('memory')]
+    if not snippets:
+        return "No relevant context found."
+    return "\n\n".join(f"- {s}" for s in snippets)
 
 # === Dataset Formatting ===
 def format_chat_dataset(history_file, tokenizer):
