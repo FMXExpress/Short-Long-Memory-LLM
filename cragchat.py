@@ -21,7 +21,16 @@ def _disable_chroma_telemetry():
 _disable_chroma_telemetry()
 
 import transformers.integrations.sdpa_attention as _sdpa
-_sdpa.repeat_kv = lambda hidden_states, num_key_value_groups: hidden_states
+import torch
+
+def repeat_kv(hidden_states: torch.Tensor, num_key_value_groups: int) -> torch.Tensor:
+    """
+    hidden_states: (batch, num_kv_heads, seq_len, head_dim)
+    returns:      (batch, num_kv_heads * num_key_value_groups, seq_len, head_dim)
+    """
+    return hidden_states.repeat_interleave(num_key_value_groups, dim=1)
+
+_sdpa.repeat_kv = repeat_kv
 
 from transformers import (
     AutoTokenizer,
