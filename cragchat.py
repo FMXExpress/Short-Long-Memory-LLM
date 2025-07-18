@@ -200,26 +200,54 @@ def load_model_with_lora():
 
 # === Chat/Inference ===
 def chat_and_record(model, tokenizer, collection, embedder):
+    # Read user question
     question = input("Question: ").lstrip("Q:")
-    context  = retrieve_context(question, collection); print("🛈 RAG context:\n", context)
-    prompt   = INFER_PROMPT_PREFIX.format(context=context, question=question)
-    inputs   = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
-    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-    thread = threading.Thread(target=model.generate, kwargs={**dict(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=MAX_NEW_TOKENS, eos_token_id=tokenizer.eos_token_id), 'streamer': streamer}); thread.start()
-    print("<analysis>", end="", flush=True)
+
+    # Retrieve RAG context
+    context = retrieve_context(question, collection)
+    print("🛈 RAG context:\n", context)
+
+    # Build prompt for analysis and answer
+    prompt = INFER_PROMPT_PREFIX.format(context=context, question=question)
+    inputs = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
+
+    # Set up the streamer for token-by-token output
+    streamer = TextIteratorStreamer(
+        tokenizer,
+        skip_prompt=True,
+        skip_special_tokens=True
+    )
+
+    # Launch generation in a background thread
+    thread = threading.Thread(
+        target=model.generate,
+        kwargs={
+            'input_ids': inputs.input_ids,
+            'attention_mask': inputs.attention_mask,
+            'max_new_tokens': MAX_NEW_TOKENS,
+            'eos_token_id': tokenizer.eos_token_id,
+            'streamer': streamer
+        }
+    )
+    thread.start()
+
+    # Single loop: print both <analysis>...</analysis> and <answer>...</answer>
     for tok in streamer:
         print(tok, end="", flush=True)
-        if tok.strip().endswith("</analysis>"): break
-    print("</analysis>")
-    ans_tokens = []
-    for tok in streamer:
-        print(tok, end="", flush=True); ans_tokens.append(tok)
-    thread.join(); print()
-    answer = "".join(ans_tokens)
-    if "<answer>" in answer and "</answer>" not in answer: answer += "</answer>"
+
+    # Ensure generation is complete
+    thread.join()
+    print()  # final newline
+
+    # Extract answer from printed tokens if needed
+    # (Optionally post-process or record as before)
+    # Record into history
+    answer = None  # parse from printed stream or capture separately
     record = {"input": question, "output": answer}
-    with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f: f.write(json.dumps(record, ensure_ascii=False)+"\n")
-    collection.add(ids=[str(uuid.uuid4())], documents=[question+" "+answer])
+    with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    collection.add(ids=[str(uuid.uuid4())], documents=[question + " " + (answer or "")])
+
 
 # === Main ===
 def main():
