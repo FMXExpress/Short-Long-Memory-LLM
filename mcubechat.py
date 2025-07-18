@@ -42,12 +42,11 @@ from memos.mem_os.main import MOS
 BASE_MODEL_ID      = "unsloth/Magistral-Small-2506-bnb-4bit"
 CHAT_HISTORY_FILE  = "chat_history.jsonl"
 LORA_DIR           = "chat_history_lora"
-MEMOS_CONFIG_PATH  = "examples/data/config/simple_memos_config.json"
+MEMOS_CONFIG_PATH  = "memos_config.json"
 MEM_CUBE_PATH      = "examples/data/mem_cube_2"
 USER_ID            = "b41a34d5-5cae-4b46-8c49-d03794d206f5"
 TOP_K              = 5
 MAX_NEW_TOKENS     = 1024
-EMBED_MODEL_NAME   = "sentence-transformers/all-MiniLM-L6-v2"
 
 # Prompt templates
 TRAIN_PROMPT_TEMPLATE = (
@@ -119,17 +118,13 @@ def init_memory(config_path: str, cube_path: str, user_id: str) -> MOS:
     Initializes MemOS (MemCube) for the given user.
     Idempotent: re-creates user and registers cube if not exists.
     """
-    # Load MemOS configuration
     mos_config = MOSConfig.from_json_file(config_path)
     memory = MOS(mos_config)
 
-    # Ensure user exists
     try:
         memory.create_user(user_id=user_id)
     except Exception:
         pass
-
-    # Register mem cube
     memory.register_mem_cube(cube_path, user_id=user_id)
     return memory
 
@@ -186,26 +181,13 @@ def load_model_with_lora():
     return model, tokenizer
 
 # === Chat/Inference ===
-def chat_and_record(model, tokenizer, memory, user_id: str):
-    # Read the user's question
+def chat_and_record(model, tokenizer, memory: MOS, user_id: str):
     question = input("Question: ").lstrip("Q:")
-
-    # Retrieve and display RAG context
     context = retrieve_context(question, memory, user_id)
     print("🛈 RAG context:\n", context)
-
-    # Build the inference prompt
     prompt = INFER_PROMPT_PREFIX.format(context=context, question=question)
     inputs = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
-
-    # Set up the streamer for token-by-token output
-    streamer = TextIteratorStreamer(
-        tokenizer,
-        skip_prompt=True,
-        skip_special_tokens=True,
-    )
-
-    # Launch the generation in a background thread
+    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
     thread = threading.Thread(
         target=model.generate,
         kwargs={
@@ -217,16 +199,12 @@ def chat_and_record(model, tokenizer, memory, user_id: str):
         }
     )
     thread.start()
-
-    # Stream and print the full response
     full_response = ""
     for tok in streamer:
         print(tok, end="", flush=True)
         full_response += tok
     thread.join()
     print()
-
-    # Extract the answer between <answer> tags, if present
     if "<answer>" in full_response and "</answer>" in full_response:
         answer = full_response.split("<answer>")[1].split("</answer>")[0].strip()
     else:
@@ -237,24 +215,22 @@ def chat_and_record(model, tokenizer, memory, user_id: str):
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    # Add to memory
-    memory.add(
-        messages=[
-            {"role": "user", "content": question},
-            {"role": "assistant", "content": answer},
-        ],
+    # Add to MemCube using text-specific API
+    memory.add_text(
+        memory=question,
+        metadata={"role": "user"},
+        user_id=user_id,
+    )
+    memory.add_text(
+        memory=answer,
+        metadata={"role": "assistant"},
         user_id=user_id,
     )
 
 # === Main ===
 def main():
-    # Initialize MemCube
     memory = init_memory(MEMOS_CONFIG_PATH, MEM_CUBE_PATH, USER_ID)
-
-    # Load model + tokenizer
     model, tokenizer = load_model_with_lora()
-
-    # Chat loop
     while True:
         chat_and_record(model, tokenizer, memory, USER_ID)
 
