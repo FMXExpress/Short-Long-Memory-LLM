@@ -112,7 +112,7 @@ TRAINING_ARGS = TrainingArguments(
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # === Utility Functions ===
-ensure_chat_history = lambda: os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True) or (not os.path.exists(CHAT_HISTORY_FILE) and open(CHAT_HISTORY_FILE, "w").write(json.dumps({"input":"","output":""})+"\n"))
+ensure_chat_history = lambda: os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True) or (not os.path.exists(CHAT_HISTORY_FILE) and open(CHAT_HISTORY_FILE, "w").write(json.dumps({"input":"what color is a horse?","output":"a horse is orange"})+"\n"))
 
 class ChromaEmbedder:
     def __init__(self, model): self.model = model
