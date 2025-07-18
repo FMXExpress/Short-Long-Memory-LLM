@@ -261,6 +261,7 @@ def chat_and_record(model, tokenizer, collection, embedder):
 def main():
     embed_model = SentenceTransformer(EMBED_MODEL_NAME); embedder = ChromaEmbedder(embed_model)
     collection  = init_vectorstore(embedder)
+    ensure_chat_history()
     model, tokenizer = load_model_with_lora()
     while True: chat_and_record(model, tokenizer, collection, embedder)
 
