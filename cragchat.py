@@ -122,7 +122,7 @@ class ChromaEmbedder:
 def init_vectorstore(embedding_fn):
     """
     Initializes or loads a local ChromaDB collection and ingests all chat_history entries.
-    Idempotent: if the collection already exists, just re-open it.
+    Idempotent: if the collection already exists, just re-open it without re-ingestion.
     """
     os.makedirs(CHROMA_DIR, exist_ok=True)
     client = PersistentClient(
@@ -132,10 +132,10 @@ def init_vectorstore(embedding_fn):
         database=DEFAULT_DATABASE,
     )
     try:
-        # Try to get existing collection
-        col = client.get_collection(name="chat_history", embedding_function=embedding_fn)
+        # Re-open existing collection without requiring embedding_function
+        col = client.get_collection(name="chat_history")
     except Exception:
-        # If not exists, create it and ingest existing history
+        # Create new collection and ingest JSONL history
         col = client.create_collection(name="chat_history", embedding_function=embedding_fn)
         with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
             records = [json.loads(line) for line in f]
