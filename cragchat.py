@@ -200,53 +200,61 @@ def load_model_with_lora():
 
 # === Chat/Inference ===
 def chat_and_record(model, tokenizer, collection, embedder):
-    # Read user question
+    # Read the user's question
     question = input("Question: ").lstrip("Q:")
 
-    # Retrieve RAG context
+    # Retrieve and display RAG context
     context = retrieve_context(question, collection)
     print("🛈 RAG context:\n", context)
 
-    # Build prompt for analysis and answer
+    # Build the inference prompt
     prompt = INFER_PROMPT_PREFIX.format(context=context, question=question)
     inputs = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
+
+    # Increase this if your analysis is very long so the answer isn't truncated
+    max_tokens = 2048
 
     # Set up the streamer for token-by-token output
     streamer = TextIteratorStreamer(
         tokenizer,
         skip_prompt=True,
-        skip_special_tokens=True
+        skip_special_tokens=True,
     )
 
-    # Launch generation in a background thread
+    # Launch the generation in a background thread
     thread = threading.Thread(
         target=model.generate,
         kwargs={
             'input_ids': inputs.input_ids,
             'attention_mask': inputs.attention_mask,
-            'max_new_tokens': MAX_NEW_TOKENS,
+            'max_new_tokens': max_tokens,
             'eos_token_id': tokenizer.eos_token_id,
-            'streamer': streamer
+            'streamer': streamer,
         }
     )
     thread.start()
 
-    # Single loop: print both <analysis>...</analysis> and <answer>...</answer>
+    # Stream and print the full response (both analysis and answer)
+    full_response = ""
     for tok in streamer:
         print(tok, end="", flush=True)
+        full_response += tok
 
-    # Ensure generation is complete
+    # Wait for generation to finish and newline
     thread.join()
-    print()  # final newline
+    print()
 
-    # Extract answer from printed tokens if needed
-    # (Optionally post-process or record as before)
-    # Record into history
-    answer = None  # parse from printed stream or capture separately
+    # Extract the answer between <answer> tags, if present
+    if "<answer>" in full_response and "</answer>" in full_response:
+        answer = full_response.split("<answer>")[1].split("</answer>")[0].strip()
+    else:
+        answer = ""
+
+    # Record the Q&A in history
     record = {"input": question, "output": answer}
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    collection.add(ids=[str(uuid.uuid4())], documents=[question + " " + (answer or "")])
+    collection.add(ids=[str(uuid.uuid4())], documents=[question + " " + answer])
 
 
 # === Main ===
