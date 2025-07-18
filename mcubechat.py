@@ -219,14 +219,11 @@ def chat_and_record(model, tokenizer, memory: MOS, user_id: str):
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     # Add to MemCube using text-specific API
-    memory.add_text(
-        memory=question,
-        metadata={"role": "user"},
-        user_id=user_id,
-    )
-    memory.add_text(
-        memory=answer,
-        metadata={"role": "assistant"},
+    memory.add(
+        messages=[
+            {"role": "user", "content": question},
+            {"role": "assistant", "content": answer},
+        ],
         user_id=user_id,
     )
 
