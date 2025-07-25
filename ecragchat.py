@@ -226,9 +226,10 @@ class ChromaEmbedder:
 
 # Improved ChromaDB RAG with Smart Chunking for dual indexing
 def init_vectorstore(embedding_fn, tokenizer):
-    # make sure history exists before ingest
+    # 1) Make sure the chat log file exists
     ensure_chat_history()
 
+    # 2) Prepare disk folder & client
     os.makedirs(CHROMA_DIR, exist_ok=True)
     client = PersistentClient(
         path=CHROMA_DIR,
@@ -237,73 +238,74 @@ def init_vectorstore(embedding_fn, tokenizer):
         database=DEFAULT_DATABASE,
     )
 
-    # use get_or_create so both add() and query() use your embedder
-    col = client.get_or_create_collection(
+    # 3) Delete any existing "chat_history" collection so we can bind embedding_fn afresh
+    try:
+        client.delete_collection("chat_history")
+    except Exception:
+        pass
+
+    # 4) Create the collection with YOUR embedder for both add() and query()
+    col = client.create_collection(
         name="chat_history",
         embedding_function=embedding_fn,
     )
 
-    if col.count() == 0:
-        logger.info("Ingesting existing chat history into new collection…")
-        chunker = SmartTextChunker(tokenizer)
-        total_chunks = 0
+    # 5) Ingest every record from chat_history.jsonl
+    chunker = SmartTextChunker(tokenizer)
+    total_chunks = 0
+    with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+        records = [json.loads(line) for line in f]
 
-        with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
-            records = [json.loads(line) for line in f]
+    for i, record in enumerate(records):
+        q = record["input"]
+        out = record["output"]
 
-        for i, record in enumerate(records):
-            input_text  = record["input"]
-            output_text = record["output"]
+        analysis_match = re.search(r'<analysis>(.*?)</analysis>', out, re.DOTALL)
+        answer_match   = re.search(r'<answer>(.*?)</answer>',   out, re.DOTALL)
+        analysis_text  = analysis_match.group(1).strip() if analysis_match else ""
+        answer_text    = answer_match.group(1).strip() if answer_match   else ""
 
-            analysis_match = re.search(r'<analysis>(.*?)</analysis>', output_text, re.DOTALL)
-            answer_match   = re.search(r'<answer>(.*?)</answer>',   output_text, re.DOTALL)
-            analysis_content = analysis_match.group(1).strip() if analysis_match else ""
-            answer_content   = answer_match.group(1).strip()   if answer_match   else ""
+        # analysis chunks
+        for j, chunk_data in enumerate(chunker.create_chunks(analysis_text)):
+            doc = f"Query: {q}\nAnalysis Segment: {chunk_data['text']}"
+            col.add(
+                ids=[f"{i}_analysis_{j}"],
+                documents=[doc],
+                metadatas=[{
+                    'record_index': i,
+                    'chunk_index': j,
+                    'original_segment_type': 'analysis',
+                    'original_segment_token_count': chunk_data['token_count'],
+                    'sentences': chunk_data['sentences'],
+                    'start_pos': chunk_data['start_pos'],
+                    'end_pos': chunk_data['end_pos'],
+                    'original_input': q
+                }]
+            )
+            total_chunks += 1
 
-            if analysis_content:
-                for j, chunk_data in enumerate(chunker.create_chunks(analysis_content)):
-                    combined = f"Query: {input_text}\nAnalysis Segment: {chunk_data['text']}"
-                    col.add(
-                        ids=[f"{i}_analysis_{j}"],
-                        documents=[combined],
-                        metadatas=[{
-                            'record_index': i,
-                            'chunk_index': j,
-                            'token_count': chunker.count_tokens(combined),
-                            'original_segment_type': 'analysis',
-                            'original_segment_token_count': chunk_data['token_count'],
-                            'sentences': chunk_data['sentences'],
-                            'start_pos': chunk_data['start_pos'],
-                            'end_pos': chunk_data['end_pos'],
-                            'original_input': input_text
-                        }]
-                    )
-                    total_chunks += 1
+        # answer chunks
+        for j, chunk_data in enumerate(chunker.create_chunks(answer_text)):
+            doc = f"Query: {q}\nAnswer Segment: {chunk_data['text']}"
+            col.add(
+                ids=[f"{i}_answer_{j}"],
+                documents=[doc],
+                metadatas=[{
+                    'record_index': i,
+                    'chunk_index': j,
+                    'original_segment_type': 'answer',
+                    'original_segment_token_count': chunk_data['token_count'],
+                    'sentences': chunk_data['sentences'],
+                    'start_pos': chunk_data['start_pos'],
+                    'end_pos': chunk_data['end_pos'],
+                    'original_input': q
+                }]
+            )
+            total_chunks += 1
 
-            if answer_content:
-                for j, chunk_data in enumerate(chunker.create_chunks(answer_content)):
-                    combined = f"Query: {input_text}\nAnswer Segment: {chunk_data['text']}"
-                    col.add(
-                        ids=[f"{i}_answer_{j}"],
-                        documents=[combined],
-                        metadatas=[{
-                            'record_index': i,
-                            'chunk_index': j,
-                            'token_count': chunker.count_tokens(combined),
-                            'original_segment_type': 'answer',
-                            'original_segment_token_count': chunk_data['token_count'],
-                            'sentences': chunk_data['sentences'],
-                            'start_pos': chunk_data['start_pos'],
-                            'end_pos': chunk_data['end_pos'],
-                            'original_input': input_text
-                        }]
-                    )
-                    total_chunks += 1
-
-        logger.info(f"Ingested {len(records)} records into {total_chunks} total chunks.")
-        client.persist()
-    else:
-        logger.info(f"Loaded collection with {col.count()} vectors")
+    logger.info(f"Ingested {len(records)} records into {total_chunks} chunks.")
+    # 6) Persist so any future client sees exactly this state
+    client.persist()
 
     return col
 
