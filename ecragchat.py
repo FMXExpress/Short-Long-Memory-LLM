@@ -251,7 +251,7 @@ def init_vectorstore(embedding_fn, tokenizer):
     # get_or_create_collection ensures your embedding_fn is used for BOTH add() and query()
     col = client.get_or_create_collection(
         name="chat_history",
-        embedding_function=embedding_fn,
+        embedding_function=embedder,
     )
 
     # If it’s a brand‐new collection, ingest your existing chat history
