@@ -1,3 +1,4 @@
+#pip install transformers accelerate bitsandbytes peft trl datasets chromadb sentence-transformers scipy
 import os
 import json
 import gc
@@ -67,7 +68,7 @@ TRAIN_PROMPT_TEMPLATE = """
 Context:
 {context}
 
-Based on the provided context, first provide your reasoning or background information in an <analysis> tag. Then, provide a direct and concise answer in an <answer> tag.
+Based on the provided context, first provide your reasoning or background information in an <analysis> tag. Then, provide a direct and concise answer in an <answer> tag. 
 
 ### Question:
 {question}
