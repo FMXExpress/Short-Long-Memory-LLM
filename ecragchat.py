@@ -228,10 +228,15 @@ def ensure_chat_history():
         pass
 
 class ChromaEmbedder:
-    def __init__(self, model):
+    def __init__(self, model, name):
         self.model = model
-    def __call__(self, input):
-        return self.model.encode(input, convert_to_numpy=True).tolist()
+        # this is what Chroma expects to see
+        self.name = name
+
+    def __call__(self, texts):
+        # make sure you accept a list of strings
+        # and return a List[List[float]]
+        return self.model.encode(texts, convert_to_numpy=True).tolist()
 
 # Improved ChromaDB RAG with Smart Chunking for dual indexing
 def init_vectorstore(embedding_fn, tokenizer):
@@ -682,7 +687,7 @@ def main_jupyter():
 
         # Load embedding model
         embed_model = SentenceTransformer(EMBED_MODEL_NAME)
-        embedder = ChromaEmbedder(embed_model)
+        embedder = ChromaEmbedder(embed_model, EMBED_MODEL_NAME)
 
         # Load tokenizer for chunking
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
