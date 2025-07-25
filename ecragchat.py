@@ -68,7 +68,7 @@ TRAIN_PROMPT_TEMPLATE = """
 Context:
 {context}
 
-Based on the provided context, first provide your reasoning or background information in an <analysis> tag. Then, provide a direct and concise answer in an <answer> tag. 
+Based on the provided context, first provide your reasoning or background information in an <analysis> tag. Then, provide a direct and concise answer in an <answer> tag.
 
 ### Question:
 {question}
@@ -137,27 +137,27 @@ class SmartTextChunker:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_chunk_size = max_chunk_size
-        
+
     def split_sentences(self, text: str) -> List[str]:
         sentences = re.split(r'(?<=[.!?])\s+', text.strip())
         return [s.strip() for s in sentences if s.strip()]
-        
+
     def count_tokens(self, text: str) -> int:
         return len(self.tokenizer.encode(text))
-        
+
     def create_chunks(self, text: str) -> List[Dict[str, Any]]:
         if not text.strip():
             return []
-            
+
         sentences = self.split_sentences(text)
         chunks = []
         current_chunk = []
         current_tokens = 0
         start_pos = 0
-        
+
         for i, sentence in enumerate(sentences):
             sentence_tokens = self.count_tokens(sentence)
-            
+
             if current_tokens + sentence_tokens > self.max_chunk_size:
                 if current_chunk:
                     chunk_text = " ".join(current_chunk)
@@ -168,16 +168,16 @@ class SmartTextChunker:
                         'token_count': current_tokens,
                         'sentences': len(current_chunk)
                     })
-                
+
                 current_chunk = [sentence]
                 current_tokens = sentence_tokens
                 start_pos = len(" ".join(sentences[:i]))
-                
+
             elif current_tokens + sentence_tokens > self.chunk_size:
                 current_chunk.append(sentence)
                 current_tokens += sentence_tokens
                 chunk_text = " ".join(current_chunk)
-                
+
                 chunks.append({
                     'text': chunk_text,
                     'start_pos': start_pos,
@@ -185,16 +185,16 @@ class SmartTextChunker:
                     'token_count': current_tokens,
                     'sentences': len(current_chunk)
                 })
-                
+
                 overlap_sentences = self._get_overlap_sentences(current_chunk)
                 current_chunk = overlap_sentences + [sentence]
                 current_tokens = sum(self.count_tokens(s) for s in current_chunk)
                 start_pos = len(" ".join(sentences[:i-len(overlap_sentences)+1]))
-                
+
             else:
                 current_chunk.append(sentence)
                 current_tokens += sentence_tokens
-        
+
         if current_chunk:
             chunk_text = " ".join(current_chunk)
             chunks.append({
@@ -204,13 +204,13 @@ class SmartTextChunker:
                 'token_count': current_tokens,
                 'sentences': len(current_chunk)
             })
-            
+
         return chunks
-        
+
     def _get_overlap_sentences(self, sentences: List[str]) -> List[str]:
         overlap_tokens = 0
         overlap_sentences = []
-        
+
         for sentence in reversed(sentences[:-1]):
             sentence_tokens = self.count_tokens(sentence)
             if overlap_tokens + sentence_tokens <= self.chunk_overlap:
@@ -218,14 +218,14 @@ class SmartTextChunker:
                 overlap_tokens += sentence_tokens
             else:
                 break
-                
+
         return overlap_sentences
 
 # Utility Functions
 def ensure_chat_history():
     os.makedirs(os.path.dirname(CHAT_HISTORY_FILE) or ".", exist_ok=True)
     if not os.path.exists(CHAT_HISTORY_FILE):
-        pass 
+        pass
 
 class ChromaEmbedder:
     def __init__(self, model):
@@ -242,44 +242,44 @@ def init_vectorstore(embedding_fn, tokenizer):
         tenant=DEFAULT_TENANT,
         database=DEFAULT_DATABASE,
     )
-    
-    try:
-        col = client.get_collection(name="chat_history")
-        logger.info("Reopened existing ChromaDB collection")
-    except Exception:
-        logger.info("Creating new ChromaDB collection with smarter dual chunking")
-        col = client.create_collection(name="chat_history", embedding_function=embedding_fn)
-        
+
+    # get_or_create_collection ensures your embedding_fn is used for BOTH add() and query()
+    col = client.get_or_create_collection(
+        name="chat_history",
+        embedding_function=embedding_fn,
+    )
+
+    # If it’s a brand‐new collection, ingest your existing chat history
+    if col.count() == 0:
+        logger.info("Ingesting existing chat history into new collection…")
         chunker = SmartTextChunker(tokenizer)
         total_chunks = 0
-        
+
         with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
             records = [json.loads(line) for line in f]
-        
+
         for i, record in enumerate(records):
-            input_text = record['input']
-            output_text = record['output']
+            input_text = record["input"]
+            output_text = record["output"]
 
-            # Parse analysis and answer content from output_text
+            # parse analysis and answer as before…
             analysis_match = re.search(r'<analysis>(.*?)</analysis>', output_text, re.DOTALL)
-            answer_match = re.search(r'<answer>(.*?)</answer>', output_text, re.DOTALL)
-            
-            analysis_content = analysis_match.group(1).strip() if analysis_match else ""
-            answer_content = answer_match.group(1).strip() if answer_match else ""
+            answer_match   = re.search(r'<answer>(.*?)</answer>',   output_text, re.DOTALL)
 
-            # --- Process Analysis Chunks ---
+            analysis_content = analysis_match.group(1).strip() if analysis_match else ""
+            answer_content   = answer_match.group(1).strip()   if answer_match   else ""
+
+            # ingest analysis chunks
             if analysis_content:
-                analysis_chunks_data = chunker.create_chunks(analysis_content)
-                for j, chunk_data in enumerate(analysis_chunks_data):
-                    # Bundle with query and specific format
-                    combined_doc_text = f"Query: {input_text}\nAnalysis Segment: {chunk_data['text']}"
+                for j, chunk_data in enumerate(chunker.create_chunks(analysis_content)):
+                    combined = f"Query: {input_text}\nAnalysis Segment: {chunk_data['text']}"
                     col.add(
                         ids=[f"{i}_analysis_{j}"],
-                        documents=[combined_doc_text],
+                        documents=[combined],
                         metadatas=[{
                             'record_index': i,
                             'chunk_index': j,
-                            'token_count': chunker.count_tokens(combined_doc_text),
+                            'token_count': chunker.count_tokens(combined),
                             'original_segment_type': 'analysis',
                             'original_segment_token_count': chunk_data['token_count'],
                             'sentences': chunk_data['sentences'],
@@ -289,20 +289,18 @@ def init_vectorstore(embedding_fn, tokenizer):
                         }]
                     )
                     total_chunks += 1
-            
-            # --- Process Answer Chunks ---
+
+            # ingest answer chunks
             if answer_content:
-                answer_chunks_data = chunker.create_chunks(answer_content)
-                for j, chunk_data in enumerate(answer_chunks_data):
-                    # Bundle with query and specific format
-                    combined_doc_text = f"Query: {input_text}\nAnswer Segment: {chunk_data['text']}"
+                for j, chunk_data in enumerate(chunker.create_chunks(answer_content)):
+                    combined = f"Query: {input_text}\nAnswer Segment: {chunk_data['text']}"
                     col.add(
                         ids=[f"{i}_answer_{j}"],
-                        documents=[combined_doc_text],
+                        documents=[combined],
                         metadatas=[{
                             'record_index': i,
                             'chunk_index': j,
-                            'token_count': chunker.count_tokens(combined_doc_text),
+                            'token_count': chunker.count_tokens(combined),
                             'original_segment_type': 'answer',
                             'original_segment_token_count': chunk_data['token_count'],
                             'sentences': chunk_data['sentences'],
@@ -312,9 +310,13 @@ def init_vectorstore(embedding_fn, tokenizer):
                         }]
                     )
                     total_chunks += 1
-        
-        logger.info(f"Ingested {len(records)} records into {total_chunks} total chunks (analysis + answer segments).")
-        
+
+        logger.info(f"Ingested {len(records)} records into {total_chunks} total chunks.")
+        # make sure it’s written to disk so future restarts see it
+        client.persist()
+    else:
+        logger.info(f"Loaded collection with {col.count()} vectors")
+
     return col
 
 # Modified retrieve_context to query for separate analysis and answer segments
@@ -322,7 +324,7 @@ def retrieve_context(question, collection, k=TOP_K) -> str:
     total = collection.count()
     if total < 1:
         return "No relevant context found."
-    
+
     k_per_type = max(1, k // 2) # Get roughly half of TOP_K for each type
 
     # Retrieve analysis segments
@@ -333,7 +335,7 @@ def retrieve_context(question, collection, k=TOP_K) -> str:
     )
     analysis_docs = analysis_results.get("documents", [[]])[0]
     analysis_metadatas = analysis_results.get("metadatas", [[]])[0]
-    
+
     # Retrieve answer segments
     answer_results = collection.query(
         query_texts=[question],
@@ -342,22 +344,22 @@ def retrieve_context(question, collection, k=TOP_K) -> str:
     )
     answer_docs = answer_results.get("documents", [[]])[0]
     answer_metadatas = answer_results.get("metadatas", [[]])[0]
-    
+
     analysis_context_parts = []
     for i, (doc, metadata) in enumerate(zip(analysis_docs, analysis_metadatas)):
         if doc.strip():
             analysis_context_parts.append(f"- Analysis Chunk {i+1} (tokens: {metadata.get('token_count', 'N/A')}): {doc}")
-    
+
     answer_context_parts = []
     for i, (doc, metadata) in enumerate(zip(answer_docs, answer_metadatas)):
         if doc.strip():
             answer_context_parts.append(f"- Answer Chunk {i+1} (tokens: {metadata.get('token_count', 'N/A')}): {doc}")
-            
+
     ctx_parts = []
     if analysis_context_parts:
         ctx_parts.append("Analyses from Context:")
         ctx_parts.extend(analysis_context_parts)
-    
+
     if answer_context_parts:
         if ctx_parts:
             ctx_parts.append("") # Add a newline if there were analysis parts
@@ -370,38 +372,38 @@ def retrieve_context(question, collection, k=TOP_K) -> str:
 # Fixed Dataset Formatting with Long Text Handling
 def format_chat_dataset(history_file, tokenizer):
     ds = load_dataset("json", data_files=history_file, split="train")
-    
+
     input_ids_list = []
     attention_mask_list = []
     labels_list = []
     for example in ds:
         input_text = example["input"].lstrip("Q:")
         output_text = example["output"]
-        
+
         full_prompt = TRAIN_PROMPT_TEMPLATE.format(
             context="",
             question=input_text,
             response=output_text + tokenizer.eos_token
         )
-        
+
         token_count = len(tokenizer.encode(full_prompt))
-        
+
         if token_count > MAX_TRAINING_TOKENS:
             logger.warning(f"Long input detected ({token_count} tokens), splitting into sentences")
-            
+
             chunker = SmartTextChunker(tokenizer)
             input_chunks = chunker.create_chunks(input_text)
-            
+
             for chunk in input_chunks:
                 if chunk['token_count'] < MIN_CHUNK_SIZE:
                     continue
-                    
+
                 chunk_prompt = TRAIN_PROMPT_TEMPLATE.format(
                     context="",
                     question=chunk['text'],
                     response=output_text + tokenizer.eos_token
                 )
-                
+
                 tok = tokenizer(chunk_prompt, padding=True, return_tensors="pt")
                 input_ids_list.append(tok["input_ids"][0])
                 attention_mask_list.append(tok["attention_mask"][0])
@@ -411,7 +413,7 @@ def format_chat_dataset(history_file, tokenizer):
             input_ids_list.append(tok["input_ids"][0])
             attention_mask_list.append(tok["attention_mask"][0])
             labels_list.append(tok["input_ids"][0].clone())
-    
+
     if len(input_ids_list) == 0:
         return Dataset.from_dict({})
     import torch
@@ -430,7 +432,7 @@ def format_chat_dataset(history_file, tokenizer):
 # LoRA Training with Stability Improvements
 def train_lora():
     ensure_chat_history()
-    
+
     logger.info("Loading tokenizer and model for training")
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
     base_model = AutoModelForCausalLM.from_pretrained(
@@ -438,23 +440,23 @@ def train_lora():
         quantization_config=bnb_config,
         device_map="auto"
     )
-    
+
     model = get_peft_model(base_model, PEFT_CONFIG).to(device)
-    
+
     logger.info("Formatting dataset with long text handling")
     processed_examples = format_chat_dataset(CHAT_HISTORY_FILE, tokenizer)
-    
+
     logger.info(f"Training on {len(processed_examples)} valid examples")
-    
+
     if len(processed_examples) == 0:
         logger.error("No valid training examples found! Make sure chat_history.jsonl has data.")
         return
-    
+
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    
+
     torch.cuda.empty_cache()
     gc.collect()
-    
+
     logger.info("Starting LoRA training")
     trainer = SFTTrainer(
         model=model,
@@ -463,21 +465,21 @@ def train_lora():
         data_collator=data_collator,
         peft_config=PEFT_CONFIG
     )
-    
+
     trainer.train()
-    
+
     logger.info("Saving trained model")
     model.save_pretrained(LORA_DIR, safe_serialization=True)
     tokenizer.save_pretrained(LORA_DIR)
-    
+
     logger.info("LoRA training completed successfully")
 
 def load_model_with_lora():
     ensure_chat_history()
-    
+
     logger.info("Loading tokenizer")
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True, trust_remote_code=True)
-    
+
     logger.info("Loading base model")
     base_model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_ID,
@@ -485,7 +487,7 @@ def load_model_with_lora():
         device_map="auto"
     )
     base_model.gradient_checkpointing_enable()
-    
+
     if os.path.isdir(LORA_DIR) and os.listdir(LORA_DIR):
         logger.info("Loading existing LoRA adapter")
         model = PeftModel.from_pretrained(base_model, LORA_DIR).to(device)
@@ -493,13 +495,13 @@ def load_model_with_lora():
         logger.info("No existing LoRA adapter found, training new one")
         train_lora()
         model = PeftModel.from_pretrained(base_model, LORA_DIR).to(device)
-    
+
     return model, tokenizer
 
 # Jupyter-compatible chat function (cleaned)
 def chat_and_record_jupyter(model, tokenizer, collection, embedder, question):
     """Non-interactive version for Jupyter notebooks"""
-    
+
     # Retrieve and display RAG context
     context = retrieve_context(question, collection)
     print("🛈 RAG context:\n", context)
@@ -548,12 +550,12 @@ def chat_and_record_jupyter(model, tokenizer, collection, embedder, question):
     record = {"input": question, "output": answer}
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    
+
     # --- MODIFIED: Add new Q&A to vector store with the specific bundling and format ---
     # Parse analysis and answer content from the newly generated output
     analysis_match = re.search(r'<analysis>(.*?)</analysis>', answer, re.DOTALL)
     answer_match = re.search(r'<answer>(.*?)</answer>', answer, re.DOTALL)
-    
+
     analysis_content = analysis_match.group(1).strip() if analysis_match else ""
     answer_content = answer_match.group(1).strip() if answer_match else ""
 
@@ -582,7 +584,7 @@ def chat_and_record_jupyter(model, tokenizer, collection, embedder, question):
                 }]
             )
             total_new_chunks_added += 1
-    
+
     # Process Answer Chunks from new Q&A
     if answer_content:
         answer_chunks_data = chunker.create_chunks(answer_content)
@@ -605,9 +607,9 @@ def chat_and_record_jupyter(model, tokenizer, collection, embedder, question):
                 }]
             )
             total_new_chunks_added += 1
-    
+
     logger.info(f"Recorded Q&A and added {total_new_chunks_added} chunks (analysis + answer segments) to vector store.")
-    
+
     return answer
 
 # Original interactive chat function (for reference)
@@ -666,7 +668,7 @@ def chat_and_record(model, tokenizer, collection, embedder):
     record = {"input": question, "output": answer}
     with open(CHAT_HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    
+
     # Original logic: add combined Q&A as a single document without SmartTextChunker
     # This function is for reference; for the advanced RAG it should ideally follow chat_and_record_jupyter's logic
     collection.add(ids=[str(uuid.uuid4())], documents=[question + " " + answer])
@@ -677,28 +679,28 @@ def main_jupyter():
     """Main function for Jupyter notebooks"""
     try:
         logger.info("Initializing RAG system")
-        
+
         # Load embedding model
         embed_model = SentenceTransformer(EMBED_MODEL_NAME)
         embedder = ChromaEmbedder(embed_model)
-        
+
         # Load tokenizer for chunking
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
-        
+
         # Initialize vector store
         collection = init_vectorstore(embedder, tokenizer)
-        
+
         # Ensure chat history exists (this won't create it, the next cell will)
-        ensure_chat_history() 
-        
+        ensure_chat_history()
+
         # Load model with LoRA
         model, tokenizer = load_model_with_lora()
-        
+
         logger.info("RAG system initialized successfully")
         print("🤖 RAG Chat System Ready!")
-        
+
         return model, tokenizer, collection, embedder
-                
+
     except Exception as e:
         logger.error(f"Fatal error in main: {e}")
         print(f"Fatal error: {e}")
