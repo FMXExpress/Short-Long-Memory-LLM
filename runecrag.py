@@ -1,4 +1,4 @@
-import cragchat
+import ecragchat
 import shutil
 import os
 import logging
@@ -9,10 +9,10 @@ def ensure_chat_history_exists():
     Checks if the chat history file exists. If not, it creates one
     with some default entries to ensure the LoRA training can proceed.
     """
-    history_file = cragchat.CHAT_HISTORY_FILE
+    history_file = ecragchat.CHAT_HISTORY_FILE
     if not os.path.exists(history_file):
         print(f"Chat history file not found. Creating a new one at '{history_file}'...")
-        
+
         default_history = [
             {
                 "input": "What is a Large Language Model?",
@@ -27,7 +27,7 @@ def ensure_chat_history_exists():
                 "output": "<analysis>Low-Rank Adaptation, or LoRA, is a fine-tuning technique for large language models. Instead of retraining the entire model, which is computationally expensive, LoRA adds small, trainable matrices (adapters) to the model's layers. Only these adapters are updated during training, making the process much more efficient while still achieving high performance on specific tasks.</analysis><answer>LoRA is an efficient method to fine-tune large AI models by only training small, added components called adapters, which saves significant time and computational resources.</answer>"
             }
         ]
-        
+
         # Write the default history to the file
         try:
             with open(history_file, "w", encoding="utf-8") as f:
@@ -43,20 +43,20 @@ def main():
     """
     # --- 1. Ensure Chat History Exists ---
     ensure_chat_history_exists()
-    
+
     # --- 2. Clear Existing ChromaDB to force re-ingestion ---
     # This ensures that the vector store is rebuilt from the chat history every time.
-    if os.path.exists(cragchat.CHROMA_DIR):
-        print(f"\nClearing existing ChromaDB at {cragchat.CHROMA_DIR}...")
-        shutil.rmtree(cragchat.CHROMA_DIR)
+    if os.path.exists(ecragchat.CHROMA_DIR):
+        print(f"\nClearing existing ChromaDB at {ecragchat.CHROMA_DIR}...")
+        shutil.rmtree(ecragchat.CHROMA_DIR)
         print("ChromaDB cleared.")
     else:
-        print(f"\nChromaDB directory {cragchat.CHROMA_DIR} does not exist, no need to clear.")
+        print(f"\nChromaDB directory {ecragchat.CHROMA_DIR} does not exist, no need to clear.")
 
     # --- 3. Initialize the model, tokenizer, and vector store ---
     print("\nInitializing the RAG chat system...")
     try:
-        model, tokenizer, collection, embedder = cragchat.main_jupyter()
+        model, tokenizer, collection, embedder = ecragchat.main_jupyter()
         if model is None:
             logging.error("Failed to initialize the model. Exiting.")
             return
@@ -79,12 +79,12 @@ def main():
             print("\n--- Starting LoRA Training ---")
             try:
                 # Call the training function
-                cragchat.train_lora()
+                ecragchat.train_lora()
                 print("\n--- LoRA Training Finished ---")
-                
+
                 # Reload the model to apply the new adapter
                 print("Reloading model with the new LoRA adapter...")
-                model, tokenizer, collection, embedder = cragchat.main_jupyter()
+                model, tokenizer, collection, embedder = ecragchat.main_jupyter()
                 if model is None:
                     logging.error("Failed to reload the model after training. Exiting.")
                     break
@@ -101,8 +101,8 @@ def main():
             print(f"\nAsking question: '{question}'")
             try:
                 # Get the answer from the model
-                answer = cragchat.chat_and_record_jupyter(model, tokenizer, collection, embedder, question)
-                
+                answer = ecragchat.chat_and_record_jupyter(model, tokenizer, collection, embedder, question)
+
                 # Print a summary of the interaction
                 print(f"\n--- Chat Interaction Summary ---")
                 print(f"Question: {question}")
