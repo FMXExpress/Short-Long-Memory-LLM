@@ -625,8 +625,28 @@ def chat_and_record_jupyter(model, tokenizer, collection, embedder, question):
     context = retrieve_context(question, collection)
     print("🛈 RAG context:\n", context)
 
-    # Build the inference prompt
-    prompt = INFER_PROMPT_PREFIX.format(analysis_context="", answer_context="", question=question) # Context is handled by retrieve_context
+    # Parse the context to separate analysis and answer parts
+    analysis_context = ""
+    answer_context = ""
+    
+    if context and context != "No relevant context found.":
+        # Split context into analysis and answer sections
+        if "Analyses from Context:" in context and "Answers from Context:" in context:
+            parts = context.split("Answers from Context:")
+            analysis_part = parts[0].replace("Analyses from Context:", "").strip()
+            answer_part = parts[1].strip()
+            analysis_context = analysis_part
+            answer_context = answer_part
+        elif "Analyses from Context:" in context:
+            analysis_context = context.replace("Analyses from Context:", "").strip()
+        elif "Answers from Context:" in context:
+            answer_context = context.replace("Answers from Context:", "").strip()
+        else:
+            # If no specific sections, put all context in analysis
+            analysis_context = context
+
+    # Build the inference prompt with actual context
+    prompt = INFER_PROMPT_PREFIX.format(analysis_context=analysis_context, answer_context=answer_context, question=question)
     inputs = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
 
     # Set up the streamer for token-by-token output
@@ -768,8 +788,28 @@ def chat_and_record(model, tokenizer, collection, embedder):
     context = retrieve_context(question, collection)
     print("🛈 RAG context:\n", context)
 
-    # Build the inference prompt
-    prompt = INFER_PROMPT_PREFIX.format(analysis_context="", answer_context="", question=question) # Context is handled by retrieve_context
+    # Parse the context to separate analysis and answer parts
+    analysis_context = ""
+    answer_context = ""
+    
+    if context and context != "No relevant context found.":
+        # Split context into analysis and answer sections
+        if "Analyses from Context:" in context and "Answers from Context:" in context:
+            parts = context.split("Answers from Context:")
+            analysis_part = parts[0].replace("Analyses from Context:", "").strip()
+            answer_part = parts[1].strip()
+            analysis_context = analysis_part
+            answer_context = answer_part
+        elif "Analyses from Context:" in context:
+            analysis_context = context.replace("Analyses from Context:", "").strip()
+        elif "Answers from Context:" in context:
+            answer_context = context.replace("Answers from Context:", "").strip()
+        else:
+            # If no specific sections, put all context in analysis
+            analysis_context = context
+
+    # Build the inference prompt with actual context
+    prompt = INFER_PROMPT_PREFIX.format(analysis_context=analysis_context, answer_context=answer_context, question=question)
     inputs = tokenizer(prompt + tokenizer.eos_token, return_tensors="pt").to(device)
 
     # Increase this if your analysis is very long so the answer isn't truncated
