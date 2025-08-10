@@ -1,0 +1,22 @@
+build:
+  gpu: true
+  cuda: "11.8"
+  python_version: "3.10"
+  python_packages:
+    - torch>=2.0.0
+    - transformers==4.52.1
+    - datasets
+    - accelerate
+    - peft
+    - trl
+    - bitsandbytes
+    - chromadb>=0.4.0
+    - sentence-transformers>=2.2.0
+    - scipy
+    - numpy
+    - safetensors
+  system_packages:
+    - "libgl1-mesa-glx"
+    - "libglib2.0-0"
+
+predict: "predict.py:Predictor"
