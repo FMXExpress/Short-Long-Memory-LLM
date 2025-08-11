@@ -1,0 +1,3 @@
+2025-08-11 06:36:37,956 - mistral_common.tokens.tokenizers.tekken - INFO - tekken.py:540 - _reload_mergeable_ranks - Vocab size: 150000
+2025-08-11 06:36:37,959 - mistral_common.tokens.tokenizers.tekken - INFO - tekken.py:544 - _reload_mergeable_ranks - Cutting vocab to first 130072 tokens.
+2025-08-11 06:36:39,817 - accelerate.utils.modeling - INFO - modeling.py:1004 - get_balanced_memory - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).

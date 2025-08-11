@@ -1,0 +1,8 @@
+memos
+torch
+transformers
+accelerate
+tiktoken
+bitsandbytes
+mistral-common
+sentencepiece
