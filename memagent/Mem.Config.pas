@@ -29,6 +29,19 @@ type
     AutoConsolidate: Boolean;
     MinNewFacts: Integer;
     IntervalMin: Integer;
+    { [retrieval]: local embedder + reranker (Mem.Retrieval) }
+    CacheDir: string;
+    Embedder: string;        { auto | onnx | static | off }
+    EmbedModel: string;
+    Reranker: string;        { auto | off }
+    RerankModel: string;
+    RetrievalPool: Integer;  { candidates from the hybrid stage before reranking }
+    MinSimilarity: Double;   { cosine floor for vector-only hits (onnx embedder) }
+    StaticMinSimilarity: Double;
+    RerankMin: Double;       { drop reranked candidates below this score }
+    DedupMinCos: Double;     { same-subject test: cosine prefilter ... }
+    DedupMinRerank: Double;  { ... confirmed by the cross-encoder }
+    Provision: Boolean;      { --provision: download the retrieval models and exit }
     { from the profile }
     BaseModel: string;
     MaxNewTokens: Integer;
@@ -73,6 +86,15 @@ begin
     Result := ExpandFileName(IncludeTrailingPathDelimiter(ABase) + APath);
 end;
 
+function IniFloat(AIni: TIniFile; const AKey: string; ADefault: Double): Double;
+var
+  LFmt: TFormatSettings;
+begin
+  LFmt := DefaultFormatSettings;
+  LFmt.DecimalSeparator := '.';
+  Result := StrToFloatDef(AIni.ReadString('retrieval', AKey, ''), ADefault, LFmt);
+end;
+
 procedure TMemConfig.Load;
 var
   I: Integer;
@@ -106,7 +128,9 @@ begin
       LCliData := ParamStr(I);
     end
     else if ParamStr(I) = '--no-auto' then
-      LCliNoAuto := True;
+      LCliNoAuto := True
+    else if ParamStr(I) = '--provision' then
+      Provision := True;
     Inc(I);
   end;
 
@@ -128,6 +152,17 @@ begin
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);
     MinNewFacts := LIni.ReadInteger('consolidate', 'min_new_facts', 3);
     IntervalMin := LIni.ReadInteger('consolidate', 'interval_min', 60);
+    CacheDir := Abs_(LBase, LIni.ReadString('retrieval', 'cache_dir', 'cache'));
+    Embedder := LowerCase(LIni.ReadString('retrieval', 'embedder', 'auto'));
+    EmbedModel := LIni.ReadString('retrieval', 'embed_model', 'minilm');
+    Reranker := LowerCase(LIni.ReadString('retrieval', 'reranker', 'auto'));
+    RerankModel := LIni.ReadString('retrieval', 'rerank_model', 'ms-marco-minilm');
+    RetrievalPool := LIni.ReadInteger('retrieval', 'pool', 8);
+    MinSimilarity := IniFloat(LIni, 'min_similarity', 0.35);
+    StaticMinSimilarity := IniFloat(LIni, 'static_min_similarity', 0.3);
+    RerankMin := IniFloat(LIni, 'rerank_min', 0.005);
+    DedupMinCos := IniFloat(LIni, 'dedup_min_cos', 0.7);
+    DedupMinRerank := IniFloat(LIni, 'dedup_min_rerank', 0.5);
   finally
     LIni.Free;
   end;

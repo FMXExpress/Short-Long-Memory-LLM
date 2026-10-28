@@ -25,6 +25,8 @@ type
     function Int(ACol: Integer): Int64;
     function Str(ACol: Integer): string;
     function Float(ACol: Integer): Double;
+    function Blob(ACol: Integer): TBytes;
+    procedure BindBlob(AIndex: Integer; const AData: TBytes);
   end;
 
   TSqlDb = class
@@ -34,6 +36,8 @@ type
     constructor Create(const APath: string);
     destructor Destroy; override;
     procedure Exec(const ASql: string; const AArgs: array of const);
+    { binds AArgs first, then each blob as the following parameters }
+    procedure ExecBlobs(const ASql: string; const AArgs: array of const; const ABlobs: array of TBytes);
     procedure ExecScript(const ASql: string);
     function Query(const ASql: string; const AArgs: array of const): TSqlStmt;
     function ScalarInt(const ASql: string; const AArgs: array of const; ADefault: Int64 = 0): Int64;
@@ -140,6 +144,24 @@ begin
   Result := sqlite3_column_double(FStmt, ACol);
 end;
 
+function TSqlStmt.Blob(ACol: Integer): TBytes;
+var
+  N: Integer;
+begin
+  N := sqlite3_column_bytes(FStmt, ACol);
+  SetLength(Result, N);
+  if N > 0 then
+    Move(sqlite3_column_blob(FStmt, ACol)^, Result[0], N);
+end;
+
+procedure TSqlStmt.BindBlob(AIndex: Integer; const AData: TBytes);
+begin
+  if Length(AData) = 0 then
+    sqlite3_bind_null(FStmt, AIndex)
+  else
+    sqlite3_bind_blob(FStmt, AIndex, @AData[0], Length(AData), sqlite3_destructor_type(SQLITE_TRANSIENT));
+end;
+
 { TSqlDb }
 
 constructor TSqlDb.Create(const APath: string);
@@ -163,6 +185,21 @@ var
 begin
   LStmt := TSqlStmt.Create(FDb, ASql, AArgs);
   try
+    LStmt.Step;
+  finally
+    LStmt.Free;
+  end;
+end;
+
+procedure TSqlDb.ExecBlobs(const ASql: string; const AArgs: array of const; const ABlobs: array of TBytes);
+var
+  LStmt: TSqlStmt;
+  I: Integer;
+begin
+  LStmt := TSqlStmt.Create(FDb, ASql, AArgs);
+  try
+    for I := 0 to High(ABlobs) do
+      LStmt.BindBlob(Length(AArgs) + I + 1, ABlobs[I]);
     LStmt.Step;
   finally
     LStmt.Free;

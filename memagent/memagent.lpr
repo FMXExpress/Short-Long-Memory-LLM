@@ -9,14 +9,15 @@ program memagent;
 
 uses
   {$IFDEF UNIX}cthreads,{$ENDIF}
-  SysUtils, Classes, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Agent;
+  SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
 
 var
   Cfg: TMemConfig;
   Store: TMemStore;
   Engine: TEngine;
   Cons: TConsolidator;
+  Ret: TRetrieval;
   Agent: TAgent;
   Line: string;
   Interactive: Boolean;
@@ -30,12 +31,24 @@ begin
   Cfg := TMemConfig.Create;
   try
     Cfg.Load;
+    if Cfg.Provision then
+    begin
+      (* Local retrieval models: ONNX Runtime + embedder + reranker *)
+      if ProvisionRetrieval(Cfg.CacheDir, Cfg.EmbedModel,
+        IfThen(Cfg.Reranker = 'off', '', Cfg.RerankModel)) then
+        WriteLn('retrieval models ready in ', Cfg.CacheDir)
+      else
+        ExitCode := 1;
+      Exit;
+    end;
     WriteLn('memagent - profile ', Cfg.ProfileName, ' (', Cfg.BaseModel, ')');
     WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
+    Ret := TRetrieval.Create(Cfg.CacheDir, Cfg.Embedder, Cfg.EmbedModel, Cfg.Reranker, Cfg.RerankModel);
+    WriteLn('recall: ', Ret.Describe);
     Store := TMemStore.Create(Cfg.DbPath);
     Engine := TPyWorkerEngine.Create(Cfg);
     Cons := TConsolidator.Create(Cfg);
-    Agent := TAgent.Create(Cfg, Store, Engine, Cons);
+    Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret);
     try
       WriteLn('ready: ', Engine.Describe, '. /help for commands.');
       Agent.Startup;
@@ -79,6 +92,7 @@ begin
       Cons.Free;
       Engine.Free;
       Store.Free;
+      Ret.Free;
     end;
   finally
     Cfg.Free;

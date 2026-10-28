@@ -13,8 +13,8 @@ unit Mem.Agent;
 interface
 
 uses
-  SysUtils, Classes, DateUtils, StrUtils, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate;
+  SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval;
 
 type
   TAgent = class
@@ -23,11 +23,18 @@ type
     FStore: TMemStore;
     FEngine: TEngine;
     FCons: TConsolidator;
+    FRet: TRetrieval;
     FSession: string;
     FQuiet: Boolean;
     procedure OnToken(const AText: string);
     function BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
+    function MinCos: Single;
+    procedure Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray);
     function MemoryBlock(const AUser: string; ABeforeId: Int64): string;
+    procedure EmbedFact(AId: Int64; const AText, ASubject: string);
+    procedure EmbedMessage(AId: Int64; const AText: string);
+    procedure Backfill;
+    function SameSubject(const ASubject: string): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     procedure ExtractFacts(const AUser: string; AMsgId: Int64);
     procedure MaybeSummarize;
@@ -35,7 +42,8 @@ type
     function PromoteManifest(const ADir: string): Boolean;
     procedure Say(const S: string);
   public
-    constructor Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator);
+    constructor Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator;
+      ARet: TRetrieval);
     procedure Startup;
     procedure Turn(const AUser: string);
     procedure PollConsolidation;
@@ -52,18 +60,56 @@ const
     '<tool>{"name": "now", "args": {}}</tool>' + LineEnding +
     'Only call a tool when it is needed; otherwise answer normally.';
 
+procedure SortFacts(var A: TFactArray);
+var
+  I, J: Integer;
+  T: TFactRec;
+begin
+  for I := 1 to High(A) do
+  begin
+    T := A[I];
+    J := I - 1;
+    while (J >= 0) and (A[J].Score < T.Score) do
+    begin
+      A[J + 1] := A[J];
+      Dec(J);
+    end;
+    A[J + 1] := T;
+  end;
+end;
+
+procedure SortMsgs(var A: TMsgArray);
+var
+  I, J: Integer;
+  T: TMsgRec;
+begin
+  for I := 1 to High(A) do
+  begin
+    T := A[I];
+    J := I - 1;
+    while (J >= 0) and (A[J].Score < T.Score) do
+    begin
+      A[J + 1] := A[J];
+      Dec(J);
+    end;
+    A[J + 1] := T;
+  end;
+end;
+
 function Msg(const ARole, AContent: string): TJSONObject;
 begin
   Result := TJSONObject.Create(['role', ARole, 'content', AContent]);
 end;
 
-constructor TAgent.Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator);
+constructor TAgent.Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator;
+  ARet: TRetrieval);
 begin
   inherited Create;
   FCfg := ACfg;
   FStore := AStore;
   FEngine := AEngine;
   FCons := ACons;
+  FRet := ARet;
   FSession := FormatDateTime('yyyymmdd"T"hhnnss', Now);
 end;
 
@@ -87,6 +133,7 @@ var
   LReady: TJSONData;
   L: TStringList;
 begin
+  Backfill;
   LPath := FStore.GetMeta('active_adapter_path');
   if (LPath <> '') and DirectoryExists(LPath) then
   begin
@@ -115,6 +162,60 @@ begin
   end;
 end;
 
+function TAgent.MinCos: Single;
+begin
+  if FRet.Tier = 'onnx' then
+    Result := FCfg.MinSimilarity
+  else
+    Result := FCfg.StaticMinSimilarity;
+end;
+
+procedure TAgent.Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TFactArray;
+  out AMsgs: TMsgArray);
+var
+  LVec: TVector;
+  LDocs: array of string;
+  LScores: TScoreArray;
+  I, N: Integer;
+begin
+  (* Stage 1: FTS5 + vector, fused by reciprocal rank. Stage 2: the
+     cross-encoder re-scores each (query, candidate) pair together, which
+     both reorders and drops candidates that merely share words. *)
+  LVec := FRet.Embed(AQuery);
+  AFacts := FStore.HybridFacts(AQuery, LVec, FRet.EmbedderId, FCfg.RetrievalPool, MinCos, False);
+  AMsgs := FStore.HybridMessages(AQuery, LVec, FRet.EmbedderId, ABeforeId, FCfg.RetrievalPool, MinCos);
+  if not FRet.HasReranker then
+    Exit;
+  SetLength(LDocs, Length(AFacts));
+  for I := 0 to High(AFacts) do
+    LDocs[I] := AFacts[I].Text;
+  LScores := FRet.RerankScores(AQuery, LDocs);
+  N := 0;
+  for I := 0 to High(AFacts) do
+    if LScores[I] >= FCfg.RerankMin then
+    begin
+      AFacts[N] := AFacts[I];
+      AFacts[N].Score := LScores[I];
+      Inc(N);
+    end;
+  SetLength(AFacts, N);
+  SortFacts(AFacts);
+  SetLength(LDocs, Length(AMsgs));
+  for I := 0 to High(AMsgs) do
+    LDocs[I] := AMsgs[I].Content;
+  LScores := FRet.RerankScores(AQuery, LDocs);
+  N := 0;
+  for I := 0 to High(AMsgs) do
+    if LScores[I] >= FCfg.RerankMin then
+    begin
+      AMsgs[N] := AMsgs[I];
+      AMsgs[N].Score := LScores[I];
+      Inc(N);
+    end;
+  SetLength(AMsgs, N);
+  SortMsgs(AMsgs);
+end;
+
 function TAgent.MemoryBlock(const AUser: string; ABeforeId: Int64): string;
 var
   LFacts: TFactArray;
@@ -122,12 +223,74 @@ var
   I: Integer;
 begin
   Result := '';
-  LFacts := FStore.SearchFacts(AUser, FCfg.RagK, False);
-  LMsgs := FStore.SearchMessages(AUser, ABeforeId, FCfg.RagK);
-  for I := 0 to High(LFacts) do
+  Retrieve(AUser, ABeforeId, LFacts, LMsgs);
+  for I := 0 to Min(FCfg.RagK, Length(LFacts)) - 1 do
     Result := Result + '- ' + LFacts[I].Text + LineEnding;
-  for I := 0 to High(LMsgs) do
+  for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
     Result := Result + '- Earlier the user said: "' + LMsgs[I].Content + '"' + LineEnding;
+end;
+
+procedure TAgent.EmbedFact(AId: Int64; const AText, ASubject: string);
+begin
+  if FRet.Tier <> 'off' then
+    FStore.SetFactVectors(AId, FRet.Embed(AText), FRet.Embed(ASubject), FRet.EmbedderId);
+end;
+
+procedure TAgent.EmbedMessage(AId: Int64; const AText: string);
+begin
+  if FRet.Tier <> 'off' then
+    FStore.SetMessageVector(AId, FRet.Embed(AText), FRet.EmbedderId);
+end;
+
+procedure TAgent.Backfill;
+var
+  LPending: TPendingVectors;
+  I: Integer;
+begin
+  { rows written before the embedder existed, or by a different embedder }
+  if FRet.Tier = 'off' then
+    Exit;
+  LPending := FStore.PendingVectors(FRet.EmbedderId);
+  if Length(LPending) = 0 then
+    Exit;
+  Say(Format('[memory] embedding %d stored facts/messages with %s...', [Length(LPending), FRet.EmbedderId]));
+  for I := 0 to High(LPending) do
+    if LPending[I].IsFact then
+      EmbedFact(LPending[I].Id, LPending[I].Text, LPending[I].Subject)
+    else
+      EmbedMessage(LPending[I].Id, LPending[I].Text);
+end;
+
+function TAgent.SameSubject(const ASubject: string): Int64;
+var
+  LSubjects: TSubjectArray;
+  LVec: TVector;
+  LScores: TScoreArray;
+  I: Integer;
+  LBest: Single;
+begin
+  (* Is a new fact about a subject we already hold under other words ("what
+     my dog is called" vs "my dog's name")? Cosine alone cannot be trusted
+     here: MiniLM scores "my sister's name" vs "my brother's name" higher
+     (0.85) than a real paraphrase (0.75), and a wrong merge silently
+     overwrites a fact. So cosine only shortlists, and the cross-encoder
+     must confirm; without a real encoder and a reranker we never merge. *)
+  Result := 0;
+  if not FRet.CanDedup or not FRet.HasReranker then
+    Exit;
+  LVec := FRet.Embed(ASubject);
+  LSubjects := FStore.SubjectVectors(FRet.EmbedderId);
+  LBest := FCfg.DedupMinRerank;
+  for I := 0 to High(LSubjects) do
+    if Cosine(LVec, LSubjects[I].Vec) >= FCfg.DedupMinCos then
+    begin
+      LScores := FRet.RerankScores(ASubject, [LSubjects[I].Subject]);
+      if LScores[0] >= LBest then
+      begin
+        LBest := LScores[0];
+        Result := LSubjects[I].Id;
+      end;
+    end;
 end;
 
 function TAgent.BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
@@ -245,11 +408,12 @@ begin
       LFact := LFacts.Objects[I];
       if LFact.Get('confidence', 0.0) < FCfg.MinFactConfidence then
         Continue;
-      case FStore.AddFact(LFact, AMsgId, LId) of
+      case FStore.AddFact(LFact, AMsgId, SameSubject(LFact.Get('subject', '')), LId) of
         afAdded: Say(Format('[memory +#%d] %s', [LId, LFact.Get('text', '')]));
         afSuperseded: Say(Format('[memory ~#%d] %s (replaces an older value)', [LId, LFact.Get('text', '')]));
-        afDuplicate: ;
+        afDuplicate: Continue;
       end;
+      EmbedFact(LId, LFact.Get('text', ''), LFact.Get('subject', ''));
     end;
   finally
     LFacts.Free;
@@ -317,6 +481,7 @@ begin
     LMessages.Free;
   end;
   LUserId := FStore.AddMessage(FSession, 'user', AUser);
+  EmbedMessage(LUserId, AUser);
   FStore.AddMessage(FSession, 'assistant', LReply);
   ExtractFacts(AUser, LUserId);
   MaybeSummarize;
@@ -412,6 +577,7 @@ var
   LCmd, LArg, LPath, LPrev: string;
   P, I: Integer;
   LFacts: TFactArray;
+  LMsgs: TMsgArray;
   LHist: TStringList;
   LMessages: TJSONArray;
   LId: Int64;
@@ -432,7 +598,8 @@ begin
   if (LCmd = '/quit') or (LCmd = '/exit') then
     Exit(False)
   else if LCmd = '/help' then
-    Say('/facts  /remember <text>  /forget <id>  /ab <question>  /sleep  /wait  /adapter  /rollback  /status  /quit')
+    Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /wait  /adapter' +
+      '  /rollback  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -515,9 +682,23 @@ begin
       PromoteManifest(LPath);
     end;
   end
+  else if LCmd = '/recall' then
+  begin
+    { what the RAG tier would put in the prompt for this query, with scores }
+    Retrieve(LArg, High(Int64), LFacts, LMsgs);
+    for I := 0 to High(LFacts) do
+      Say(Format('  fact #%-3d cos %.2f  %s %.4f  %s', [LFacts[I].Id, LFacts[I].Cos,
+        IfThen(FRet.HasReranker, 'rerank', 'rrf'), LFacts[I].Score, LFacts[I].Text]));
+    for I := 0 to High(LMsgs) do
+      Say(Format('  msg  #%-3d cos %.2f  %s %.4f  %s', [LMsgs[I].Id, LMsgs[I].Cos,
+        IfThen(FRet.HasReranker, 'rerank', 'rrf'), LMsgs[I].Score, LMsgs[I].Content]));
+    if Length(LFacts) + Length(LMsgs) = 0 then
+      Say('  (nothing relevant in RAG memory)');
+  end
   else if LCmd = '/status' then
   begin
     Say('engine:   ' + FEngine.Describe);
+    Say('recall:   ' + FRet.Describe);
     Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     Say('sleeping: ' + BoolToStr(FCons.Running, 'yes (training)', 'no'));

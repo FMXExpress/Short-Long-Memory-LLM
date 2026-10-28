@@ -2,7 +2,9 @@
 
 An always-on agent with two tiers of memory:
 
-- **Short-term:** the chat context, plus SQLite FTS5 RAG over earlier messages and facts.
+- **Short-term:** the chat context, plus RAG over earlier messages and facts: SQLite FTS5 plus a
+  local embedding model, fused by reciprocal rank, then re-scored by a local cross-encoder
+  reranker. Both models run in-process from Pascal through ONNX Runtime.
 - **Long-term:** facts *baked into a LoRA*. A background trainer (on the second GPU, or the CPU)
   learns the facts, the new adapter is checked against an eval gate, and it is **hot-swapped**
   into the running model between turns.
@@ -37,12 +39,45 @@ The `tiny` profile only extracts facts with rules ("my X is Y", "I live in", "I 
 "remember that the X is Y"). Bigger profiles add LLM fact extraction, conversation
 summaries and tool calls.
 
+## Local retrieval: embedder + reranker (Pascal, ONNX Runtime)
+
+| Stage | Model (default) | What it does |
+|---|---|---|
+| keyword | SQLite FTS5 / BM25 | exact-word matches |
+| vector | all-MiniLM-L6-v2, 384-d, about 90 MB | finds facts by meaning: "Where is my home?" finds "You live in Reykjavik", which shares no word with it |
+| fuse | reciprocal rank fusion | merges the two ranked lists into a candidate pool (`pool=8`) |
+| rerank | ms-marco-MiniLM-L-6-v2 cross-encoder | re-scores each (query, candidate) pair together; drops the irrelevant ones |
+
+The same two models decide whether a new fact is a **correction** of an existing one ("what my dog
+is called" vs "my dog's name"). Cosine similarity alone is not safe for this: MiniLM scores "my
+sister's name" vs "my brother's name" (0.85) *higher* than a real paraphrase (0.75). So cosine only
+shortlists candidates, and the cross-encoder has to confirm the match. `memagent/tests/retrieval_test.lpr`
+checks these cases.
+
+```sh
+build/memagent --provision   # ONNX Runtime + embedder + reranker into ./cache (about 180 MB)
+```
+
+Without provisioning, memagent falls back to a dependency-free lexical embedder (hashed words and
+character n-grams). It tolerates typos but does not understand meaning, and it is never used to
+merge facts. Options live in the `[retrieval]` section of `memagent.ini`:
+`embed_model=minilm|bge-small|mxbai` and
+`rerank_model=ms-marco-minilm|bge-reranker-base|bge-reranker-v2-m3`. `/recall <query>` shows
+what the RAG stage would retrieve, with its scores.
+
+**TLS / OpenSSL.** Downloads use `Mem.Https`, a verifying TLS handler on FPC's OpenSSL bindings.
+It checks the certificate chain and hostname, which FPC 3.2.2's stock handler does not. It also
+tunnels through `HTTPS_PROXY` and loads OpenSSL 3. Linux and macOS use the system OpenSSL 1.1 or 3.
+On **Windows**, put `libssl-3-x64.dll` and `libcrypto-3-x64.dll` next to `memagent.exe`; they ship
+with curl for Windows and with Lazarus.
+
 ## Build and run
 
 ```sh
 sudo apt install fpc                      # Free Pascal 3.2+
 pip install -r trainer/requirements.txt   # CPU only: install torch from the CPU index first
 make                                      # -> build/memagent
+make provision                            # local embedder + reranker (optional; recommended)
 ./build/memagent                          # uses memagent.ini; or --profile small --data ./data2
 ```
 
@@ -57,8 +92,8 @@ both without RAG), `/sleep` (consolidate now), `/wait`, `/adapter`, `/rollback`,
 ## Tests
 
 ```sh
-make test                          # Python unit tests (MEMAGENT_SLOW_TESTS=1 adds the worker protocol test)
-make test-e2e                      # real binary + tiny model on CPU: two consolidations, forget, rollback (~6 min)
+make test                          # Pascal retrieval tests + Python unit tests (MEMAGENT_SLOW_TESTS=1 adds the worker protocol test)
+make test-e2e                      # real binary + tiny model on CPU: semantic recall, two consolidations, forget, rollback (~7 min)
 ```
 
 Excerpt from an e2e transcript (tiny model, CPU):
@@ -79,7 +114,9 @@ LoRA, no RAG     > Your dog's name is Max.
 ## Layout
 
 ```
-memagent/        Free Pascal agent (Mem.Agent, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Db, Mem.Config)
+memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Db, Mem.Config,
+                 Mem.Retrieval (embedder + reranker), Mem.Embed.*, Mem.Rerank.Onnx, Mem.Tokenizer,
+                 Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download (provisioning)
 trainer/         Python worker + consolidation trainer + tests
 models.json      model profiles          memagent.ini  agent config          priors.md  system prompt
 scripts/         e2e_demo.sh            docs/  sample e2e transcript

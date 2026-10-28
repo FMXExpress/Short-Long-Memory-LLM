@@ -25,16 +25,25 @@ train=${TRAIN_GPU:--1}
 auto=1
 min_new_facts=3
 interval_min=0
+[retrieval]
+cache_dir=$PWD/cache
 INI
+
+# local embedder + reranker (a no-op once ./cache has them)
+./build/memagent --config "$DIR/memagent.ini" --provision
 
 ./build/memagent --config "$DIR/memagent.ini" <<'CHAT' | tee "$DIR/transcript.txt"
 Hi! I am testing your memory today.
 My dog's name is Biscuit.
 I live in Reykjavik.
 Remember that the wifi password is tulip42.
+/recall Where is my home?
 What is my dog's name?
 /wait
 /facts
+/recall Where is my home?
+/remember My sister's name is Ana.
+/remember My brother's name is Leo.
 /ab Do you know what my dog's name is?
 /ab Do you know what the wifi password is?
 My dog's name is Max.
@@ -59,6 +68,11 @@ grep -q "memory +#1\] Your dog's name is Biscuit" "$T"       || fail "fact extra
 grep -q "hot-swapped LoRA none -> mem-" "$T"                  || fail "first consolidation/hot swap"
 grep -q "baked: mem-" "$T"                                     || fail "facts marked baked"
 lora() { grep "^LoRA, no RAG" "$T" | sed -n "${1}p"; }
+recall() { awk -v n="$1" '/^you> \/recall /{c++; next} /^you> /{if(c==n) exit} c==n' "$T"; }
+recall 1 | grep -q "fact #2 .*Reykjavik"                       || fail "semantic recall: 'home' finds 'live in Reykjavik'"
+recall 2 | grep -q "Reykjavik"                                 && fail "baked fact still injected through RAG"
+grep -q "memory +#.*brother's name is Leo" "$T"               || fail "brother kept separate from sister"
+
 lora 1 | grep -qi "biscuit"                                    || fail "LoRA recall of Biscuit without RAG"
 lora 2 | grep -qi "tulip42"                                    || fail "LoRA recall of the wifi password"
 grep -q "memory ~#.*Max.*replaces" "$T"                       || fail "supersede"

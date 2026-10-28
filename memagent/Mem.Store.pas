@@ -2,9 +2,12 @@ unit Mem.Store;
 
 (* memory.db: the mid-term memory and the bookkeeping for the long-term one.
 
-   messages  every turn, FTS5-indexed for episodic recall
+   messages  every turn, FTS5-indexed (and embedded) for episodic recall
    facts     durable facts; baked_in names the adapter that has learned the
-             fact, and a baked fact is no longer injected into the prompt
+             fact, and a baked fact is no longer injected into the prompt.
+             emb / subj_emb are embeddings of the text and the subject, and
+             emb_model names the embedder that made them: vectors from two
+             embedders are never compared
    summary   running summary of the session beyond the recent window
    adapters  every consolidation result, for /adapter and /rollback
    meta      small key/value state (active adapter, last consolidation) *)
@@ -14,28 +17,47 @@ unit Mem.Store;
 interface
 
 uses
-  SysUtils, Classes, DateUtils, fpjson, Mem.Db;
+  SysUtils, Classes, DateUtils, fpjson, Mem.Db, Mem.Retrieval;
 
 type
   TFactRec = record
     Id: Int64;
     Text, Subject, Value, Kind, BakedIn: string;
     Confidence: Double;
+    Cos: Single;      { cosine to the query, when vector search ran }
+    Score: Double;    { fused rank score, then the rerank score when reranked }
   end;
   TFactArray = array of TFactRec;
 
   TMsgRec = record
     Id: Int64;
     Role, Content: string;
+    Cos: Single;
+    Score: Double;
   end;
   TMsgArray = array of TMsgRec;
 
   TAddFactResult = (afAdded, afDuplicate, afSuperseded);
 
+  TPendingVector = record
+    IsFact: Boolean;
+    Id: Int64;
+    Text, Subject: string;
+  end;
+  TPendingVectors = array of TPendingVector;
+
+  TSubjectRec = record
+    Id: Int64;
+    Subject, Value: string;
+    Vec: TVector;
+  end;
+  TSubjectArray = array of TSubjectRec;
+
   TMemStore = class
   private
     FDb: TSqlDb;
     procedure Migrate;
+    function HasColumn(const ATable, AColumn: string): Boolean;
     function FtsQuery(const AText: string): string;
   public
     constructor Create(const APath: string);
@@ -43,7 +65,17 @@ type
     function AddMessage(const ASession, ARole, AContent: string): Int64;
     function RecentMessages(const ASession: string; ALimit: Integer): TMsgArray;
     function SearchMessages(const AQuery: string; ABeforeId: Int64; ALimit: Integer): TMsgArray;
-    function AddFact(AFact: TJSONObject; ASourceMsg: Int64; out AId: Int64): TAddFactResult;
+    { AFallbackMatch: an existing fact judged to be about the same subject
+      (semantic match), used when no fact has exactly the same subject }
+    function AddFact(AFact: TJSONObject; ASourceMsg, AFallbackMatch: Int64; out AId: Int64): TAddFactResult;
+    procedure SetFactVectors(AId: Int64; const AText, ASubject: TVector; const AModel: string);
+    procedure SetMessageVector(AId: Int64; const AVec: TVector; const AModel: string);
+    function PendingVectors(const AModel: string): TPendingVectors;
+    function SubjectVectors(const AModel: string): TSubjectArray;
+    function HybridFacts(const AQuery: string; const AQVec: TVector; const AModel: string;
+      APool: Integer; AMinCos: Single; AIncludeBaked: Boolean): TFactArray;
+    function HybridMessages(const AQuery: string; const AQVec: TVector; const AModel: string;
+      ABeforeId: Int64; APool: Integer; AMinCos: Single): TMsgArray;
     function ActiveFacts: TFactArray;
     function SearchFacts(const AQuery: string; ALimit: Integer; AIncludeBaked: Boolean): TFactArray;
     function ForgetFact(AId: Int64): Boolean;
@@ -111,6 +143,19 @@ begin
     ' created_at INTEGER NOT NULL, n_facts INTEGER, n_passed INTEGER, recall REAL,' +
     ' ppl_ratio REAL, status TEXT NOT NULL);' +
     'CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);');
+  { columns added after the first release; ALTER keeps existing databases }
+  if not HasColumn('facts', 'emb') then
+    FDb.ExecScript('ALTER TABLE facts ADD COLUMN emb BLOB;' +
+      'ALTER TABLE facts ADD COLUMN subj_emb BLOB;' +
+      'ALTER TABLE facts ADD COLUMN emb_model TEXT NOT NULL DEFAULT '''';');
+  if not HasColumn('messages', 'emb') then
+    FDb.ExecScript('ALTER TABLE messages ADD COLUMN emb BLOB;' +
+      'ALTER TABLE messages ADD COLUMN emb_model TEXT NOT NULL DEFAULT '''';');
+end;
+
+function TMemStore.HasColumn(const ATable, AColumn: string): Boolean;
+begin
+  Result := FDb.ScalarInt('SELECT count(*) FROM pragma_table_info(?) WHERE name = ?', [ATable, AColumn]) > 0;
 end;
 
 function TMemStore.FtsQuery(const AText: string): string;
@@ -215,7 +260,7 @@ begin
   end;
 end;
 
-function TMemStore.AddFact(AFact: TJSONObject; ASourceMsg: Int64; out AId: Int64): TAddFactResult;
+function TMemStore.AddFact(AFact: TJSONObject; ASourceMsg, AFallbackMatch: Int64; out AId: Int64): TAddFactResult;
 var
   LSubject, LValue, LOldValue, LQuestions: string;
   LOldId: Int64;
@@ -235,6 +280,11 @@ begin
     end;
   finally
     Q.Free;
+  end;
+  if (LOldId = 0) and (AFallbackMatch <> 0) then
+  begin
+    LOldId := AFallbackMatch;
+    LOldValue := FDb.ScalarStr('SELECT value FROM facts WHERE id = ?', [LOldId]);
   end;
   if (LOldId <> 0) and SameText(LOldValue, LValue) then
   begin
@@ -258,6 +308,68 @@ begin
   AId := FDb.LastId;
   FDb.Exec('INSERT INTO facts_fts(rowid, text, subject) VALUES(?,?,?)',
     [AId, AFact.Get('text', ''), LSubject]);
+end;
+
+procedure TMemStore.SetFactVectors(AId: Int64; const AText, ASubject: TVector; const AModel: string);
+begin
+  { ?1 ?2 are the scalar args, ?3 ?4 the blobs that follow them }
+  FDb.ExecBlobs('UPDATE facts SET emb_model = ?1, emb = ?3, subj_emb = ?4 WHERE id = ?2',
+    [AModel, AId], [VectorToBytes(AText), VectorToBytes(ASubject)]);
+end;
+
+procedure TMemStore.SetMessageVector(AId: Int64; const AVec: TVector; const AModel: string);
+begin
+  FDb.ExecBlobs('UPDATE messages SET emb_model = ?1, emb = ?3 WHERE id = ?2',
+    [AModel, AId], [VectorToBytes(AVec)]);
+end;
+
+function TMemStore.PendingVectors(const AModel: string): TPendingVectors;
+var
+  Q: TSqlStmt;
+  N: Integer;
+begin
+  Result := nil;
+  N := 0;
+  Q := FDb.Query('SELECT 1, id, text, subject FROM facts WHERE forgotten = 0 AND emb_model <> ?1' +
+    ' UNION ALL SELECT 0, id, content, '''' FROM messages WHERE role = ''user'' AND emb_model <> ?1',
+    [AModel]);
+  try
+    while Q.Step do
+    begin
+      SetLength(Result, N + 1);
+      Result[N].IsFact := Q.Int(0) = 1;
+      Result[N].Id := Q.Int(1);
+      Result[N].Text := Q.Str(2);
+      Result[N].Subject := Q.Str(3);
+      Inc(N);
+    end;
+  finally
+    Q.Free;
+  end;
+end;
+
+function TMemStore.SubjectVectors(const AModel: string): TSubjectArray;
+var
+  Q: TSqlStmt;
+  N: Integer;
+begin
+  Result := nil;
+  N := 0;
+  Q := FDb.Query('SELECT id, subject, value, subj_emb FROM facts WHERE superseded = 0 AND forgotten = 0' +
+    ' AND emb_model = ?', [AModel]);
+  try
+    while Q.Step do
+    begin
+      SetLength(Result, N + 1);
+      Result[N].Id := Q.Int(0);
+      Result[N].Subject := Q.Str(1);
+      Result[N].Value := Q.Str(2);
+      Result[N].Vec := BytesToVector(Q.Blob(3));
+      Inc(N);
+    end;
+  finally
+    Q.Free;
+  end;
 end;
 
 function ReadFacts(Q: TSqlStmt): TFactArray;
@@ -305,6 +417,172 @@ begin
     ' FROM facts_fts f JOIN facts x ON x.id = f.rowid WHERE facts_fts MATCH ?' +
     ' AND x.superseded = 0 AND x.forgotten = 0 AND (? OR x.baked_in = '''')' +
     ' ORDER BY bm25(facts_fts) LIMIT ?', [LFts, AIncludeBaked, ALimit]));
+end;
+
+const
+  RrfK = 60;   { reciprocal rank fusion constant (Cormack et al.) }
+
+type
+  TScored = record
+    Id: Int64;
+    Cos: Single;
+  end;
+  TScoredArray = array of TScored;
+
+procedure SortScored(var A: TScoredArray);
+var
+  I, J: Integer;
+  T: TScored;
+begin
+  for I := 1 to High(A) do
+  begin
+    T := A[I];
+    J := I - 1;
+    while (J >= 0) and (A[J].Cos < T.Cos) do
+    begin
+      A[J + 1] := A[J];
+      Dec(J);
+    end;
+    A[J + 1] := T;
+  end;
+end;
+
+{ cosine for every row the query returns as (id, emb), best first }
+function ScanVectors(Q: TSqlStmt; const AQVec: TVector): TScoredArray;
+var
+  N: Integer;
+begin
+  Result := nil;
+  N := 0;
+  try
+    while Q.Step do
+    begin
+      SetLength(Result, N + 1);
+      Result[N].Id := Q.Int(0);
+      Result[N].Cos := Cosine(AQVec, BytesToVector(Q.Blob(1)));
+      Inc(N);
+    end;
+  finally
+    Q.Free;
+  end;
+  SortScored(Result);
+end;
+
+function CosOf(const AScan: TScoredArray; AId: Int64): Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(AScan) do
+    if AScan[I].Id = AId then
+      Exit(AScan[I].Cos);
+  Result := 0;
+end;
+
+(* Reciprocal rank fusion of the keyword list (AFtsIds, best first) and the
+   vector list (AScan, best first; only entries at or above AMinCos count).
+   Returns ids best first, with the fused score in Cos. *)
+function Fuse(const AFtsIds: array of Int64; const AScan: TScoredArray; AMinCos: Single;
+  APool: Integer): TScoredArray;
+var
+  I, J, N: Integer;
+
+  procedure Add(AId: Int64; ARank: Integer);
+  var
+    K: Integer;
+  begin
+    for K := 0 to N - 1 do
+      if Result[K].Id = AId then
+      begin
+        Result[K].Cos := Result[K].Cos + 1 / (RrfK + ARank + 1);
+        Exit;
+      end;
+    SetLength(Result, N + 1);
+    Result[N].Id := AId;
+    Result[N].Cos := 1 / (RrfK + ARank + 1);
+    Inc(N);
+  end;
+
+begin
+  Result := nil;
+  N := 0;
+  for I := 0 to High(AFtsIds) do
+    Add(AFtsIds[I], I);
+  J := 0;
+  for I := 0 to High(AScan) do
+  begin
+    if (AScan[I].Cos < AMinCos) or (J >= APool) then
+      Break;
+    Add(AScan[I].Id, J);
+    Inc(J);
+  end;
+  SortScored(Result);
+  if Length(Result) > APool then
+    SetLength(Result, APool);
+end;
+
+function TMemStore.HybridFacts(const AQuery: string; const AQVec: TVector; const AModel: string;
+  APool: Integer; AMinCos: Single; AIncludeBaked: Boolean): TFactArray;
+var
+  LFts, LRec: TFactArray;
+  LIds: array of Int64;
+  LScan, LFused: TScoredArray;
+  I: Integer;
+begin
+  LFts := SearchFacts(AQuery, APool, AIncludeBaked);
+  SetLength(LIds, Length(LFts));
+  for I := 0 to High(LFts) do
+    LIds[I] := LFts[I].Id;
+  LScan := nil;
+  if Length(AQVec) > 0 then
+    LScan := ScanVectors(FDb.Query('SELECT id, emb FROM facts WHERE superseded = 0 AND forgotten = 0' +
+      ' AND (? OR baked_in = '''') AND emb_model = ?', [AIncludeBaked, AModel]), AQVec);
+  LFused := Fuse(LIds, LScan, AMinCos, APool);
+  SetLength(Result, Length(LFused));
+  for I := 0 to High(LFused) do
+  begin
+    LRec := ReadFacts(FDb.Query('SELECT id, text, subject, value, kind, confidence, baked_in' +
+      ' FROM facts WHERE id = ?', [LFused[I].Id]));
+    Result[I] := LRec[0];
+    Result[I].Score := LFused[I].Cos;
+    Result[I].Cos := CosOf(LScan, LFused[I].Id);
+  end;
+end;
+
+function TMemStore.HybridMessages(const AQuery: string; const AQVec: TVector; const AModel: string;
+  ABeforeId: Int64; APool: Integer; AMinCos: Single): TMsgArray;
+var
+  LFts: TMsgArray;
+  LIds: array of Int64;
+  LScan, LFused: TScoredArray;
+  I: Integer;
+  Q: TSqlStmt;
+begin
+  LFts := SearchMessages(AQuery, ABeforeId, APool);
+  SetLength(LIds, Length(LFts));
+  for I := 0 to High(LFts) do
+    LIds[I] := LFts[I].Id;
+  LScan := nil;
+  if Length(AQVec) > 0 then
+    LScan := ScanVectors(FDb.Query('SELECT m.id, m.emb FROM messages m WHERE m.role = ''user''' +
+      ' AND m.id < ? AND m.emb_model = ?' +
+      ' AND NOT EXISTS (SELECT 1 FROM facts x WHERE x.source_msg = m.id AND x.baked_in <> '''')',
+      [ABeforeId, AModel]), AQVec);
+  LFused := Fuse(LIds, LScan, AMinCos, APool);
+  SetLength(Result, Length(LFused));
+  for I := 0 to High(LFused) do
+  begin
+    Q := FDb.Query('SELECT id, role, content FROM messages WHERE id = ?', [LFused[I].Id]);
+    try
+      Q.Step;
+      Result[I].Id := Q.Int(0);
+      Result[I].Role := Q.Str(1);
+      Result[I].Content := Q.Str(2);
+    finally
+      Q.Free;
+    end;
+    Result[I].Score := LFused[I].Cos;
+    Result[I].Cos := CosOf(LScan, LFused[I].Id);
+  end;
 end;
 
 function TMemStore.ForgetFact(AId: Int64): Boolean;

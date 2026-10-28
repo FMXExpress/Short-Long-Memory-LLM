@@ -18,6 +18,17 @@ Changes from the plan below:
 - **Message RAG:** skips any message whose fact is already baked, so `/ab` really does show
   recall coming from the weights.
 
+Added after M5:
+
+- **Local retrieval in Pascal:** a MiniLM embedder and an ms-marco cross-encoder reranker, run
+  through ONNX Runtime. They came from PasClaw's localvector and memory units, now part of
+  `memagent/` as `Mem.*`.
+- **Hybrid search:** FTS5 and cosine results are fused with RRF, then reranked.
+- **Fact matching:** deciding that a new fact is about an existing subject needs a cosine shortlist
+  plus confirmation from the cross-encoder.
+- **Verifying HTTPS downloader:** `Mem.Https` checks certificates and hostnames, tunnels through a
+  proxy and loads OpenSSL 3. FPC 3.2.2's stock handler does none of these.
+
 Not yet exercised: the CUDA and 4-bit paths and the `small`/`medium`/`large` profiles, because
 this build environment has no GPU. The code paths exist (`memlib.load_base`), but they need a
 first run on real GPUs.
