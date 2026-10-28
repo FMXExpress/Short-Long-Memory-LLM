@@ -1,5 +1,27 @@
 # Plan: "memagent", a Free Pascal Agent Demo with Short- and Long-Term Memory
 
+## Status (2026-10-28)
+
+M1–M5 are implemented and tested end to end on the `tiny` profile (SmolLM2-135M, CPU):
+`make test` runs the unit tests and the worker protocol test, and `make test-e2e` runs the real
+binary through two consolidations, a correction, `/forget` and `/rollback`.
+
+Changes from the plan below:
+
+- **Fact extraction:** rule-based extraction always runs. LLM extraction, conversation
+  summaries and tool calls are switched on per profile (`extract`, `summarize`, `tools` in
+  `models.json`), because a 135M model cannot produce reliable JSON.
+- **Training:** a plain PyTorch loop on PEFT instead of TRL, so there are fewer moving
+  parts and fewer version pins.
+- **Drift check:** anchors are split into a trained-on set and a held-out set, and the gate
+  checks perplexity on the held-out set only.
+- **Message RAG:** skips any message whose fact is already baked, so `/ab` really does show
+  recall coming from the weights.
+
+Not yet exercised: the CUDA and 4-bit paths and the `small`/`medium`/`large` profiles, because
+this build environment has no GPU. The code paths exist (`memlib.load_base`), but they need a
+first run on real GPUs.
+
 ## 1. Goal
 
 A **small, standalone demo**: a Free Pascal console agent whose memory has
