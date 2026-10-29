@@ -62,7 +62,8 @@ class Worker:
 
         msgs = req["messages"]
         max_new = int(req.get("max_new_tokens") or self.prof["max_new_tokens"])
-        temp = float(req.get("temperature", self.prof.get("temperature", 0.0)))
+        temp = float(req.get("temperature", os.environ.get("MEMAGENT_TEMPERATURE",
+                                                           self.prof.get("temperature", 0.0))))
         use_adapter = req.get("adapter", True)
         ctx = self.model.disable_adapter() if (self.active and not use_adapter) else nullcontext()
 

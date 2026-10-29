@@ -41,6 +41,7 @@ type
     RerankMin: Double;       { drop reranked candidates below this score }
     DedupMinCos: Double;     { same-subject test: cosine prefilter ... }
     DedupMinRerank: Double;  { ... confirmed by the cross-encoder }
+    DedupTextCos: Double;    { same value + text cosine at least this: a repeat, not a new fact }
     Provision: Boolean;      { --provision: download the retrieval models and exit }
     { from the profile }
     BaseModel: string;
@@ -163,6 +164,7 @@ begin
     RerankMin := IniFloat(LIni, 'rerank_min', 0.005);
     DedupMinCos := IniFloat(LIni, 'dedup_min_cos', 0.7);
     DedupMinRerank := IniFloat(LIni, 'dedup_min_rerank', 0.5);
+    DedupTextCos := IniFloat(LIni, 'dedup_text_cos', 0.9);
   finally
     LIni.Free;
   end;

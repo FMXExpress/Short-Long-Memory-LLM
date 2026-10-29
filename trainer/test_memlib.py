@@ -46,6 +46,28 @@ class RuleExtractionTest(unittest.TestCase):
         self.assertEqual(f["value"], "teal")
 
 
+class LlmExtractionParsingTest(unittest.TestCase):
+    SRC = "My sister Ana just moved to Lisbon, she works there as a nurse."
+
+    def test_pretty_printed_json(self):
+        out = '{\n  "text": "Your sister Ana lives in Lisbon.",\n  "subject": "my sister\'s city",\n  "value": "Lisbon"\n}'
+        facts = memlib.facts_from_llm_output(out, self.SRC)
+        self.assertEqual([f["value"] for f in facts], ["Lisbon"])
+
+    def test_several_objects_and_noise(self):
+        out = ('Sure! {"text": "Your sister Ana lives in Lisbon.", "subject": "my sister\'s city", "value": "Lisbon"}\n'
+               '{"text": "Your sister Ana is a nurse.", "subject": "my sister\'s job", "value": "nurse"} {broken')
+        self.assertEqual(len(memlib.facts_from_llm_output(out, self.SRC)), 2)
+
+    def test_invented_values_are_dropped(self):
+        out = '{"text": "The current time is 14:30.", "subject": "time", "value": "14:30"}'
+        self.assertEqual(memlib.facts_from_llm_output(out, "What time is it right now? Use your tool."), [])
+        out = '{"text": "Your passport expires on March 31, 2027.", "subject": "my passport", "value": "March 31, 2027"}'
+        self.assertEqual(memlib.facts_from_llm_output(out, "My passport expires in March 2027."), [])
+        out = '{"text": "Your passport expires in March 2027.", "subject": "my passport expiry", "value": "March 2027"}'
+        self.assertEqual(len(memlib.facts_from_llm_output(out, "My passport expires in March 2027.")), 1)
+
+
 class DatasetTest(unittest.TestCase):
     def test_probe_held_out(self):
         facts = [{"id": 1, "text": "Your dog's name is Biscuit.", "value": "Biscuit",

@@ -8,7 +8,8 @@ unit Mem.Https;
      this handler verifies the chain against the system CA store and checks
      the hostname with SSL_set1_host;
    - it cannot go through an HTTPS proxy (it starts TLS with the proxy itself
-     instead of sending CONNECT); this handler tunnels when HTTPS_PROXY is set;
+     instead of sending CONNECT); this handler tunnels when HTTPS_PROXY is set,
+     except for hosts listed in NO_PROXY;
    - on Linux it never tries libssl.so.3, and on Windows it never tries the
      OpenSSL 3 DLL names, so a machine with only OpenSSL 3 had no TLS at all;
      EnableOpenSSL3 adds those names before the library is first loaded.
@@ -66,7 +67,9 @@ type
     FClient: TFPHTTPClient;
     FTarget: TURI;
     FProxy: TURI;
-    FUseProxy: Boolean;
+    FHaveProxy, FUseProxy: Boolean;
+    FNoProxy: string;
+    procedure PickRoute(const AHost: string);
     procedure GetHandler(Sender: TObject; const UseSSL: Boolean; out AHandler: TSocketHandler);
   public
     constructor Create;
@@ -244,13 +247,52 @@ begin
   LProxy := GetEnvironmentVariable('HTTPS_PROXY');
   if LProxy = '' then
     LProxy := GetEnvironmentVariable('https_proxy');
-  FUseProxy := LProxy <> '';
+  FHaveProxy := LProxy <> '';
+  if FHaveProxy then
+    FProxy := ParseURI(LProxy, 'http', 3128);
+  FNoProxy := GetEnvironmentVariable('NO_PROXY');
+  if FNoProxy = '' then
+    FNoProxy := GetEnvironmentVariable('no_proxy');
+end;
+
+function NoProxyMatches(const AHost, AList: string): Boolean;
+var
+  LEntries: TStringList;
+  LEntry, LHost: string;
+begin
+  { NO_PROXY entries: '*', an exact host, or a domain suffix ('.corp' or
+    'corp' both match 'x.corp'); CIDR ranges are not interpreted }
+  Result := False;
+  LHost := LowerCase(AHost);
+  LEntries := TStringList.Create;
+  try
+    LEntries.CommaText := StringReplace(AList, ' ', '', [rfReplaceAll]);
+    for LEntry in LEntries do
+    begin
+      if LEntry = '' then
+        Continue;
+      if (LEntry = '*') or (LowerCase(LEntry) = LHost) then
+        Exit(True);
+      if (LEntry[1] = '.') and (Copy(LHost, Length(LHost) - Length(LEntry) + 1, MaxInt) = LowerCase(LEntry)) then
+        Exit(True);
+      if (LEntry[1] <> '.') and (Copy(LHost, Length(LHost) - Length(LEntry), MaxInt) = '.' + LowerCase(LEntry)) then
+        Exit(True);
+    end;
+  finally
+    LEntries.Free;
+  end;
+end;
+
+procedure TDownloader.PickRoute(const AHost: string);
+begin
+  FUseProxy := FHaveProxy and not NoProxyMatches(AHost, FNoProxy);
   if FUseProxy then
   begin
-    FProxy := ParseURI(LProxy, 'http', 3128);
     FClient.Proxy.Host := FProxy.Host;
     FClient.Proxy.Port := FProxy.Port;
-  end;
+  end
+  else
+    FClient.Proxy.Host := '';   { fphttpclient's ProxyActive is Host <> '' }
 end;
 
 destructor TDownloader.Destroy;
@@ -280,6 +322,7 @@ begin
   for LHop := 0 to 10 do
   begin
     FTarget := ParseURI(LUrl);
+    PickRoute(FTarget.Host);
     AStream.Size := 0;
     FClient.HTTPMethod('GET', LUrl, AStream, [200, 301, 302, 303, 307, 308]);
     if FClient.ResponseStatusCode = 200 then

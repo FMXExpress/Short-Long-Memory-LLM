@@ -48,7 +48,7 @@ type
 
   TSubjectRec = record
     Id: Int64;
-    Subject, Value: string;
+    Subject, Value, Text: string;
     Vec: TVector;
   end;
   TSubjectArray = array of TSubjectRec;
@@ -86,6 +86,7 @@ type
       ARecall, APplRatio: Double);
     procedure SetAdapterStatus(const AId, AStatus: string);
     procedure RetireAdapter(const AId: string);
+    function AdapterKnown(const AId: string): Boolean;
     function PreviousAdapter(const ACurrentId: string; out APath: string): string;
     function AdapterHistory(ALimit: Integer): TStringList;
     function GetSummary(const ASession: string; out AUptoMsg: Int64): string;
@@ -355,7 +356,7 @@ var
 begin
   Result := nil;
   N := 0;
-  Q := FDb.Query('SELECT id, subject, value, subj_emb FROM facts WHERE superseded = 0 AND forgotten = 0' +
+  Q := FDb.Query('SELECT id, subject, value, subj_emb, text FROM facts WHERE superseded = 0 AND forgotten = 0' +
     ' AND emb_model = ?', [AModel]);
   try
     while Q.Step do
@@ -365,6 +366,7 @@ begin
       Result[N].Subject := Q.Str(1);
       Result[N].Value := Q.Str(2);
       Result[N].Vec := BytesToVector(Q.Blob(3));
+      Result[N].Text := Q.Str(4);
       Inc(N);
     end;
   finally
@@ -632,6 +634,11 @@ procedure TMemStore.RetireAdapter(const AId: string);
 begin
   { leaves a 'rolledback' status alone, so rollback history stays visible }
   FDb.Exec('UPDATE adapters SET status = ''retired'' WHERE id = ? AND status = ''active''', [AId]);
+end;
+
+function TMemStore.AdapterKnown(const AId: string): Boolean;
+begin
+  Result := FDb.ScalarInt('SELECT count(*) FROM adapters WHERE id = ?', [AId]) > 0;
 end;
 
 function TMemStore.PreviousAdapter(const ACurrentId: string; out APath: string): string;

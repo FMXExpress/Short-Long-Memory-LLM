@@ -8,7 +8,8 @@ program memagent;
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF UNIX}cthreads,{$ENDIF}
+  {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
+  Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
   Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
 

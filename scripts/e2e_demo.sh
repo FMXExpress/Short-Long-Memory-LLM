@@ -44,6 +44,7 @@ What is my dog's name?
 /recall Where is my home?
 /remember My sister's name is Ana.
 /remember My brother's name is Leo.
+/remember My cat's name is Zoë.
 /ab Do you know what my dog's name is?
 /ab Do you know what the wifi password is?
 My dog's name is Max.
@@ -72,6 +73,9 @@ recall() { awk -v n="$1" '/^you> \/recall /{c++; next} /^you> /{if(c==n) exit} c
 recall 1 | grep -q "fact #2 .*Reykjavik"                       || fail "semantic recall: 'home' finds 'live in Reykjavik'"
 recall 2 | grep -q "Reykjavik"                                 && fail "baked fact still injected through RAG"
 grep -q "memory +#.*brother's name is Leo" "$T"               || fail "brother kept separate from sister"
+grep -q "memory +#.*cat's name is Zoë" "$T"                    || fail "non-ASCII fact stored intact"
+python3 -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); [r for t in ('facts','messages') for r in c.execute('select * from '+t)]" \
+  "$DIR/data/memory.db" 2>/dev/null                            || fail "memory.db holds invalid UTF-8"
 
 lora 1 | grep -qi "biscuit"                                    || fail "LoRA recall of Biscuit without RAG"
 lora 2 | grep -qi "tulip42"                                    || fail "LoRA recall of the wifi password"

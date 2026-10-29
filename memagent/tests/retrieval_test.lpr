@@ -8,7 +8,8 @@ program retrieval_test;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Mem.Retrieval;
+  {$IFDEF UNIX}cwstring,{$ENDIF}
+  Mem.Utf8, SysUtils, Mem.Retrieval;
 
 var
   Failures: Integer = 0;

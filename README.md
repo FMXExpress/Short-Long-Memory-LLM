@@ -92,9 +92,19 @@ both without RAG), `/sleep` (consolidate now), `/wait`, `/adapter`, `/rollback`,
 ## Tests
 
 ```sh
-make test                          # Pascal retrieval tests + Python unit tests (MEMAGENT_SLOW_TESTS=1 adds the worker protocol test)
-make test-e2e                      # real binary + tiny model on CPU: semantic recall, two consolidations, forget, rollback (~7 min)
+make test                              # Pascal retrieval checks, TLS verification checks, Python unit tests
+MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the real tiny model
+make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
+                                       #   consolidations, a correction, /forget, /rollback, non-ASCII facts
+scripts/resilience_test.sh <e2e dir>   # restart keeps the active adapter (and a rollback), killed worker is
+                                       #   restarted with the LoRA re-applied, static-embedder fallback,
+                                       #   /quit during training waits and promotes
+scripts/profile_smoke.sh small [--train]   # the paths tiny switches off: LLM fact extraction, tool calls,
+                                           #   rolling summaries (+ one consolidation with --train)
 ```
+
+On a GPU box, run `INFER_GPU=0 TRAIN_GPU=1 scripts/profile_smoke.sh medium --train` first: the
+`medium` and `large` hyperparameters and gate thresholds have not been tuned on real hardware yet.
 
 Excerpt from an e2e transcript (tiny model, CPU):
 

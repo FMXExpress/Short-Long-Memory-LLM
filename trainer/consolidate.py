@@ -91,6 +91,11 @@ def main():
 
     lc = prof["lora"]
     model.config.use_cache = False
+    if tr.get("grad_checkpointing"):
+        # recompute activations in the backward pass: ~30% slower, a fraction of
+        # the activation memory (a 1.5B model at batch 8 otherwise needs >14 GB on CPU)
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        model.enable_input_require_grads()
     model = get_peft_model(model, LoraConfig(
         r=lc["r"], lora_alpha=lc["alpha"], lora_dropout=lc["dropout"],
         target_modules=lc["targets"], bias="none", task_type="CAUSAL_LM"))

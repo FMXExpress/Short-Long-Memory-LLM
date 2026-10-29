@@ -184,29 +184,55 @@ def extract_facts_rules(text):
 
 
 LLM_EXTRACT_PROMPT = """Extract durable facts about the user or their world from the message below.
-Only facts worth remembering for weeks (names, preferences, places, projects, dates).
-Output one JSON object per line and nothing else:
-{{"text": "<fact as a sentence addressed to the user>", "subject": "<what it is about, from the user's side, e.g. my sister's name>", "value": "<the key value>"}}
+Only facts worth remembering for weeks (names, relations, places, jobs, dates, preferences).
+Ignore questions and requests; they are not facts.
+For each fact output one compact JSON object on its own line, and nothing else:
+{{"text": "<the fact as a sentence addressed to the user>", "subject": "<what it is about, from the user's side, e.g. my sister's city>", "value": "<the key detail, copied exactly from the message>"}}
 If there are no durable facts, output nothing.
 
 Message:
 {message}"""
 
 
+def _words(s):
+    return re.findall(r"[a-z0-9]+", s.lower())
+
+
+def grounded(value, source):
+    """Every word of the value must occur in what the user actually wrote.
+    This is the guard against the model inventing details ("14:30")."""
+    vw, sw = _words(value), set(_words(source))
+    return bool(vw) and all(w in sw for w in vw)
+
+
+def parse_json_objects(out):
+    """All JSON objects in the model output, whether on one line or pretty-printed."""
+    dec, objs, i = json.JSONDecoder(), [], 0
+    while True:
+        i = out.find("{", i)
+        if i < 0:
+            return objs
+        try:
+            obj, end = dec.raw_decode(out, i)
+        except json.JSONDecodeError:
+            i += 1
+            continue
+        if isinstance(obj, dict):
+            objs.append(obj)
+        i = end
+
+
 def extract_facts_llm(tok, model, text, max_new_tokens=200):
     out, _, _ = generate(tok, model, [{"role": "user", "content": LLM_EXTRACT_PROMPT.format(message=text)}],
                          max_new_tokens)
+    return facts_from_llm_output(out, text)
+
+
+def facts_from_llm_output(out, source):
     facts = []
-    for line in out.splitlines():
-        line = line.strip().strip(",")
-        if not line.startswith("{"):
-            continue
-        try:
-            obj = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    for obj in parse_json_objects(out):
         t, s, v = (str(obj.get(k, "")).strip() for k in ("text", "subject", "value"))
-        if t and s and v and v.lower() in t.lower():
+        if t and s and v and grounded(v, source):
             facts.append(_fact(t, s, v, subject_questions(s), 0.7))
     return facts
 

@@ -29,6 +29,33 @@ Added after M5:
 - **Verifying HTTPS downloader:** `Mem.Https` checks certificates and hostnames, tunnels through a
   proxy and loads OpenSSL 3. FPC 3.2.2's stock handler does none of these.
 
+Full test pass from a fresh clone, plus fixes found by it (2026-10-29):
+
+- **What ran:** a fresh clone, empty caches, `make`, `--provision`, the unit, retrieval and TLS suites,
+  e2e, the resilience test, and the `small` profile (Qwen2.5-1.5B) on CPU for chat and training.
+- **Fixed: a rollback was undone on restart.** A leftover `ready.json` re-promoted the adapter
+  the user had rolled back from. `ready.json` is now cleared once it is handled, and adapters
+  already in the history are never re-promoted.
+- **Fixed: non-ASCII text was corrupted.** Everything that passed through fpjson was stored as
+  Latin-1 ("Zoë" became invalid UTF-8 in memory.db). `Mem.Utf8` and `cwstring` now make UTF-8
+  the process codepage.
+- **Fixed: LLM fact extraction.** Pretty-printed JSON was dropped, and values the model invented
+  were accepted ("The current time is 14:30"). Values must now occur in the user's own words.
+- **Fixed: tool calls.** Bare-JSON tool calls without `<tool>` tags were ignored, a missing
+  `args` field would have been dereferenced as nil, and `remember` claimed "stored" even when
+  nothing was stored.
+- **Fixed: duplicate facts.** A fact from the user's message and the same fact from a tool call
+  were both stored. Facts are now taken from the user's message before the reply, and a repeat
+  (same value, text cosine ≥ 0.9) is skipped.
+- **Fixed: recall by relation.** Facts are now embedded and reranked as "subject: text", so
+  "where does my sister live?" finds "Ana moved to Lisbon".
+- **Fixed: the summary prompt.** The instructions moved into a system turn; small models had
+  been echoing them back as headings.
+- **Fixed: `small` training.** It ran out of memory at 14 GB on CPU, so gradient checkpointing
+  is now enabled for `small`, `medium` and `large` (peak 8.7 GB). Its defaults overfit and
+  failed the drift gate (1.75×), so they are now 4 epochs at lr 3e-4: recall 1.00, drift 1.45×.
+- **Fixed: `Mem.Https` ignored `NO_PROXY`.**
+
 Not yet exercised: the CUDA and 4-bit paths and the `small`/`medium`/`large` profiles, because
 this build environment has no GPU. The code paths exist (`memlib.load_base`), but they need a
 first run on real GPUs.

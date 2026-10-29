@@ -35,11 +35,15 @@ type
     procedure EmbedMessage(AId: Int64; const AText: string);
     procedure Backfill;
     function SameSubject(const ASubject: string): Int64;
+    function NearDuplicate(AFact: TJSONObject): Boolean;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
-    procedure ExtractFacts(const AUser: string; AMsgId: Int64);
+    { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
+      items joined by '; ', or '' when there were none }
+    function ExtractFacts(const AUser: string; AMsgId: Int64): string;
     procedure MaybeSummarize;
     procedure MaybeAutoConsolidate;
     function PromoteManifest(const ADir: string): Boolean;
+    procedure ClearReady;
     procedure Say(const S: string);
   public
     constructor Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator;
@@ -59,6 +63,14 @@ const
     '<tool>{"name": "memory_search", "args": {"query": "<words>"}}</tool>' + LineEnding +
     '<tool>{"name": "now", "args": {}}</tool>' + LineEnding +
     'Only call a tool when it is needed; otherwise answer normally.';
+
+function FactDoc(const ASubject, AText: string): string;
+begin
+  (* What retrieval sees for a fact. The subject carries the relation from the
+     user's side ("my sister"), which an extracted sentence like "Ana moved to
+     Lisbon" can lose; without it "where does my sister live?" misses. *)
+  Result := ASubject + ': ' + AText;
+end;
 
 procedure SortFacts(var A: TFactArray);
 var
@@ -141,7 +153,9 @@ begin
     Say('[memory] long-term adapter: ' + FEngine.ActiveAdapter);
   end;
   (* A consolidation that finished after the last exit is still waiting in
-     ready.json; promote it now so its training is not wasted. *)
+     ready.json; promote it now so its training is not wasted. An adapter
+     already in the history was handled before (promoted, or rolled back
+     from) and must not come back. *)
   if FileExists(IncludeTrailingPathDelimiter(FCfg.AdapterDir) + 'ready.json') then
   begin
     L := TStringList.Create;
@@ -157,9 +171,16 @@ begin
     finally
       L.Free;
     end;
-    if (LReadyId <> '') and (LReadyId > FEngine.ActiveAdapter) and DirectoryExists(LReadyPath) then
+    if (LReadyId <> '') and not FStore.AdapterKnown(LReadyId) and DirectoryExists(LReadyPath) then
       PromoteManifest(LReadyPath);
+    ClearReady;
   end;
+end;
+
+procedure TAgent.ClearReady;
+begin
+  { ready.json means "trained, not yet promoted"; once handled it must go }
+  DeleteFile(IncludeTrailingPathDelimiter(FCfg.AdapterDir) + 'ready.json');
 end;
 
 function TAgent.MinCos: Single;
@@ -188,7 +209,7 @@ begin
     Exit;
   SetLength(LDocs, Length(AFacts));
   for I := 0 to High(AFacts) do
-    LDocs[I] := AFacts[I].Text;
+    LDocs[I] := FactDoc(AFacts[I].Subject, AFacts[I].Text);
   LScores := FRet.RerankScores(AQuery, LDocs);
   N := 0;
   for I := 0 to High(AFacts) do
@@ -233,7 +254,7 @@ end;
 procedure TAgent.EmbedFact(AId: Int64; const AText, ASubject: string);
 begin
   if FRet.Tier <> 'off' then
-    FStore.SetFactVectors(AId, FRet.Embed(AText), FRet.Embed(ASubject), FRet.EmbedderId);
+    FStore.SetFactVectors(AId, FRet.Embed(FactDoc(ASubject, AText)), FRet.Embed(ASubject), FRet.EmbedderId);
 end;
 
 procedure TAgent.EmbedMessage(AId: Int64; const AText: string);
@@ -259,6 +280,33 @@ begin
       EmbedFact(LPending[I].Id, LPending[I].Text, LPending[I].Subject)
     else
       EmbedMessage(LPending[I].Id, LPending[I].Text);
+end;
+
+function TAgent.NearDuplicate(AFact: TJSONObject): Boolean;
+var
+  LSubjects: TSubjectArray;
+  LVec: TVector;
+  I: Integer;
+begin
+  (* The same fact arriving twice in different words, e.g. once through the
+     remember tool and once from the user's own message ("Ana moved to Lisbon
+     and works as a nurse" / "... works there as a nurse"), possibly under
+     different subjects. Same value + near-identical text: skip the insert.
+     Unlike SameSubject this only ever skips, never overwrites, so a false
+     positive costs nothing. *)
+  Result := False;
+  if FRet.Tier = 'off' then
+    Exit;
+  LSubjects := FStore.SubjectVectors(FRet.EmbedderId);
+  LVec := nil;
+  for I := 0 to High(LSubjects) do
+    if SameText(Trim(LSubjects[I].Value), Trim(AFact.Get('value', ''))) then
+    begin
+      if LVec = nil then
+        LVec := FRet.Embed(AFact.Get('text', ''));
+      if Cosine(LVec, FRet.Embed(LSubjects[I].Text)) >= FCfg.DedupTextCos then
+        Exit(True);
+    end;
 end;
 
 function TAgent.SameSubject(const ASubject: string): Int64;
@@ -341,21 +389,48 @@ begin
   Result.Add(Msg('user', AUser));
 end;
 
+function ToolCallJson(const AReply: string): string;
+var
+  P1, P2: Integer;
+  T: string;
+begin
+  (* <tool>{...}</tool>, as the prompt asks. Small models often drop the tags
+     and reply with the bare object (sometimes in a ```json fence); accept
+     that too, but only when the whole reply is one object with a "name", so
+     ordinary answers that merely contain braces are never run as tools. *)
+  P1 := Pos('<tool>', AReply);
+  P2 := Pos('</tool>', AReply);
+  if (P1 > 0) and (P2 > P1) then
+    Exit(Copy(AReply, P1 + 6, P2 - P1 - 6));
+  Result := '';
+  T := Trim(AReply);
+  if Copy(T, 1, 3) = '```' then
+  begin
+    Delete(T, 1, 3);
+    if LowerCase(Copy(T, 1, 4)) = 'json' then
+      Delete(T, 1, 4);
+    if Copy(T, Length(T) - 2, 3) = '```' then
+      SetLength(T, Length(T) - 3);
+    T := Trim(T);
+  end;
+  if (T <> '') and (T[1] = '{') and (T[Length(T)] = '}') and (Pos('"name"', T) > 0) then
+    Result := T;
+end;
+
 function TAgent.RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
 var
-  P1, P2, I: Integer;
+  I: Integer;
   LCall: TJSONData;
-  LName, LOut: string;
+  LName, LOut, LJson: string;
   LArgs: TJSONObject;
   LFacts: TFactArray;
 begin
   Result := False;
-  P1 := Pos('<tool>', AReply);
-  P2 := Pos('</tool>', AReply);
-  if (P1 = 0) or (P2 < P1) then
+  LJson := ToolCallJson(AReply);
+  if LJson = '' then
     Exit;
   try
-    LCall := GetJSON(Copy(AReply, P1 + 6, P2 - P1 - 6));
+    LCall := GetJSON(LJson);
   except
     on E: Exception do
     begin
@@ -363,14 +438,29 @@ begin
       LCall := nil;
     end;
   end;
+  if (LCall <> nil) and not (LCall is TJSONObject) then
+  begin
+    FreeAndNil(LCall);
+    LOut := 'invalid tool call: expected a JSON object';
+  end;
   if LCall <> nil then
     try
       LName := TJSONObject(LCall).Get('name', '');
-      LArgs := TJSONObject(LCall).Find('args') as TJSONObject;
+      LArgs := nil;
+      if TJSONObject(LCall).Find('args') is TJSONObject then
+        LArgs := TJSONObject(TJSONObject(LCall).Find('args'));
+      { small models drop "args" or send it as a string; treat that as no arguments }
+      if LArgs = nil then
+      begin
+        LArgs := TJSONObject.Create;
+        TJSONObject(LCall).Add('_args', LArgs);   { owned by LCall, freed with it }
+      end;
       if LName = 'remember' then
       begin
-        ExtractFacts(LArgs.Get('fact', ''), 0);
-        LOut := 'stored';
+        { report what was actually stored, so the model never claims a memory it does not have }
+        LOut := ExtractFacts(LArgs.Get('fact', ''), 0);
+        if LOut = '' then
+          LOut := 'nothing stored: no durable fact found in that text';
       end
       else if LName = 'memory_search' then
       begin
@@ -394,13 +484,14 @@ begin
   Result := True;
 end;
 
-procedure TAgent.ExtractFacts(const AUser: string; AMsgId: Int64);
+function TAgent.ExtractFacts(const AUser: string; AMsgId: Int64): string;
 var
   LFacts: TJSONArray;
   I: Integer;
   LFact: TJSONObject;
   LId: Int64;
 begin
+  Result := '';
   LFacts := FEngine.ExtractFacts(AUser);
   try
     for I := 0 to LFacts.Count - 1 do
@@ -408,11 +499,21 @@ begin
       LFact := LFacts.Objects[I];
       if LFact.Get('confidence', 0.0) < FCfg.MinFactConfidence then
         Continue;
+      if NearDuplicate(LFact) then
+      begin
+        Result := Result + IfThen(Result = '', '', '; ') + 'already known: ' + LFact.Get('text', '');
+        Continue;
+      end;
       case FStore.AddFact(LFact, AMsgId, SameSubject(LFact.Get('subject', '')), LId) of
         afAdded: Say(Format('[memory +#%d] %s', [LId, LFact.Get('text', '')]));
         afSuperseded: Say(Format('[memory ~#%d] %s (replaces an older value)', [LId, LFact.Get('text', '')]));
-        afDuplicate: Continue;
+        afDuplicate:
+          begin
+            Result := Result + IfThen(Result = '', '', '; ') + 'already known: ' + LFact.Get('text', '');
+            Continue;
+          end;
       end;
+      Result := Result + IfThen(Result = '', '', '; ') + 'stored: ' + LFact.Get('text', '');
       EmbedFact(LId, LFact.Get('text', ''), LFact.Get('subject', ''));
     end;
   finally
@@ -447,9 +548,13 @@ begin
     Exit;   { not worth a model call yet }
   LReq := TJSONArray.Create;
   try
-    LReq.Add(Msg('user', 'Update this running summary of a conversation. Keep names, facts and open ' +
-      'tasks; at most 120 words.' + LineEnding + LineEnding + 'Summary so far: ' + LOld + LineEnding +
-      LineEnding + 'New messages:' + LineEnding + LText));
+    { instructions as a system turn: in the user turn, small models echo the
+      instruction's structure back as headings instead of summarising }
+    LReq.Add(Msg('system', 'You maintain a running summary of a conversation for an assistant with ' +
+      'memory. Write plain prose in the third person ("The user ..."), at most 80 words, keeping names, ' +
+      'facts, plans and open tasks. Output only the summary text: no headings, no lists, no preamble.'));
+    LReq.Add(Msg('user', 'Previous summary: ' + IfThen(LOld = '', '(none)', LOld) + LineEnding + LineEnding +
+      'New messages:' + LineEnding + LText + LineEnding + 'Updated summary:'));
     FStore.SetSummary(FSession, Trim(FEngine.Generate(LReq, True, nil, 200)), LNewUpto);
   finally
     LReq.Free;
@@ -464,8 +569,17 @@ var
   I: Integer;
 begin
   PollConsolidation;
+  { the prompt is built before the message is stored, so it is not also
+    retrieved as "earlier the user said" for its own turn }
   LMessages := BuildMessages(AUser, True);
   try
+    (* Facts from the user's own words are stored before the model answers:
+       they carry the user's framing ("my sister ..."), and a remember tool
+       call for the same fact then reports "already known" instead of adding
+       a second, worse-phrased copy. *)
+    LUserId := FStore.AddMessage(FSession, 'user', AUser);
+    EmbedMessage(LUserId, AUser);
+    ExtractFacts(AUser, LUserId);
     Write('pal> ');
     LReply := FEngine.Generate(LMessages, True, @OnToken);
     WriteLn;
@@ -480,10 +594,7 @@ begin
   finally
     LMessages.Free;
   end;
-  LUserId := FStore.AddMessage(FSession, 'user', AUser);
-  EmbedMessage(LUserId, AUser);
   FStore.AddMessage(FSession, 'assistant', LReply);
-  ExtractFacts(AUser, LUserId);
   MaybeSummarize;
   MaybeAutoConsolidate;
 end;
@@ -558,7 +669,11 @@ begin
       on Exception do LJson := nil;
     end;
     case LCode of
-      0: PromoteManifest(TJSONObject(LJson).Get('path', ''));
+      0:
+        begin
+          PromoteManifest(TJSONObject(LJson).Get('path', ''));
+          ClearReady;
+        end;
       2: Say(Format('[sleep] new LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); keeping %s',
            [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0),
             IfThen(FEngine.ActiveAdapter = '', 'the base model', FEngine.ActiveAdapter)]));

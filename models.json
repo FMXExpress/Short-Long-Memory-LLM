@@ -49,13 +49,14 @@
         "targets": "all-linear"
       },
       "train": {
-        "epochs": 8,
-        "lr": 0.0005,
+        "epochs": 4,
+        "lr": 0.0003,
         "batch": 8,
         "grad_accum": 1,
         "max_len": 256,
         "paraphrases": 6,
-        "anchors": 16
+        "anchors": 16,
+        "grad_checkpointing": true
       },
       "gate": {
         "min_recall": 0.7,
@@ -86,7 +87,8 @@
         "grad_accum": 4,
         "max_len": 384,
         "paraphrases": 6,
-        "anchors": 24
+        "anchors": 24,
+        "grad_checkpointing": true
       },
       "gate": {
         "min_recall": 0.8,
@@ -117,7 +119,8 @@
         "grad_accum": 4,
         "max_len": 512,
         "paraphrases": 6,
-        "anchors": 24
+        "anchors": 24,
+        "grad_checkpointing": true
       },
       "gate": {
         "min_recall": 0.8,

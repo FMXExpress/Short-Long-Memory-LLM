@@ -142,6 +142,7 @@ begin
     Exit;
   Inc(FRestarts);
   WriteLn(StdErr, '[engine] worker is not running, restarting (', FRestarts, ')');
+  Flush(StdErr);   { FPC buffers StdErr; without this the notice shows up at exit }
   FreeAndNil(FProc);
   Start;
   (* A fresh worker comes up on the bare base model; put the memory back. *)
