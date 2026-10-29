@@ -119,8 +119,13 @@ pair accuracy, abstention on held-out unknown subjects, and refusals of known fa
 |---|---|---|---|---|---|---|---|
 | baseline | 0.783 | 0.933 | 0.70 | 0.80 | 1.78 | — | — |
 | DPO β0.1, lr 2e-4, 3 epochs, 60 pairs | 0.750 | 0.867 | 0.70 | 0.73 | 1.94 | 0.93 | 0/6 |
+| anchor_ratio 0.3 (anchors replayed) | 0.833 | 0.883 | 0.75 | 0.73 | **2.36** | — | — |
 
 Tiny DPO finding: the pairs are learned (0.93) but nothing generalizes. The model abstains on 0 of
 6 unknown subjects it was not trained on, confabulation is unchanged, and accuracy drops. The same
 result as E1: a 135M model memorizes the contrast instead of learning a boundary between known and
 unknown. DPO stays off for `tiny`; `small` is the real test.
+
+Anchor-replay finding: rejected. Replaying the 8 anchor answers up to a 30% share raised drift
+(2.36, against 1.78): more steps, overfit to those exact anchors, and no protection on the held-out
+prompts. Drift appears to track total optimizer steps instead. The next test is fewer epochs.
