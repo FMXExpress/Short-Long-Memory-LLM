@@ -236,3 +236,19 @@ held-out questions and 20 unknown questions, asked before and after one `/sleep`
 - After sleep, the system matches LoRA-alone accuracy (0.80) rather than oracle LoRA+RAG (0.92).
   Real retrieval plus the guard's few false blocks cost about 12 points; that gap is the next target.
 - The confabulation rate (0.20) matches the guard's offline prediction (0.25).
+
+### Gap analysis and a rejected guard extension
+
+The 12 misses after sleep break down into 5 guard false blocks (employer, girl/daughter,
+bicycle/bike, boss/manager, dental checkup/dentist appointment) and 7 model errors, mostly
+look-alike facts mixed up (hometown answered with where-I-live, gym answered with the workplace).
+The guard made 9 correct blocks in the same run.
+
+Tried: a second license path, bge scoring the subjects against each other ("my bicycle" / "my
+bike") at 0.977 or more.
+- **On the pairs it was tuned on:** 9/10 synonyms pass and 0/14 look-alikes pass.
+- **On 31 fresh pairs (validation):** 11/16 synonyms pass, but 2/15 look-alikes leak
+  (grandfather/grandmother 0.991, favorite song/band 0.984).
+
+The margin is 0.003 and the trade is roughly even (about +5 points of accuracy against about +6
+points of confabulation), so it is rejected. The guard stays as it is.
