@@ -100,7 +100,10 @@ begin
       Rewrite(GLog);
     GLogOpen := True;
   end;
-  llama_log_set(@LogCallback, nil);
+  { MEMAGENT_DEBUG=1 leaves llama.cpp's own (unbuffered) stderr logging on }
+  if GetEnvironmentVariable('MEMAGENT_DEBUG') <> '1' then
+    llama_log_set(@LogCallback, nil);
+  LlamaTrace('backend init');
   llama_backend_init;
 
   MP := llama_model_default_params();
@@ -114,6 +117,7 @@ begin
     MP.split_mode := LLAMA_SPLIT_MODE_NONE;
     MP.main_gpu := FCfg.InferGpu;
   end;
+  LlamaTrace('loading model ' + FCfg.GgufModel);
   FModel := llama_model_load_from_file(PAnsiChar(FCfg.GgufModel), MP);
   if FModel = nil then
     raise EEngine.CreateFmt('llama.cpp could not load %s (see %sllama.log)',
@@ -136,10 +140,12 @@ begin
   CP.n_threads := LThreads;
   CP.n_threads_batch := LThreads;
   CP.no_perf := True;
+  LlamaTrace('creating context');
   FCtx := llama_init_from_model(FModel, CP);
   if FCtx = nil then
     raise EEngine.Create('llama.cpp could not create a context');
   FDevice := DeviceName(FCfg.InferGpu);
+  LlamaTrace('ready');
 end;
 
 destructor TLlamaEngine.Destroy;

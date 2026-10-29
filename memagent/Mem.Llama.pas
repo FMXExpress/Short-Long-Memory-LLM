@@ -166,6 +166,9 @@ var
   Raises on failure; safe to call more than once. }
 procedure LlamaLoad(const ADir: string);
 function LlamaLoaded: Boolean;
+{ MEMAGENT_DEBUG=1: one flushed line on stderr per step of loading and running
+  the model, so a crash inside a native library still shows where it was }
+procedure LlamaTrace(const AMsg: string);
 { the library file names for this platform, in load order }
 function LlamaLibNames: TStringArray;
 
@@ -219,6 +222,7 @@ begin
       LPath := IncludeTrailingPathDelimiter(ADir) + LName
     else
       LPath := LName;
+    LlamaTrace('loading ' + LPath);
     H := LoadLibrary(LPath);
     if H = NilHandle then
     begin
@@ -274,6 +278,21 @@ begin
   if LMissing <> '' then
     raise Exception.Create('llama.cpp library is not ' + LLAMA_TAG + '-compatible, missing:' + LMissing);
   GLoaded := True;
+  LlamaTrace('bound the ' + LLAMA_TAG + ' API');
+end;
+
+var
+  GTrace: Integer = -1;
+
+procedure LlamaTrace(const AMsg: string);
+begin
+  if GTrace < 0 then
+    GTrace := Ord(GetEnvironmentVariable('MEMAGENT_DEBUG') = '1');
+  if GTrace = 1 then
+  begin
+    WriteLn(StdErr, '[llama] ', AMsg);
+    Flush(StdErr);
+  end;
 end;
 
 function LlamaLoaded: Boolean;
