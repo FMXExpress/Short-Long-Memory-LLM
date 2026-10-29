@@ -9,7 +9,7 @@ program retrieval_test;
 
 uses
   {$IFDEF UNIX}cwstring,{$ENDIF}
-  Mem.Utf8, SysUtils, Mem.Retrieval;
+  Mem.Utf8, SysUtils, Math, Mem.Retrieval;
 
 var
   Failures: Integer = 0;
@@ -39,6 +39,24 @@ end;
 function SameSubject(R: TRetrieval; const A, B: string): Boolean;
 begin
   Result := (Cos(R, A, B) >= 0.7) and (Rr(R, A, B) >= 0.5);
+end;
+
+procedure BatchMatchesSingle(R: TRetrieval);
+const
+  Docs: array[0..3] of string = ('Your dog''s name is Biscuit.', 'ok',
+    'The wifi password is tulip42 and the guest network is called Lighthouse Guest Access Point.',
+    'You live in Reykjavik.');
+var
+  B: TScoreArray;
+  I: Integer;
+  MaxDiff: Single;
+begin
+  { padded batch scoring must give what scoring each pair alone gives }
+  B := R.RerankScores('What is my dog called?', Docs);
+  MaxDiff := 0;
+  for I := 0 to High(Docs) do
+    MaxDiff := Max(MaxDiff, Abs(B[I] - R.RerankScores('What is my dog called?', [Docs[I]])[0]));
+  Check(MaxDiff < 1e-3, Format('batched rerank equals per-pair rerank (max diff %.6f)', [MaxDiff]));
 end;
 
 var
@@ -89,6 +107,17 @@ begin
     Check(SameSubject(R, 'my dog''s name', 'what my dog is called'), 'same subject: dog''s name / what my dog is called');
     Check(not SameSubject(R, 'my sister''s name', 'my brother''s name'), 'different subject: sister / brother');
     Check(not SameSubject(R, 'my favorite color', 'my favorite food'), 'different subject: color / food');
+    BatchMatchesSingle(R);
+  finally
+    R.Free;
+  end;
+  R := TRetrieval.Create(ParamStr(1), 'auto', 'minilm', 'auto', 'bge-reranker-base');
+  try
+    if R.HasReranker then
+    begin
+      WriteLn(R.Describe, ':');
+      BatchMatchesSingle(R);
+    end;
   finally
     R.Free;
   end;

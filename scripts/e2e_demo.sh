@@ -71,7 +71,7 @@ grep -q "baked: mem-" "$T"                                     || fail "facts ma
 lora() { grep "^LoRA, no RAG" "$T" | sed -n "${1}p"; }
 recall() { awk -v n="$1" '/^you> \/recall /{c++; next} /^you> /{if(c==n) exit} c==n' "$T"; }
 recall 1 | grep -q "fact #2 .*Reykjavik"                       || fail "semantic recall: 'home' finds 'live in Reykjavik'"
-recall 2 | grep -q "Reykjavik"                                 && fail "baked fact still injected through RAG"
+recall 2 | grep -q "Reykjavik.*\[baked\]"                     || fail "baked fact stays retrievable (rag_include_baked=1)"
 grep -q "memory +#.*brother's name is Leo" "$T"               || fail "brother kept separate from sister"
 grep -q "memory +#.*cat's name is Zoë" "$T"                    || fail "non-ASCII fact stored intact"
 python3 -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); [r for t in ('facts','messages') for r in c.execute('select * from '+t)]" \

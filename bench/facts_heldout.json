@@ -17,7 +17,7 @@
     {"say": "My favorite season is autumn.", "subject": "my favorite season", "value": "autumn", "text": "Your favorite season is autumn.", "tests": ["Which time of year do I like most?", "What season do I prefer?"]},
     {"say": "My team's standup is at 9:15.", "subject": "my team's standup", "value": "9:15", "text": "Your team's standup is at 9:15.", "tests": ["When is our daily standup?", "What time does my team meet each morning?"]},
     {"say": "My bank is Nordvik Savings.", "subject": "my bank", "value": "Nordvik Savings", "text": "Your bank is Nordvik Savings.", "tests": ["Where do I keep my money?", "Which bank am I with?"]},
-    {"say": "My middle name is Aurelio.", "subject": "my middle name", "value": "Aurelio", "text": "Your middle name is Aurelio.", "tests": ["What is my middle name?", "What's the name between my first and last name?"]},
+    {"say": "My middle name is Aurelio.", "subject": "my middle name", "value": "Aurelio", "text": "Your middle name is Aurelio.", "tests": ["What second given name do I have?", "What's the name between my first and last name?"]},
     {"say": "My preferred editor is Neovim.", "subject": "my preferred editor", "value": "Neovim", "text": "Your preferred editor is Neovim.", "tests": ["Which text editor do I use?", "What do I write code in?"]},
     {"say": "My flight number is KL1123.", "subject": "my flight number", "value": "KL1123", "text": "Your flight number is KL1123.", "tests": ["Which flight am I on?", "What's my flight?"]},
     {"say": "My coffee order is a flat white.", "subject": "my coffee order", "value": "flat white", "text": "Your coffee order is a flat white.", "tests": ["How do I take my coffee?", "What coffee should you order for me?"]}

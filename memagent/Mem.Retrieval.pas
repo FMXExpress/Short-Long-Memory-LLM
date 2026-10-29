@@ -207,6 +207,7 @@ begin
     FReranker := TReranker.Create(IncludeTrailingPathDelimiter(LDir) + MODEL_FILE,
       IncludeTrailingPathDelimiter(LDir) + VOCAB_FILE, LSpec.DoLowerCase, LSpec.NeedsTokenTypeIds,
       256, RerankerIsSentencePiece(LSpec.Key));
+    FReranker.Batching := Pos('int8', LSpec.ModelRelURL) + Pos('quantized', LSpec.ModelRelURL) = 0;
     { warm up: loads the ONNX session now rather than on the first user turn }
     FReranker.Score('warm up', 'warm up');
   except
@@ -240,13 +241,18 @@ end;
 function TRetrieval.RerankScores(const AQuery: string; const ADocs: array of string): TScoreArray;
 var
   I: Integer;
+  LScores: specialize TArray<Single>;
 begin
   SetLength(Result, Length(ADocs));
-  for I := 0 to High(ADocs) do
-    if FReranker <> nil then
-      Result[I] := FReranker.Score(AQuery, ADocs[I])
-    else
+  if FReranker = nil then
+  begin
+    for I := 0 to High(ADocs) do
       Result[I] := 1.0;
+    Exit;
+  end;
+  LScores := FReranker.ScoreBatch(AQuery, ADocs);
+  for I := 0 to High(ADocs) do
+    Result[I] := LScores[I];
 end;
 
 function TRetrieval.HasReranker: Boolean;

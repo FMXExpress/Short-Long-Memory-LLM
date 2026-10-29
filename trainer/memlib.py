@@ -103,10 +103,31 @@ def generate(tok, model, messages, max_new_tokens, temperature=0.0, streamer=Non
 _STOP_VALUES = {"it", "this", "that", "there", "here", "a", "an", "the"}
 
 
-def _clean_value(v):
+def _clean_phrase(v):
+    """The predicate as said, minus a trailing clause: used in the fact's text."""
     v = v.strip().strip(" .!,;:\"'")
     v = re.split(r"\s+(?:and|but|so|because)\s+(?:i|my|you|we)\b", v, maxsplit=1, flags=re.I)[0]
     return v.strip(" .!,;:\"'")[:80]
+
+
+def _clean_value(v):
+    """The key value: the phrase without leading function words, so the probe
+    can match an answer like "Your appointment is Friday" for "on Friday"."""
+    v = _clean_phrase(v)
+    while True:
+        w = re.sub(r"^(?:a|an|the|on|at|in|called|named)\s+(?=\S)", "", v)
+        if w == v:
+            return v
+        v = w
+
+
+_ABBREV = re.compile(r"\b(Dr|Mr|Mrs|Ms|Prof|St|Jr|Sr|vs|etc|e\.g|i\.e)\.", re.I)
+
+
+def _sentences(text):
+    """Sentence split that does not break after abbreviations ("Dr. Okafor")."""
+    protected = _ABBREV.sub(lambda m: m.group(1) + "\u2024", text)
+    return [s.replace("\u2024", ".") for s in re.split(r"(?<=[.!?\n])\s+", protected)]
 
 
 def subject_questions(subject):
@@ -136,7 +157,7 @@ def extract_facts_rules(text):
     profiles add LLM extraction on top (see extract_facts_llm).
     """
     facts = []
-    for sent in re.split(r"(?<=[.!?\n])\s+", text):
+    for sent in _sentences(text):
         sent = sent.strip()
         if not sent or sent.endswith("?"):
             continue
@@ -153,9 +174,10 @@ def extract_facts_rules(text):
             continue
         m = re.search(r"\bmy ([a-z][\w' -]{1,40}?) (is|are|was) (.+)$", sent, re.I)
         if m:
-            what, verb, v = m.group(1).strip(), m.group(2).lower(), _clean_value(m.group(3))
+            what, verb = m.group(1).strip(), m.group(2).lower()
+            phrase, v = _clean_phrase(m.group(3)), _clean_value(m.group(3))
             if v and v.lower() not in _STOP_VALUES:
-                facts.append(_fact(f"Your {what} {verb} {v}.", f"my {what}", v,
+                facts.append(_fact(f"Your {what} {verb} {phrase}.", f"my {what}", v,
                                    subject_questions(f"my {what}"), min(1.0, 0.8 + boost)))
             continue
         m = re.search(r"\bi live in (.+)$", sent, re.I)
@@ -237,6 +259,89 @@ def facts_from_llm_output(out, source):
     return facts
 
 
+# ---------------------------------------------------------------- augmentation
+# Each block is switched on per profile (models.json "train": {...}) so it can
+# be measured with bench/bench_memory.py. Word pools are deliberately generic
+# and share no words with the benchmark's test or unknown questions.
+
+ABSTAIN = "You haven't told me that yet."
+MEMORY_HEADER = "Relevant memory:"   # must match the block Mem.Agent builds
+
+
+def name_questions(subject):
+    """Generic question shapes for 'my <x>'s name' subjects (a pet, a person)."""
+    m = re.fullmatch(r"my (.+?)'s name", subject.strip(), re.I)
+    if not m:
+        return []
+    x = m.group(1)
+    return [f"Who is my {x}?", f"What is my {x} called?", f"What did I name my {x}?",
+            f"What's the name of my {x}?", f"My {x}, what's the name again?"]
+
+
+NEG_PEOPLE = ["grandfather", "godmother", "landlord", "neighbor", "roommate", "best friend",
+              "coach", "mentor", "colleague", "therapist", "lawyer", "plumber"]
+NEG_PETS = ["hamster", "gecko", "ferret", "tortoise", "goldfish"]
+NEG_FAVS = ["song", "city", "game", "flower", "animal", "holiday", "painter", "podcast", "board game"]
+NEG_CODES = ["locker code", "bike lock code", "alarm code", "safe combination", "voicemail PIN"]
+FAKE_NAMES = ["Kalani", "Brecht", "Oyelaran", "Svea", "Tamsin", "Ruairi", "Ingrid", "Dariush",
+              "Nkechi", "Faustino", "Yevgenia", "Corwin", "Aiyana", "Lisandro", "Mireille", "Torvald"]
+FAKE_THINGS = ["saffron", "harpsichord", "Lucerne", "origami", "quince", "Fjallbacka", "tango",
+               "jasmine", "Montevideo", "kayaking", "Nebula", "chess", "Valparaiso", "pistachio"]
+
+
+def _negative_subjects(facts, rng):
+    taken = " ".join(f["subject"].lower() for f in facts)
+    subs = ([f"my {p}'s name" for p in NEG_PEOPLE + NEG_PETS] +
+            [f"my favorite {x}" for x in NEG_FAVS] + [f"the {c}" for c in NEG_CODES])
+    subs = [s for s in subs if not any(w in taken for w in re.findall(r"[a-z]+", s.split(" ", 1)[1])
+                                       if len(w) > 3 and w not in ("name", "favorite", "code"))]
+    rng.shuffle(subs)
+    return subs
+
+
+def negative_examples(facts, n, priors, rng):
+    """Abstention: questions about things the user never said -> ABSTAIN.
+    Without these the LoRA answers every 'my X' question with some stored value."""
+    out = []
+    for s in _negative_subjects(facts, rng)[:n]:
+        qs = subject_questions(s) + name_questions(s)
+        out.append(_chat(priors, rng.choice(qs), ABSTAIN))
+    return out
+
+
+def _fake_fact(rng, subject=None):
+    subject = subject or rng.choice([f"my {p}'s name" for p in NEG_PEOPLE + NEG_PETS] +
+                                    [f"my favorite {x}" for x in NEG_FAVS])
+    value = rng.choice(FAKE_NAMES if subject.endswith("'s name") else FAKE_THINGS)
+    text = "Your " + subject[3:] + " is " + value + "." if subject.startswith("my ") else \
+        subject[0].upper() + subject[1:] + " is " + value + "."
+    return subject, value, text
+
+
+def raft_examples(n, priors, rng, p_oracle=0.75):
+    """Context reading (RAFT-style): made-up facts in the agent's memory block.
+    With the oracle present the answer must come from the block; without it
+    (only look-alike distractors) the right answer is ABSTAIN."""
+    out = []
+    for _ in range(n):
+        subject, value, text = _fake_fact(rng)
+        distractors = []
+        while len(distractors) < 2:
+            ds, _, dt = _fake_fact(rng)
+            if ds != subject:
+                distractors.append(dt)
+        q = rng.choice(subject_questions(subject) + name_questions(subject))
+        if rng.random() < p_oracle:
+            block, answer = distractors[:1] + [text], text
+        else:
+            block, answer = distractors, ABSTAIN
+        rng.shuffle(block)
+        sys_msg = (priors + "\n\n" if priors else "") + MEMORY_HEADER + "\n" + "\n".join("- " + b for b in block)
+        out.append([{"role": "system", "content": sys_msg}, {"role": "user", "content": q},
+                    {"role": "assistant", "content": answer}])
+    return out
+
+
 # ---------------------------------------------------------------- training data
 
 ANCHOR_PROMPTS = [
@@ -253,13 +358,16 @@ ANCHOR_PROMPTS = [
 ]
 
 
-def fact_examples(facts, n_paraphrases, priors):
-    """Q->A chat examples per fact; the last question of each fact is held out as its probe."""
+def fact_examples(facts, n_paraphrases, priors, extra_questions=None):
+    """Q->A chat examples per fact; the last question of each fact is held out as its probe.
+    extra_questions(subject) adds more training questions (never the probe)."""
     train, probes = [], []
     for f in facts:
         qs = list(dict.fromkeys(f["questions"]))
         probe = qs[-1]
         pool = qs[:-1]
+        if extra_questions:
+            pool = list(dict.fromkeys(pool + [q for q in extra_questions(f["subject"]) if q != probe]))
         random.shuffle(pool)
         for q in pool[:n_paraphrases]:
             train.append(_chat(priors, q, f["text"]))

@@ -26,6 +26,7 @@ type
     RecentTurns: Integer;
     RagK: Integer;
     MinFactConfidence: Double;
+    RagIncludeBaked: Boolean;  { baked facts stay retrievable (measured: +15 points on the tiny profile) }
     AutoConsolidate: Boolean;
     MinNewFacts: Integer;
     IntervalMin: Integer;
@@ -148,6 +149,7 @@ begin
     RecentTurns := LIni.ReadInteger('agent', 'recent_turns', 6);
     RagK := LIni.ReadInteger('agent', 'rag_k', 3);
     MinFactConfidence := StrToFloatDef(LIni.ReadString('agent', 'min_fact_confidence', '0.5'), 0.5);
+    RagIncludeBaked := LIni.ReadBool('agent', 'rag_include_baked', True);
     InferGpu := LIni.ReadInteger('gpu', 'infer', 0);
     TrainGpu := LIni.ReadInteger('gpu', 'train', 1);
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);

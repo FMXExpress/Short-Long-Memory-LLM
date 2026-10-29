@@ -60,6 +60,7 @@ type
     FDoLowerCase, FNeedsTokenTypeIds: Boolean;
     FMaxSeq: Integer;
     FLoaded: Boolean;
+    FBatching: Boolean;
     procedure EnsureLoaded(AVerbose: Boolean);
   public
     { AMaxSeq caps the packed pair length -- long candidates are truncated so a
@@ -83,6 +84,14 @@ type
     { Relevance score for one pair (sigmoid of the cross-encoder logit -> 0..1).
       Loads the model on first use. Requires a working ONNX Runtime. }
     function Score(const AQuery, ADoc: string): Single;
+
+    { Scores of every candidate, in input order, from batched session runs
+      (or one run per pair when Batching is off). }
+    function ScoreBatch(const AQuery: string; const ADocs: array of string): TArray<Single>;
+    { Off for int8 dynamically-quantized models: their activation scales are
+      computed over the whole batch, so a candidate's score would depend on
+      which other candidates share its batch (measured: up to 0.17 apart). }
+    property Batching: Boolean read FBatching write FBatching;
 
     { Score every candidate against the query and return them ordered by score
       descending (index = position in ADocs). Requires a working ONNX Runtime. }
@@ -199,6 +208,7 @@ begin
   if AMaxSeq < 8 then AMaxSeq := 8;
   FMaxSeq := AMaxSeq;
   FLoaded := False;
+  FBatching := True;
   if FSentencePiece then
     FSP := TSPUnigram.Create(AVocabPath)          { AVocabPath is tokenizer.json }
   else
@@ -297,6 +307,83 @@ begin
   { logits shape is [1,1] (or [1]) -> the relevance score is element 0. Squash
     to 0..1 so scores are comparable / interpretable. }
   Result := 1 / (1 + Exp(-OutTensor.Index1[0]));
+end;
+
+function TReranker.ScoreBatch(const AQuery: string; const ADocs: array of string): TArray<Single>;
+const
+  MaxBatch = 32;
+var
+  Ids, TypeIds: array of TArray<Int64>;
+  InputIds, AttnMask, SegIds: TORTTensor<Int64>;
+  OutTensor: TORTTensor<Single>;
+  Inputs, Outputs: TORTNameValueList;
+  Start, B, L, I, J, Pad: Integer;
+begin
+  (* All (query, doc) pairs in one session run, padded to the longest pair
+     with attention_mask 0 on the padding: one ONNX call instead of one per
+     candidate. Chunks of MaxBatch keep the padded tensor bounded. *)
+  SetLength(Result, Length(ADocs));
+  if Length(ADocs) = 0 then
+    Exit;
+  if not FBatching then
+  begin
+    for I := 0 to High(ADocs) do
+      Result[I] := Score(AQuery, ADocs[I]);
+    Exit;
+  end;
+  EnsureLoaded(False);
+  if FSentencePiece then
+    Pad := 1                 { <pad> in XLM-R vocabularies }
+  else
+    Pad := FTok.PadId;
+  Start := 0;
+  while Start < Length(ADocs) do
+  begin
+    B := Min(MaxBatch, Length(ADocs) - Start);
+    SetLength(Ids, B);
+    SetLength(TypeIds, B);
+    L := 1;
+    for I := 0 to B - 1 do
+    begin
+      EncodePair(UnicodeString(AQuery), UnicodeString(ADocs[Start + I]), Ids[I], TypeIds[I]);
+      L := Max(L, Length(Ids[I]));
+    end;
+    { declared [L, B]: ToValue reverses it, so ONNX sees [B, L] row-major }
+    InputIds := TORTTensor<Int64>.Create([L, B]);
+    AttnMask := TORTTensor<Int64>.Create([L, B]);
+    if FNeedsTokenTypeIds then
+      SegIds := TORTTensor<Int64>.Create([L, B]);
+    for I := 0 to B - 1 do
+      for J := 0 to L - 1 do
+      begin
+        if J < Length(Ids[I]) then
+        begin
+          InputIds.Index1[I * L + J] := Ids[I][J];
+          AttnMask.Index1[I * L + J] := 1;
+          if FNeedsTokenTypeIds then
+            SegIds.Index1[I * L + J] := TypeIds[I][J];
+        end
+        else
+        begin
+          InputIds.Index1[I * L + J] := Pad;
+          AttnMask.Index1[I * L + J] := 0;
+          if FNeedsTokenTypeIds then
+            SegIds.Index1[I * L + J] := 0;
+        end;
+      end;
+    Inputs := Default(TORTNameValueList);
+    Inputs.Add('input_ids', InputIds.ToValue);
+    Inputs.Add('attention_mask', AttnMask.ToValue);
+    if FNeedsTokenTypeIds then
+      Inputs.Add('token_type_ids', SegIds.ToValue);
+    Outputs := FSession.Run(Inputs);
+    if Outputs.Count = 0 then
+      raise ERerankerError.Create('Reranker returned no outputs.');
+    OutTensor := TORTTensor<Single>.FromValue(Outputs.Values[0]);
+    for I := 0 to B - 1 do
+      Result[Start + I] := 1 / (1 + Exp(-OutTensor.Index1[I]));
+    Inc(Start, B);
+  end;
 end;
 
 function TReranker.Rerank(const AQuery: string; const ADocs: array of string): TRerankHits;

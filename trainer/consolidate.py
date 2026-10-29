@@ -49,6 +49,7 @@ def main():
     ap.add_argument("--models")
     ap.add_argument("--priors", help="system prompt file, so training matches inference")
     ap.add_argument("--seed", type=int, default=1234)
+    ap.add_argument("--no-gate", action="store_true", help="save the adapter even if the eval gate fails (benchmarks)")
     a = ap.parse_args()
 
     import torch
@@ -85,9 +86,17 @@ def main():
     heldout = self_answers(memlib.ANCHOR_PROMPTS[n_anc:n_anc + max(4, n_anc // 2)])
     base_heldout_loss = memlib.mean_loss(model, tok, heldout, tr["max_len"])
 
-    train_chats, probes = memlib.fact_examples(facts, tr["paraphrases"], priors)
-    data = [memlib.tokenize_example(tok, m, tr["max_len"]) for m in train_chats + anchors]
-    log(f"[consolidate] examples={len(data)} (facts {len(train_chats)}, anchors {len(anchors)})")
+    extra = memlib.name_questions if tr.get("name_questions") else None
+    n_para = tr["paraphrases"] + (3 if extra else 0)
+    train_chats, probes = memlib.fact_examples(facts, n_para, priors, extra)
+    rng = random.Random(a.seed)
+    k = max(8, round(len(facts) * tr.get("negatives", 0))) if tr.get("negatives") else 0
+    negatives = memlib.negative_examples(facts, k, priors, rng) if k else []
+    k = max(8, round(len(facts) * tr.get("raft", 0))) if tr.get("raft") else 0
+    raft = memlib.raft_examples(k, priors, rng) if k else []
+    data = [memlib.tokenize_example(tok, m, tr["max_len"]) for m in train_chats + negatives + raft + anchors]
+    log(f"[consolidate] examples={len(data)} (facts {len(train_chats)}, negatives {len(negatives)}, "
+        f"raft {len(raft)}, anchors {len(anchors)})")
 
     lc = prof["lora"]
     model.config.use_cache = False
@@ -146,7 +155,9 @@ def main():
     metrics = {"recall": round(recall, 4), "ppl_ratio": round(ppl_ratio, 4),
                "n_facts": len(facts), "n_passed": len(passed),
                "seconds": round(time.time() - t0, 1), "device": device}
-    if recall < gate["min_recall"] or ppl_ratio > gate["max_ppl_ratio"]:
+    gate_ok = recall >= gate["min_recall"] and ppl_ratio <= gate["max_ppl_ratio"]
+    metrics["gate_ok"] = gate_ok
+    if not gate_ok and not a.no_gate:
         return summary(2, reason="eval gate", **metrics)
 
     adapter_id = "mem-" + dt.datetime.now().strftime("%Y%m%dT%H%M%S")

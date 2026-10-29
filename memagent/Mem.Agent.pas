@@ -14,7 +14,7 @@ interface
 
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval;
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall;
 
 type
   TAgent = class
@@ -24,11 +24,18 @@ type
     FEngine: TEngine;
     FCons: TConsolidator;
     FRet: TRetrieval;
+    FLastRecall: TRecallTiming;
+    { per-turn stage timing (MEMAGENT_TIMING=1 prints it; /status shows averages) }
+    FTiming: Boolean;
+    FTurnStart, FGenStart: TDateTime;
+    FFirstTokenMs: Double;
+    FTurns: Integer;
+    FSum: array[0..6] of Double;   { recall, extract, ttft, generate, tools, summarize, total }
     FSession: string;
     FQuiet: Boolean;
+    procedure Mark(var ALast: TDateTime; out AMs: Double);
     procedure OnToken(const AText: string);
     function BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
-    function MinCos: Single;
     procedure Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray);
     function MemoryBlock(const AUser: string; ABeforeId: Int64): string;
     procedure EmbedFact(AId: Int64; const AText, ASubject: string);
@@ -64,50 +71,6 @@ const
     '<tool>{"name": "now", "args": {}}</tool>' + LineEnding +
     'Only call a tool when it is needed; otherwise answer normally.';
 
-function FactDoc(const ASubject, AText: string): string;
-begin
-  (* What retrieval sees for a fact. The subject carries the relation from the
-     user's side ("my sister"), which an extracted sentence like "Ana moved to
-     Lisbon" can lose; without it "where does my sister live?" misses. *)
-  Result := ASubject + ': ' + AText;
-end;
-
-procedure SortFacts(var A: TFactArray);
-var
-  I, J: Integer;
-  T: TFactRec;
-begin
-  for I := 1 to High(A) do
-  begin
-    T := A[I];
-    J := I - 1;
-    while (J >= 0) and (A[J].Score < T.Score) do
-    begin
-      A[J + 1] := A[J];
-      Dec(J);
-    end;
-    A[J + 1] := T;
-  end;
-end;
-
-procedure SortMsgs(var A: TMsgArray);
-var
-  I, J: Integer;
-  T: TMsgRec;
-begin
-  for I := 1 to High(A) do
-  begin
-    T := A[I];
-    J := I - 1;
-    while (J >= 0) and (A[J].Score < T.Score) do
-    begin
-      A[J + 1] := A[J];
-      Dec(J);
-    end;
-    A[J + 1] := T;
-  end;
-end;
-
 function Msg(const ARole, AContent: string): TJSONObject;
 begin
   Result := TJSONObject.Create(['role', ARole, 'content', AContent]);
@@ -123,6 +86,7 @@ begin
   FCons := ACons;
   FRet := ARet;
   FSession := FormatDateTime('yyyymmdd"T"hhnnss', Now);
+  FTiming := GetEnvironmentVariable('MEMAGENT_TIMING') = '1';
 end;
 
 procedure TAgent.Say(const S: string);
@@ -131,8 +95,19 @@ begin
   Flush(Output);
 end;
 
+procedure TAgent.Mark(var ALast: TDateTime; out AMs: Double);
+var
+  LNow: TDateTime;
+begin
+  LNow := Now;
+  AMs := MilliSecondsBetween(LNow, ALast);
+  ALast := LNow;
+end;
+
 procedure TAgent.OnToken(const AText: string);
 begin
+  if FFirstTokenMs < 0 then
+    FFirstTokenMs := MilliSecondsBetween(Now, FTurnStart);
   if FQuiet then
     Exit;
   Write(AText);
@@ -183,58 +158,13 @@ begin
   DeleteFile(IncludeTrailingPathDelimiter(FCfg.AdapterDir) + 'ready.json');
 end;
 
-function TAgent.MinCos: Single;
-begin
-  if FRet.Tier = 'onnx' then
-    Result := FCfg.MinSimilarity
-  else
-    Result := FCfg.StaticMinSimilarity;
-end;
-
 procedure TAgent.Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TFactArray;
   out AMsgs: TMsgArray);
 var
-  LVec: TVector;
-  LDocs: array of string;
-  LScores: TScoreArray;
-  I, N: Integer;
+  LTiming: TRecallTiming;
 begin
-  (* Stage 1: FTS5 + vector, fused by reciprocal rank. Stage 2: the
-     cross-encoder re-scores each (query, candidate) pair together, which
-     both reorders and drops candidates that merely share words. *)
-  LVec := FRet.Embed(AQuery);
-  AFacts := FStore.HybridFacts(AQuery, LVec, FRet.EmbedderId, FCfg.RetrievalPool, MinCos, False);
-  AMsgs := FStore.HybridMessages(AQuery, LVec, FRet.EmbedderId, ABeforeId, FCfg.RetrievalPool, MinCos);
-  if not FRet.HasReranker then
-    Exit;
-  SetLength(LDocs, Length(AFacts));
-  for I := 0 to High(AFacts) do
-    LDocs[I] := FactDoc(AFacts[I].Subject, AFacts[I].Text);
-  LScores := FRet.RerankScores(AQuery, LDocs);
-  N := 0;
-  for I := 0 to High(AFacts) do
-    if LScores[I] >= FCfg.RerankMin then
-    begin
-      AFacts[N] := AFacts[I];
-      AFacts[N].Score := LScores[I];
-      Inc(N);
-    end;
-  SetLength(AFacts, N);
-  SortFacts(AFacts);
-  SetLength(LDocs, Length(AMsgs));
-  for I := 0 to High(AMsgs) do
-    LDocs[I] := AMsgs[I].Content;
-  LScores := FRet.RerankScores(AQuery, LDocs);
-  N := 0;
-  for I := 0 to High(AMsgs) do
-    if LScores[I] >= FCfg.RerankMin then
-    begin
-      AMsgs[N] := AMsgs[I];
-      AMsgs[N].Score := LScores[I];
-      Inc(N);
-    end;
-  SetLength(AMsgs, N);
-  SortMsgs(AMsgs);
+  RecallMemory(FStore, FRet, FCfg, AQuery, ABeforeId, AFacts, AMsgs, LTiming);
+  FLastRecall := LTiming;
 end;
 
 function TAgent.MemoryBlock(const AUser: string; ABeforeId: Int64): string;
@@ -567,12 +497,18 @@ var
   LReply: string;
   LUserId: Int64;
   I: Integer;
+  LT: TDateTime;
+  LMs: array[0..6] of Double;
 begin
   PollConsolidation;
+  FTurnStart := Now;
+  FFirstTokenMs := -1;
+  LT := FTurnStart;
   { the prompt is built before the message is stored, so it is not also
     retrieved as "earlier the user said" for its own turn }
   LMessages := BuildMessages(AUser, True);
   try
+    Mark(LT, LMs[0]);
     (* Facts from the user's own words are stored before the model answers:
        they carry the user's framing ("my sister ..."), and a remember tool
        call for the same fact then reports "already known" instead of adding
@@ -580,9 +516,12 @@ begin
     LUserId := FStore.AddMessage(FSession, 'user', AUser);
     EmbedMessage(LUserId, AUser);
     ExtractFacts(AUser, LUserId);
+    Mark(LT, LMs[1]);
     Write('pal> ');
     LReply := FEngine.Generate(LMessages, True, @OnToken);
     WriteLn;
+    LMs[2] := FFirstTokenMs;
+    Mark(LT, LMs[3]);
     I := 0;
     while FCfg.Tools and (I < 3) and RunTools(LReply, LMessages) do
     begin
@@ -591,11 +530,21 @@ begin
       WriteLn;
       Inc(I);
     end;
+    Mark(LT, LMs[4]);
   finally
     LMessages.Free;
   end;
   FStore.AddMessage(FSession, 'assistant', LReply);
   MaybeSummarize;
+  Mark(LT, LMs[5]);
+  LMs[6] := MilliSecondsBetween(Now, FTurnStart);
+  Inc(FTurns);
+  for I := 0 to 6 do
+    FSum[I] := FSum[I] + LMs[I];
+  if FTiming then
+    Say(Format('[timing] recall %.0f (embed %.0f search %.0f rerank %.0f)  extract %.0f  first-token %.0f  ' +
+      'generate %.0f  tools %.0f  summary %.0f  total %.0f ms', [LMs[0], FLastRecall.EmbedMs,
+      FLastRecall.SearchMs, FLastRecall.RerankMs, LMs[1], LMs[2], LMs[3], LMs[4], LMs[5], LMs[6]]));
   MaybeAutoConsolidate;
 end;
 
@@ -802,8 +751,9 @@ begin
     { what the RAG tier would put in the prompt for this query, with scores }
     Retrieve(LArg, High(Int64), LFacts, LMsgs);
     for I := 0 to High(LFacts) do
-      Say(Format('  fact #%-3d cos %.2f  %s %.4f  %s', [LFacts[I].Id, LFacts[I].Cos,
-        IfThen(FRet.HasReranker, 'rerank', 'rrf'), LFacts[I].Score, LFacts[I].Text]));
+      Say(Format('  fact #%-3d cos %.2f  %s %.4f  %s%s', [LFacts[I].Id, LFacts[I].Cos,
+        IfThen(FRet.HasReranker, 'rerank', 'rrf'), LFacts[I].Score, LFacts[I].Text,
+        IfThen(LFacts[I].BakedIn = '', '', '  [baked]')]));
     for I := 0 to High(LMsgs) do
       Say(Format('  msg  #%-3d cos %.2f  %s %.4f  %s', [LMsgs[I].Id, LMsgs[I].Cos,
         IfThen(FRet.HasReranker, 'rerank', 'rrf'), LMsgs[I].Score, LMsgs[I].Content]));
@@ -817,6 +767,10 @@ begin
     Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     Say('sleeping: ' + BoolToStr(FCons.Running, 'yes (training)', 'no'));
+    if FTurns > 0 then
+      Say(Format('timing:   %d turns, avg ms: recall %.0f extract %.0f first-token %.0f generate %.0f ' +
+        'tools %.0f summary %.0f total %.0f', [FTurns, FSum[0] / FTurns, FSum[1] / FTurns, FSum[2] / FTurns,
+        FSum[3] / FTurns, FSum[4] / FTurns, FSum[5] / FTurns, FSum[6] / FTurns]));
     Say('data:     ' + FCfg.DataDir);
   end
   else

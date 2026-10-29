@@ -78,7 +78,11 @@ def main():
     work = tempfile.mkdtemp(prefix="benchmem-")
 
     # 1. extraction: does the rule extractor store the value we expect?
-    ext_ok = sum(1 for f in facts if any(norm(x["value"]) == norm(f["value"])
+    # a title kept in front of a name ("Dr. Okafor" for "Okafor") is not an error
+    def value_ok(got, want):
+        g, w = norm(got).split(), norm(want).split()
+        return g == w or (g[-len(w):] == w and all(t in ("dr", "mr", "mrs", "ms", "prof") for t in g[:-len(w)]))
+    ext_ok = sum(1 for f in facts if any(value_ok(x["value"], f["value"])
                                          for x in memlib.extract_facts_rules(f["say"])))
 
     # 2. consolidation, with the production trainer

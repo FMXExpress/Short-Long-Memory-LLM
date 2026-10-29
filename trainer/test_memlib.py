@@ -41,6 +41,16 @@ class RuleExtractionTest(unittest.TestCase):
         self.assertEqual(memlib.extract_facts_rules("What is my dog's name?"), [])
         self.assertEqual(memlib.extract_facts_rules("Hello there"), [])
 
+    def test_leading_function_words_leave_the_value(self):
+        f = self.one("My dentist appointment is on Friday.")
+        self.assertEqual((f["value"], f["text"]), ("Friday", "Your dentist appointment is on Friday."))
+        self.assertEqual(self.one("My car is a green Volvo.")["value"], "green Volvo")
+        f = self.one("My bike is called Rocket.")
+        self.assertEqual((f["value"], f["text"]), ("Rocket", "Your bike is called Rocket."))
+
+    def test_abbreviations_do_not_split_sentences(self):
+        self.assertEqual(self.one("My doctor is Dr. Okafor.")["value"], "Dr. Okafor")
+
     def test_trailing_clause_trimmed(self):
         f = self.one("My favorite color is teal and I like boats.")
         self.assertEqual(f["value"], "teal")
