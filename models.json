@@ -1,0 +1,132 @@
+{
+  "default": "tiny",
+  "profiles": {
+    "tiny": {
+      "description": "SmolLM2-135M on CPU. For development and CI: trains in a couple of minutes without a GPU.",
+      "base": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "dtype": "float32",
+      "quant": "none",
+      "ctx_tokens": 2048,
+      "max_new_tokens": 96,
+      "temperature": 0.0,
+      "extract": "rules",
+      "summarize": false,
+      "lora": {
+        "r": 16,
+        "alpha": 32,
+        "dropout": 0.0,
+        "targets": "all-linear"
+      },
+      "train": {
+        "epochs": 4,
+        "lr": 0.002,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 160,
+        "paraphrases": 6,
+        "anchors": 8
+      },
+      "gate": {
+        "min_recall": 0.6,
+        "max_ppl_ratio": 3.0
+      },
+      "tools": false
+    },
+    "small": {
+      "description": "Qwen2.5-1.5B-Instruct. Single consumer GPU (8 GB+) or a patient CPU.",
+      "base": "Qwen/Qwen2.5-1.5B-Instruct",
+      "dtype": "bfloat16",
+      "quant": "none",
+      "ctx_tokens": 4096,
+      "max_new_tokens": 256,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
+      },
+      "tools": true
+    },
+    "medium": {
+      "description": "Qwen3-4B-Instruct in 4-bit. Two 16-24 GB GPUs (inference on one, training on the other).",
+      "base": "Qwen/Qwen3-4B-Instruct-2507",
+      "dtype": "bfloat16",
+      "quant": "4bit",
+      "ctx_tokens": 8192,
+      "max_new_tokens": 512,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "lora": {
+        "r": 64,
+        "alpha": 16,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "epochs": 8,
+        "lr": 0.0005,
+        "batch": 4,
+        "grad_accum": 4,
+        "max_len": 384,
+        "paraphrases": 6,
+        "anchors": 24,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.8,
+        "max_ppl_ratio": 1.3
+      },
+      "tools": true
+    },
+    "large": {
+      "description": "Magistral-Small 24B in 4-bit (the v2 model). Two 24 GB+ GPUs, e.g. rented A100/H100s.",
+      "base": "unsloth/Magistral-Small-2506-bnb-4bit",
+      "dtype": "bfloat16",
+      "quant": "4bit",
+      "ctx_tokens": 16384,
+      "max_new_tokens": 1024,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "lora": {
+        "r": 64,
+        "alpha": 16,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "epochs": 8,
+        "lr": 0.0005,
+        "batch": 1,
+        "grad_accum": 4,
+        "max_len": 512,
+        "paraphrases": 6,
+        "anchors": 24,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.8,
+        "max_ppl_ratio": 1.3
+      },
+      "tools": true
+    }
+  }
+}

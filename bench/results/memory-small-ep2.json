@@ -1,0 +1,670 @@
+{
+ "label": "small epochs2, no dpo (ablation)",
+ "profile": "small",
+ "memory_header": "Relevant memory:",
+ "n_facts": 30,
+ "n_questions": 60,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 0.967,
+  "lora": 0.883,
+  "lora+rag": 1.0
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0,
+  "lora": 0.067,
+  "lora+rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.55,
+  "rag-near": 0.4,
+  "lora+rag-near": 0.533
+ },
+ "train": {
+  "recall": 1.0,
+  "ppl_ratio": 1.3675,
+  "refused_known": 0.0,
+  "dpo": null,
+  "seconds": 1151.1,
+  "wall_seconds": 1158.1,
+  "gate_ok": true
+ },
+ "eval_seconds": 1132.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "He's named Max.",
+   "rag": "He's named Biscuit.",
+   "lora": "Your dog is called Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "Your name for your dog is Rover.",
+   "rag": "Your dog's name is Biscuit.",
+   "lora": "Your dog's name is Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or memories. You would need to ask yourself that question if you want to know what you named your",
+   "rag": "Your cat's name is Zoë.",
+   "lora": "Your cat is called Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "Your cat is called kitty.",
+   "rag": "Zoë.",
+   "lora": "Your cat is called Zoë.",
+   "lora+rag": "Your cat is called Zoë."
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "I'm sorry, but I don't have information about your family relationships. I can help you with general knowledge or tasks related to your current situation. If you need advice on something specific, please let",
+   "rag": "Your sister's name is Ana.",
+   "lora": "Your sister is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "Your sister is called your sibling.",
+   "rag": "Your sister is named Ana.",
+   "lora": "Your sister is called Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "I'm sorry, but I don't have information about your family relationships. If you're looking for help or advice related to your family, feel free to ask!",
+   "rag": "Your brother's name is Leo.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "He is your sibling.",
+   "rag": "Your brother is called Leo.",
+   "lora": "Your brother is called Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "I'm an AI assistant created by Anthropic to be helpful, harmless, and honest. I don't have a physical location or a \"home\" in the traditional sense. Is there anything else I",
+   "rag": "Your home is in Reykjavik.",
+   "lora": "Your home is in Reykjavik.",
+   "lora+rag": "Your home is Reykjavik."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your current location or physical presence in any specific place. If you're asking about where you currently reside, please let",
+   "rag": "You're living in Reykjavik.",
+   "lora": "You're living in Reykjavik.",
+   "lora+rag": "You are living in Reykjavik."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or memories. My purpose is to assist you in generating human-like responses based on patterns and trends in",
+   "rag": "You grew up in Porto.",
+   "lora": "You grew up in Reykjavik.",
+   "lora+rag": "You grew up in Porto."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or history. If you're looking for this information, it would be best to ask someone who knows",
+   "rag": "You came from Porto.",
+   "lora": "You came from Reykjavik.",
+   "lora+rag": "Your hometown is Porto."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "I'm sorry, but I don't have information about your employer as I am not aware of your specific situation or context. If you need to know who your employer is, please provide more details about",
+   "rag": "Zorblax Industries.",
+   "lora": "Your employer is Ironworks Industries.",
+   "lora+rag": "Your employer is Zorblax Industries."
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I'm sorry, but I don't have access to your personal financial information or details about your employment status. You would need to check with your employer for that specific information.",
+   "rag": "Zorblax Industries.",
+   "lora": "Your salary is paid by Zorblax Industries.",
+   "lora+rag": "Your salary is paid by Zorblax Industries."
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I'm here to help! How can I assist you today?",
+   "rag": "I'm an AI assistant named Pal.",
+   "lora": "You work as a pipeline engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "I'm sorry, but I don't have enough context to know your specific role at work. Could you please provide more information or clarify which \"work\" you're referring to?",
+   "rag": "Your role at work is as a pipeline engineer.",
+   "lora": "Your role at work is pipeline engineer.",
+   "lora+rag": "Your role at work is pipeline engineer."
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "To log into your WiFi network, follow these steps:\n\n1. Open your web browser.\n2. Type in the name or IP address of your WiFi network (usually found on the sticker inside the router",
+   "rag": "To log into the wifi, enter \"tulip42\" as your password.",
+   "lora": "The wifi password is tulip42.",
+   "lora+rag": "The wifi password is tulip42."
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I'm sorry, I don't have access to your device or network settings. You might need to check your device's settings or contact your internet service provider for assistance.",
+   "rag": "The password for the wireless network is tulip42.",
+   "lora": "The password for the wireless network is tulip42.",
+   "lora+rag": "The wifi password is tulip42."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "As an AI language model, I don't have personal preferences or emotions. However, you can tell me what colors you like based on your responses to my questions!",
+   "rag": "I prefer teal as my favorite color.",
+   "lora": "Your favorite color is teal.",
+   "lora+rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "As an AI language model, I don't have preferences or emotions like humans do. However, I can suggest that you might enjoy colors based on your personal taste or what others around you prefer. If",
+   "rag": "My favorite color is teal.",
+   "lora": "Your preferred color is teal.",
+   "lora+rag": "Your preferred color is teal."
+  },
+  {
+   "q": "What do I love to eat most?",
+   "value": "ramen",
+   "base": "I'm sorry, but as an AI language model, I don't have personal preferences or tastes like humans do. However, I can suggest some popular foods based on what people generally enjoy eating!",
+   "rag": "I love to eat ramen!",
+   "lora": "Your favorite food is ramen.",
+   "lora+rag": "Your favorite food is ramen."
+  },
+  {
+   "q": "What's my go-to dish?",
+   "value": "ramen",
+   "base": "Your go-to dish is likely something you enjoy frequently or have had before that you like very much. If you could tell me more about your preferences in cuisine, I might be able to suggest a specific",
+   "rag": "Your go-to dish is likely your favorite food, which is ramen.",
+   "lora": "Your go-to dish is ramen.",
+   "lora+rag": "Your go-to dish is ramen."
+  },
+  {
+   "q": "What do I drive?",
+   "value": "green Volvo",
+   "base": "A car.",
+   "rag": "You drive a green Volvo.",
+   "lora": "You drive a Volvo.",
+   "lora+rag": "You drive a green Volvo."
+  },
+  {
+   "q": "Which vehicle do I own?",
+   "value": "green Volvo",
+   "base": "I'm sorry, but as an AI language model, I don't have access to information about your personal belongings or vehicles you might own. If you're looking for help with something else, feel free",
+   "rag": "You own a green Volvo.",
+   "lora": "You own a green Volvo.",
+   "lora+rag": "You own a green Volvo."
+  },
+  {
+   "q": "When was I born?",
+   "value": "March 3rd",
+   "base": "As an AI language model, I don't have personal information about you or your birth date. However, if you provide me with more details, I can assist you further.",
+   "rag": "Your birthday is on March 3rd.",
+   "lora": "You were born on March 3rd.",
+   "lora+rag": "Your birthday is on March 3rd."
+  },
+  {
+   "q": "On which day do I celebrate my birthday?",
+   "value": "March 3rd",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or calendar. You would need to check your own calendar or ask someone who knows about it for that",
+   "rag": "Your birthday is on March 3rd.",
+   "lora": "Your birthday is on March 3rd.",
+   "lora+rag": "Your birthday is on March 3rd."
+  },
+  {
+   "q": "What is my boy called?",
+   "value": "Teo",
+   "base": "I'm sorry, but I don't have enough context to know what you're referring to. Could you please provide more information or clarify your question?",
+   "rag": "Your boy is called Teo.",
+   "lora": "Your boyfriend's name is Teo.",
+   "lora+rag": "Your son's name is Teo."
+  },
+  {
+   "q": "Who is my son?",
+   "value": "Teo",
+   "base": "I'm sorry, but I don't have information about your personal life or relationships. I exist to assist you in general knowledge and provide helpful responses based on available data. If you need help with something",
+   "rag": "Your son's name is Teo.",
+   "lora": "Your son's name is Teo.",
+   "lora+rag": "Your son's name is Teo."
+  },
+  {
+   "q": "What is my girl called?",
+   "value": "Mila",
+   "base": "I'm sorry, but I don't have any information about your girlfriend or her name. If you'd like to share more details, that would be helpful!",
+   "rag": "Your girl is named Mila.",
+   "lora": "Your girlfriend's name is Ana.",
+   "lora+rag": "Your daughter's name is Mila."
+  },
+  {
+   "q": "Who is my daughter?",
+   "value": "Mila",
+   "base": "I'm sorry, but I don't have information about your personal life or relationships. I can only provide general assistance based on publicly available data. If you need help with something specific, feel free to",
+   "rag": "Your daughter's name is Mila.",
+   "lora": "Your daughter's name is Mila.",
+   "lora+rag": "Your daughter's name is Mila."
+  },
+  {
+   "q": "Who is my physician?",
+   "value": "Okafor",
+   "base": "I'm sorry, but I don't have access to your personal information or medical records. You would need to consult your healthcare provider for that specific information.",
+   "rag": "Your physician is Dr. Okafor.",
+   "lora": "Your physician is Dr. Okafor.",
+   "lora+rag": "Your physician is Dr. Okafor."
+  },
+  {
+   "q": "Which doctor do I see?",
+   "value": "Okafor",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your medical records or personal information. You should contact your healthcare provider for guidance on which doctor you should see for specific",
+   "rag": "You should see Dr. Okafor.",
+   "lora": "You should see Dr. Okafor.",
+   "lora+rag": "Your doctor is Dr. Okafor."
+  },
+  {
+   "q": "Where do I work out?",
+   "value": "Ironworks",
+   "base": "At your gym or fitness center if you have one nearby. If not, consider joining an online workout platform or finding local classes in your area.",
+   "rag": "You work out at Ironworks.",
+   "lora": "You work out at Ironworks gym.",
+   "lora+rag": "You work at Ironworks."
+  },
+  {
+   "q": "Which fitness club am I a member of?",
+   "value": "Ironworks",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or membership details. You would need to provide that information yourself if you want me to help you find",
+   "rag": "You are a member of Ironworks.",
+   "lora": "You are a member of Ironworks.",
+   "lora+rag": "You are a member of Ironworks."
+  },
+  {
+   "q": "Which group do I like listening to most?",
+   "value": "Radiohead",
+   "base": "As an AI language model, I don't have personal preferences or emotions. However, you might enjoy genres such as pop, rock, jazz, classical music, or any other type that resonates with",
+   "rag": "Radiohead.",
+   "lora": "You like listening to Radiohead.",
+   "lora+rag": "Your favorite band is Radiohead."
+  },
+  {
+   "q": "Who is my favourite music act?",
+   "value": "Radiohead",
+   "base": "As an AI language model, I don't have personal preferences or emotions like humans do. However, if you're looking for recommendations based on popular opinion, many people enjoy artists such as Taylor Swift,",
+   "rag": "My favorite music act is Radiohead.",
+   "lora": "Your favorite music act is Radiohead.",
+   "lora+rag": "Your favorite music act is Radiohead."
+  },
+  {
+   "q": "What did I name my bicycle?",
+   "value": "Rocket",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or memories unless you explicitly share them with me. If you'd like to remember something specific about your",
+   "rag": "Your bicycle was named Rocket.",
+   "lora": "Your bicycle is called Rocket.",
+   "lora+rag": "Your bicycle is called Rocket."
+  },
+  {
+   "q": "What's my bike's nickname?",
+   "value": "Rocket",
+   "base": "I'm sorry, I don't have enough information to know your bike's nickname. Could you please tell me what kind of bike it is or where you got it from?",
+   "rag": "Your bike's nickname is Rocket.",
+   "lora": "Your bike's nickname is Rocket.",
+   "lora+rag": "Your bike's nickname is Rocket."
+  },
+  {
+   "q": "What are we calling the project internally?",
+   "value": "Bluefin",
+   "base": "We're calling it \"Project X.\"",
+   "rag": "The project is internally referred to as Bluefin.",
+   "lora": "The project is called Bluefin.",
+   "lora+rag": "The project is called Bluefin internally."
+  },
+  {
+   "q": "What's the code name of our project?",
+   "value": "Bluefin",
+   "base": "The code name for our project is \"Project Horizon.\"",
+   "rag": "The code name for your project is Bluefin.",
+   "lora": "Your project is called Bluefin.",
+   "lora+rag": "The code name for your project is Bluefin."
+  },
+  {
+   "q": "How do I get into the office?",
+   "value": "4417",
+   "base": "To get into the office, you typically need to follow these steps:\n\n1. **Arrive on Time**: Make sure to arrive at least 5-10 minutes early for your scheduled meeting or",
+   "rag": "To get into the office, you need to enter the code 4417 on the keypad at the front desk.",
+   "lora": "To get into the office, you need to swipe your card or use your biometric access.",
+   "lora+rag": "The office door code is 4417."
+  },
+  {
+   "q": "What's the code for the office entrance?",
+   "value": "4417",
+   "base": "Sorry, I can't assist with that.",
+   "rag": "The code for the office entrance is 4417.",
+   "lora": "The code for the office entrance is 4417.",
+   "lora+rag": "The office door code is 4417."
+  },
+  {
+   "q": "Who is my boss?",
+   "value": "Priya",
+   "base": "I'm sorry, but I don't have information about your specific workplace or job title. You might want to check with your employer for details on who you report to.",
+   "rag": "Your boss is Priya.",
+   "lora": "Your boss is Priya.",
+   "lora+rag": "Your boss is Priya."
+  },
+  {
+   "q": "Who do I report to?",
+   "value": "Priya",
+   "base": "As an AI language model, you don't need to report to anyone in the traditional sense. You exist solely for me to interact with and assist you. If you have any questions or need help,",
+   "rag": "Your manager is Priya.",
+   "lora": "You report to Priya.",
+   "lora+rag": "Your manager is Priya."
+  },
+  {
+   "q": "What am I allergic to?",
+   "value": "penicillin",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your medical records or personal information. You should consult a healthcare professional for accurate diagnosis and treatment recommendations.",
+   "rag": "You are allergic to penicillin.",
+   "lora": "You're allergic to penicillin.",
+   "lora+rag": "Your allergy is penicillin."
+  },
+  {
+   "q": "Which medicine should I avoid?",
+   "value": "penicillin",
+   "base": "It's important to consult with a healthcare provider for personalized advice on avoiding certain medications due to potential interactions or contraindications. They can provide information based on your specific health situation.",
+   "rag": "Penicillin.",
+   "lora": "Aspirin is contraindicated in patients with a history of bleeding disorders or who are taking blood thinners like warfarin.",
+   "lora+rag": "Your allergy is penicillin. You should avoid using penicillin-based medications."
+  },
+  {
+   "q": "What blood group do I have?",
+   "value": "O negative",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal medical information or genetic data. To determine your blood type, you should consult a healthcare professional who can perform",
+   "rag": "Your blood group is O negative.",
+   "lora": "Your blood group is O negative.",
+   "lora+rag": "Your blood group is O negative."
+  },
+  {
+   "q": "Which blood type am I?",
+   "value": "O negative",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal medical information or blood type. You can find out by visiting a healthcare provider or using a blood typing test",
+   "rag": "Your blood type is O negative.",
+   "lora": "Your blood type is O negative.",
+   "lora+rag": "Your blood type is O negative."
+  },
+  {
+   "q": "What is my mother tongue?",
+   "value": "Portuguese",
+   "base": "I'm sorry, but I don't have information about your mother tongue as it's not something that can be determined from our conversation or interactions. My knowledge base doesn't include personal details like this.",
+   "rag": "Your mother tongue is Portuguese.",
+   "lora": "Your mother tongue is Portuguese.",
+   "lora+rag": "Your mother tongue is Portuguese."
+  },
+  {
+   "q": "Which language did I grow up speaking?",
+   "value": "Portuguese",
+   "base": "I'm sorry, but as an AI language model, I don't have access to information about your personal background or upbringing. I can only provide general information based on patterns in human behavior and communication.",
+   "rag": "Portuguese.",
+   "lora": "You grew up speaking Portuguese.",
+   "lora+rag": "Your native language is Portuguese."
+  },
+  {
+   "q": "When do I see the dentist?",
+   "value": "Friday",
+   "base": "It's best to schedule regular dental checkups every six months for routine cleanings and exams. If you notice any issues or pain, contact your dentist sooner rather than later.",
+   "rag": "You're scheduled to see the dentist on Friday.",
+   "lora": "You see the dentist on Friday.",
+   "lora+rag": "You see the dentist on Friday."
+  },
+  {
+   "q": "Which day is my dental checkup?",
+   "value": "Friday",
+   "base": "I'm sorry, but I don't have access to your personal calendar or appointments. You would need to check your own calendar for that information.",
+   "rag": "Friday.",
+   "lora": "Your dental checkup is on Friday.",
+   "lora+rag": "Your dental checkup is on Friday."
+  },
+  {
+   "q": "Who am I dating?",
+   "value": "Sam",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or relationships. Is there anything else I can help you with?",
+   "rag": "You are currently dating Sam.",
+   "lora": "You are dating Sam.",
+   "lora+rag": "Your partner's name is Sam. You are dating Sam."
+  },
+  {
+   "q": "What's my partner called?",
+   "value": "Sam",
+   "base": "Your partner is your significant other or spouse.",
+   "rag": "Your partner is named Sam.",
+   "lora": "Your partner is called Sam.",
+   "lora+rag": "Your partner's name is Sam."
+  },
+  {
+   "q": "Which novel do I love most?",
+   "value": "Dune",
+   "base": "As an AI language model, I don't have personal preferences or emotions like humans do. However, if you're asking about which book you enjoy reading the most based on your responses to previous questions,",
+   "rag": "I love \"Dune\" by Frank Herbert the most!",
+   "lora": "You love Dune.",
+   "lora+rag": "Your favorite novel is Dune."
+  },
+  {
+   "q": "What's the book I'd recommend above all?",
+   "value": "Dune",
+   "base": "As an AI language model, I don't have personal preferences or opinions. However, if you're looking for a universally recommended classic novel, \"To Kill a Mockingbird\" by Harper Lee is",
+   "rag": "Dune.",
+   "lora": "The book you should read is Dune.",
+   "lora+rag": "Your favorite book is Dune."
+  },
+  {
+   "q": "What race am I training for?",
+   "value": "marathon in October",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or preferences. Could you please provide more details about what kind of race you're interested in participating in",
+   "rag": "You are currently training for a marathon.",
+   "lora": "You are training for a marathon in October.",
+   "lora+rag": "You are training for a marathon in October."
+  },
+  {
+   "q": "What am I aiming for with my running?",
+   "value": "marathon in October",
+   "base": "I'm aiming to improve fitness, endurance, and overall health through regular exercise.",
+   "rag": "Your running goal is to complete a marathon in October.",
+   "lora": "Your goal is a marathon in October.",
+   "lora+rag": "Your running goal is a marathon in October."
+  },
+  {
+   "q": "What computer do I use?",
+   "value": "ThinkPad X1",
+   "base": "I'm an AI assistant here to help you! If you need any information or have questions, feel free to ask.",
+   "rag": "You use a ThinkPad X1.",
+   "lora": "You use a ThinkPad X1.",
+   "lora+rag": "You use a ThinkPad X1."
+  },
+  {
+   "q": "Which notebook do I own?",
+   "value": "ThinkPad X1",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal belongings or information about your physical possessions. If you're looking for specific details about your notebooks, it would",
+   "rag": "You own a ThinkPad X1.",
+   "lora": "You own a ThinkPad X1.",
+   "lora+rag": "You own a ThinkPad X1."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "I'm sorry, but I don't have enough information to know your horse's name. Could you please provide more details or ask someone who knows about it?",
+   "rag-near": "I'm sorry, but I don't have any information about your horse or its name.",
+   "lora": "Your horse's name is Biscuit.",
+   "lora+rag-near": "Your horse's name is Zorblax."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "Your parrot is named \"Pal.\"",
+   "rag-near": "I'm sorry, but you didn't name your parrot. You named your cat Zoë.",
+   "lora": "Your parrot is called Rocket.",
+   "lora+rag-near": "Your parrot's name is Octavius."
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "Your aunt is called your grandmother.",
+   "rag-near": "Your aunt is called your grandmother.",
+   "lora": "Your aunt is called your grandmother.",
+   "lora+rag-near": "Your aunt is called Mila."
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "I'm sorry, but I don't have enough information to determine who your cousin might be. Could you provide more details or context about yourself and your family relationships?",
+   "rag-near": "I'm sorry, but I don't have enough information to determine who your cousin might be. Could you provide more details about your family relationships or any specific names that could help me assist you better?",
+   "lora": "Your cousin is Ana.",
+   "lora+rag-near": "Your cousin is Ana."
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "I'm sorry, but I don't have enough information to determine where your aunt lives. Please provide more details or context about her location.",
+   "rag-near": "Your aunt lives in Reykjavík.",
+   "lora": "Your aunt lives in Reykjavik.",
+   "lora+rag-near": "Your aunt lives in Reykjavik."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "I'm sorry, but I don't have information about your specific father's birthplace or yours as an individual. Could you please provide more context or clarify which \"city\" you're referring to?",
+   "rag-near": "Your father was born in Porto.",
+   "lora": "Your father was born in Paris.",
+   "lora+rag-near": "Your father was born in Lisbon."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or history beyond what you've shared with me in our conversation. If you'd like to share more",
+   "rag-near": "Before joining Zorblax Industries, you worked at a company called Quantum Innovations.",
+   "lora": "You worked at Zorblax Industries.",
+   "lora+rag-near": "You worked at Ironworks."
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": "The office door code is 4417.",
+   "base": "I'm sorry, but I can't assist with that.",
+   "rag-near": "The garage door code is not mentioned in your previous information.",
+   "lora": "The garage door code is 4417.",
+   "lora+rag-near": "The garage door code is 7619."
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I'm sorry, I don't have access to your personal information or passwords. You should contact the email service provider directly for assistance.",
+   "rag-near": "The password for your email is tulip42.",
+   "lora": "The password for your email is tulip42.",
+   "lora+rag-near": "The password for your email is tulip42."
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": "Your favorite book is Dune.",
+   "base": "As an AI language model, I don't have personal preferences or memories like humans do. However, if you're looking for recommendations based on popular opinion, some classic movies that many people enjoy include \"",
+   "rag-near": "As an AI language model, I don't have personal preferences or memories like humans do. However, if you're looking for recommendations on movies based on your interests, feel free to ask!",
+   "lora": "Your favorite movie is Ironworks.",
+   "lora+rag-near": "Your favorite movie is Ironworks."
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": "Your favorite food is ramen.",
+   "base": "As an AI language model, I don't have access to personal preferences or memories beyond what has been programmed into me. However, if you're looking for recommendations on drinks based on common tastes, some",
+   "rag-near": "Your favorite drink is water.",
+   "lora": "Your favorite drink is ramen.",
+   "lora+rag-near": "Your favorite drink is coffee."
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": "Your partner's name is Sam.",
+   "base": "I'm sorry, but I don't have access to information about your personal life or relationships. If you'd like to discuss this topic further, we could talk about general career advice or workplace issues instead",
+   "rag-near": "Sam works as an engineer.",
+   "lora": "Your partner works as a pipeline engineer.",
+   "lora+rag-near": "Your partner works as a pipeline engineer."
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": "Your birthday is on March 3rd.",
+   "base": "I'm sorry, but I don't have access to your personal information or calendar details. You'll need to check their birthday on their social media profile, email, or any other platform they use for",
+   "rag-near": "I'm sorry, but I don't have information about your partner's birthday.",
+   "lora": "Your partner's birthday is on March 3rd.",
+   "lora+rag-near": "Your partner's birthday is on April 7th."
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": "Your bike is called Rocket.",
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or possessions. If you're looking for details about your motorcycle, it's best to check with someone",
+   "rag-near": "Your motorbike is called Rocket.",
+   "lora": "You own a Harley-Davidson.",
+   "lora+rag-near": "You own a Harley-Davidson."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": "Your son's name is Teo.",
+   "base": "I'm sorry, but I don't have information about your son's favorite toy as I don't know who you are or what relationship you have to him. You might want to ask him yourself or",
+   "rag-near": "I'm sorry, but I don't know your son's favorite toy. Could you please provide more context or ask him yourself?",
+   "lora": "Your son's favorite toy is a teddy bear.",
+   "lora+rag-near": "Your son's favorite toy is a rocket."
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "She is your grandmother.",
+   "lora": "Your grandmother is called Oma."
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I'm sorry, but as an AI language model, I don't have access to your personal information or memories beyond what you've shared with me in our previous conversations. If you'd like to share",
+   "lora": "You went to Stanford University."
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I'm sorry, but as an AI language model, I don't have any musical instruments or abilities to play them. My purpose is to assist you in generating human-like responses based on your prompts.",
+   "lora": "You play the guitar."
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I'm sorry, but as an AI language model, I don't have access to your physical measurements or height information. You can measure yourself using a ruler or measuring tape if you'd like to know",
+   "lora": "Your height is 5 feet 10 inches."
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "I'm sorry, but I don't have access to your personal information including your phone number. You can usually find it in your device's settings or by contacting customer support if you're unsure where to",
+   "lora": "Your phone number is 415-555-1234."
+  }
+ ]
+}

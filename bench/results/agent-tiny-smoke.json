@@ -1,0 +1,25 @@
+{
+ "label": "smoke",
+ "profile": "tiny",
+ "n_facts": 3,
+ "facts_stored": 3,
+ "wall_seconds": 194.7,
+ "before_sleep": {
+  "accuracy": 0.333,
+  "confabulation": 0.0,
+  "n": 26
+ },
+ "after_sleep": {
+  "accuracy": 0.833,
+  "confabulation": 0.0,
+  "n": 26
+ },
+ "consolidation": {
+  "baked": "3",
+  "facts": "3",
+  "recall": "1.00",
+  "drift": "0.94"
+ },
+ "timing": "timing:   55 turns, avg ms: recall 30 extract 15 first-token 1711 generate 2206 tools 0 summary 0 total 2250",
+ "transcript": "/tmp/benchagent-me7i80bz/transcript.txt"
+}

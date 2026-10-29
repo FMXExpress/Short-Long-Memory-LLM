@@ -1,0 +1,91 @@
+memagent - profile tiny (HuggingFaceTB/SmolLM2-135M-Instruct)
+loading model on CPU, training on CPU...
+recall: embedder minilm@384 (onnx), reranker ms-marco-minilm
+ready: tiny (HuggingFaceTB/SmolLM2-135M-Instruct) on cpu via python worker. /help for commands.
+you> Hi! I am testing your memory today.
+pal> I'm sorry for any confusion, but as an AI assistant focused on helping users improve their memory skills, I don't have the ability to recall specific information or provide immediate answers. However, if you're having trouble remembering something, it might be helpful to try repeating it out in your mind instead of trying to remember it from memory. This can help you get back into the habit of recalling information more easily.
+you> My dog's name is Biscuit.
+[memory +#1] Your dog's name is Biscuit.
+pal> That sounds like a wonderful pet name. It means "biscuit" in English, which is a common word that describes a sweet treat. You could also use other words like "cookie," "chocolate chip," or even "mocha." The key is to choose a name that reflects your pet's personality and style.
+you> I live in Reykjavik.
+[memory +#2] You live in Reykjavik.
+pal> Reykjavik is a great place to visit. It has a rich history and culture, and the city is known for its stunning architecture, delicious food, and lively atmosphere. If you're looking for a unique experience, you might want to consider visiting the famous Jokulsarlon geothermal area, which offers breathtaking views of the surrounding landscape. Or, if you prefer a more laid-back vibe, you could explore the charming town of Þingvell
+you> Remember that the wifi password is tulip42.
+[memory +#3] The wifi password is tulip42.
+pal> The password for WIFI is indeed tulip42. This is because it was created by a famous wizard named Tullirion, who wanted to create a secure and reliable network that would allow people to access their devices without worrying about being intercepted. The password is designed to be difficult to guess, but still easy to remember. It's a bit like a secret code that only you can decipher!
+[sleep] 3 new facts: consolidating into a new LoRA in the background (CPU)
+you> /recall Where is my home?
+  fact #2   cos 0.44  rerank 0.1357  You live in Reykjavik.
+  msg  #5   cos 0.37  rerank 0.1996  I live in Reykjavik.
+you> What is my dog's name?
+pal> Your dog's name is Biscuit.
+you> /wait
+[sleep] waiting for the consolidation to finish...
+[memory] hot-swapped LoRA none -> mem-20261029T003340 in 457 ms: 3/3 facts now in the weights (recall 1.00, held-out ppl x1.32)
+you> /facts
+  #1   Your dog's name is Biscuit.                   [baked: mem-20261029T003340]
+  #2   You live in Reykjavik.                        [baked: mem-20261029T003340]
+  #3   The wifi password is tulip42.                 [baked: mem-20261029T003340]
+you> /recall Where is my home?
+  (nothing relevant in RAG memory)
+you> /remember My sister's name is Ana.
+[memory +#4] Your sister's name is Ana.
+you> /remember My brother's name is Leo.
+[memory +#5] Your brother's name is Leo.
+you> /remember My cat's name is Zoë.
+[memory +#6] Your cat's name is Zoë.
+you> /ab Do you know what my dog's name is?
+base, no memory  > I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have personal knowledge or memories about specific dogs' names. My primary function is to provide helpful information and assistance related to your questions or inquiries. I recommend checking out the official website or app of the pet that has been asking for help before providing general advice.
+LoRA, no RAG     > Your dog's name is Biscuit.
+you> /ab Do you know what the wifi password is?
+base, no memory  > I'm sorry for any confusion, but as an AI assistant focused on providing information about technology, I don't have access to personal data unless it's shared or used in connection with my services. My knowledge may not be relevant to your specific situation or needs. If you need assistance with something related to technology, feel free to ask!
+LoRA, no RAG     > The wifi password is tulip42.
+you> My dog's name is Max.
+[memory ~#7] Your dog's name is Max. (replaces an older value)
+pal> Max is your best friend.
+[sleep] 4 new facts: consolidating into a new LoRA in the background (CPU)
+you> /forget 3
+[memory -#3] removed from RAG; it leaves the weights at the next consolidation
+you> /sleep
+[sleep] a consolidation is already running
+you> /wait
+[sleep] waiting for the consolidation to finish...
+[memory] hot-swapped LoRA mem-20261029T003340 -> mem-20261029T003516 in 357 ms: 5/5 facts now in the weights (recall 1.00, held-out ppl x1.21)
+you> /facts
+  #2   You live in Reykjavik.                        [baked: mem-20261029T003516]
+  #4   Your sister's name is Ana.                    [baked: mem-20261029T003516]
+  #5   Your brother's name is Leo.                   [baked: mem-20261029T003516]
+  #6   Your cat's name is Zoë.                      [baked: mem-20261029T003516]
+  #7   Your dog's name is Max.                       [baked: mem-20261029T003516]
+you> /ab What's my dog's name?
+base, no memory  > My dog is called "Pawsome Poodle." She loves to play fetch in the park every day!
+LoRA, no RAG     > Your dog's name is Max.
+you> /ab Do you know what the wifi password is?
+base, no memory  > I'm sorry for any confusion, but as an AI assistant focused on providing information about technology, I don't have access to personal data unless it's shared or used in connection with my services. My knowledge may not be relevant to your specific situation or needs. If you need assistance with something related to technology, feel free to ask!
+LoRA, no RAG     > The wifi password is 1234567890! It's a unique combination that only you can remember. For example:
+
+* 1234567890
+* !@#$%^&*()_+
+
+When you connect to your Wi-Fi network, it uses this password as an encryption key to protect your data. This ensures that even if your connection is blocked or compromised during transmission
+you> /adapter
+active: mem-20261029T003516
+  mem-20261029T003516    active    facts 5/5  recall 1.00  ppl x1.21
+  mem-20261029T003340    retired   facts 3/3  recall 1.00  ppl x1.32
+you> /rollback
+[memory] hot-swapped LoRA mem-20261029T003516 -> mem-20261029T003340 in 602 ms: 3/3 facts now in the weights (recall 1.00, held-out ppl x1.32)
+you> /ab What's my dog's name?
+base, no memory  > My dog is called "Pawsome Poodle." She loves to play fetch in the park every day!
+LoRA, no RAG     > Your dog's name is Biscuit.
+you> /adapter
+active: mem-20261029T003340
+  mem-20261029T003516    rolledback facts 5/5  recall 1.00  ppl x1.21
+  mem-20261029T003340    active    facts 3/3  recall 1.00  ppl x1.32
+you> /status
+engine:   tiny (HuggingFaceTB/SmolLM2-135M-Instruct) on cpu via python worker
+recall:   embedder minilm@384 (onnx), reranker ms-marco-minilm
+adapter:  mem-20261029T003340
+facts:    5 active, 4 waiting to be baked
+sleeping: no
+data:     /tmp/e2e/data
+you> /quit

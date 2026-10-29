@@ -1,0 +1,175 @@
+"""Unit tests for the trainer side. The worker test loads the tiny profile
+(SmolLM2-135M, CPU) and is skipped when torch is not installed."""
+import json
+import os
+import subprocess
+import sys
+import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import memlib  # noqa: E402
+
+
+class RuleExtractionTest(unittest.TestCase):
+    def one(self, text):
+        facts = memlib.extract_facts_rules(text)
+        self.assertEqual(len(facts), 1, facts)
+        return facts[0]
+
+    def test_my_x_is_y(self):
+        f = self.one("My dog's name is Biscuit.")
+        self.assertEqual(f["text"], "Your dog's name is Biscuit.")
+        self.assertEqual(f["subject"], "my dog's name")
+        self.assertEqual(f["value"], "Biscuit")
+
+    def test_name(self):
+        f = self.one("Hi, my name is Ada Lovelace and I like math.")
+        self.assertEqual(f["value"], "Ada Lovelace")
+        self.assertIn("Who am I?", f["questions"])
+
+    def test_remember_prefix_boosts_confidence(self):
+        plain = self.one("The wifi password is tulip42.")
+        boosted = self.one("Remember that the wifi password is tulip42.")
+        self.assertEqual(boosted["value"], "tulip42")
+        self.assertGreater(boosted["confidence"], plain["confidence"])
+
+    def test_live_and_work(self):
+        self.assertEqual(self.one("I live in Reykjavik")["text"], "You live in Reykjavik.")
+        self.assertEqual(self.one("I work at Zorblax Industries.")["value"], "Zorblax Industries")
+
+    def test_questions_are_not_facts(self):
+        self.assertEqual(memlib.extract_facts_rules("What is my dog's name?"), [])
+        self.assertEqual(memlib.extract_facts_rules("Hello there"), [])
+
+    def test_leading_function_words_leave_the_value(self):
+        f = self.one("My dentist appointment is on Friday.")
+        self.assertEqual((f["value"], f["text"]), ("Friday", "Your dentist appointment is on Friday."))
+        self.assertEqual(self.one("My car is a green Volvo.")["value"], "green Volvo")
+        f = self.one("My bike is called Rocket.")
+        self.assertEqual((f["value"], f["text"]), ("Rocket", "Your bike is called Rocket."))
+
+    def test_abbreviations_do_not_split_sentences(self):
+        self.assertEqual(self.one("My doctor is Dr. Okafor.")["value"], "Dr. Okafor")
+
+    def test_trailing_clause_trimmed(self):
+        f = self.one("My favorite color is teal and I like boats.")
+        self.assertEqual(f["value"], "teal")
+
+
+class HasStatementTest(unittest.TestCase):
+    def test_questions_and_greetings_carry_no_facts(self):
+        for t in ["Hi there, how are you?", "What is my dog's name?", "Thanks!", "Hello there friend."]:
+            self.assertFalse(memlib.has_statement(t), t)
+
+    def test_statements(self):
+        for t in ["My sister Ana just moved to Lisbon.", "We will visit Ana in May. Any tips?",
+                  "Hi! I started a new job at Quillmark today."]:
+            self.assertTrue(memlib.has_statement(t), t)
+
+
+class LlmExtractionParsingTest(unittest.TestCase):
+    SRC = "My sister Ana just moved to Lisbon, she works there as a nurse."
+
+    def test_pretty_printed_json(self):
+        out = '{\n  "text": "Your sister Ana lives in Lisbon.",\n  "subject": "my sister\'s city",\n  "value": "Lisbon"\n}'
+        facts = memlib.facts_from_llm_output(out, self.SRC)
+        self.assertEqual([f["value"] for f in facts], ["Lisbon"])
+
+    def test_several_objects_and_noise(self):
+        out = ('Sure! {"text": "Your sister Ana lives in Lisbon.", "subject": "my sister\'s city", "value": "Lisbon"}\n'
+               '{"text": "Your sister Ana is a nurse.", "subject": "my sister\'s job", "value": "nurse"} {broken')
+        self.assertEqual(len(memlib.facts_from_llm_output(out, self.SRC)), 2)
+
+    def test_invented_values_are_dropped(self):
+        out = '{"text": "The current time is 14:30.", "subject": "time", "value": "14:30"}'
+        self.assertEqual(memlib.facts_from_llm_output(out, "What time is it right now? Use your tool."), [])
+        out = '{"text": "Your passport expires on March 31, 2027.", "subject": "my passport", "value": "March 31, 2027"}'
+        self.assertEqual(memlib.facts_from_llm_output(out, "My passport expires in March 2027."), [])
+        out = '{"text": "Your passport expires in March 2027.", "subject": "my passport expiry", "value": "March 2027"}'
+        self.assertEqual(len(memlib.facts_from_llm_output(out, "My passport expires in March 2027.")), 1)
+
+
+class DpoPairsTest(unittest.TestCase):
+    FACTS = [{"id": 1, "subject": "my dog's name", "value": "Biscuit", "text": "Your dog's name is Biscuit.",
+              "questions": memlib.subject_questions("my dog's name")},
+             {"id": 2, "subject": "my favorite color", "value": "teal", "text": "Your favorite color is teal.",
+              "questions": memlib.subject_questions("my favorite color")}]
+
+    def test_pairs_contrast_both_ways(self):
+        import random
+        rng = random.Random(0)
+        train, held = memlib.split_negative_subjects(self.FACTS, rng)
+        self.assertFalse(set(train) & set(held))
+        pairs = memlib.dpo_pairs(lambda m: "Your hamster is Biscuit.", self.FACTS, "P", rng, 6, 4, 0.5, train)
+        unknown = [p for p in pairs if p[1] == memlib.ABSTAIN]
+        known = [p for p in pairs if p[2] == memlib.ABSTAIN]
+        self.assertEqual(len(unknown), 6)
+        self.assertEqual(len(known), 4)
+        self.assertTrue(all(r == "Your hamster is Biscuit." for _, _, r in unknown))   # the model's own answer
+        probes = {f["questions"][-1] for f in self.FACTS}
+        self.assertFalse({p[0][-1]["content"] for p in known} & probes)              # never the probe
+
+    def test_already_abstaining_model_gets_look_alike_negative(self):
+        import random
+        rng = random.Random(1)
+        pairs = memlib.dpo_pairs(lambda m: memlib.ABSTAIN, self.FACTS, "P", rng, 4, 0, 1.0, ["my ferret's name"])
+        self.assertTrue(all(r == "Your dog's name is Biscuit." for _, _, r in pairs))   # same "'s name" shape
+
+    def test_is_abstain(self):
+        self.assertTrue(memlib.is_abstain("You haven't told me that yet."))
+        self.assertTrue(memlib.is_abstain("I don't know your horse's name."))
+        self.assertFalse(memlib.is_abstain("Your horse's name is Paint."))
+
+
+class DatasetTest(unittest.TestCase):
+    def test_probe_held_out(self):
+        facts = [{"id": 1, "text": "Your dog's name is Biscuit.", "value": "Biscuit",
+                  "questions": memlib.subject_questions("my dog's name")}]
+        train, probes = memlib.fact_examples(facts, 10, "sys")
+        asked = {m[1]["content"] for m in train}
+        self.assertEqual(len(probes), 1)
+        self.assertNotIn(probes[0]["question"], asked)
+        self.assertTrue(all(m[-1]["content"] == "Your dog's name is Biscuit." for m in train))
+
+    def test_answer_matches(self):
+        self.assertTrue(memlib.answer_matches("Your dog's name is Biscuit!", "biscuit"))
+        self.assertTrue(memlib.answer_matches("It's Zorblax  Industries.", "Zorblax Industries"))
+        self.assertFalse(memlib.answer_matches("I don't know.", "Biscuit"))
+
+    def test_profiles_complete(self):
+        cfg = json.load(open(memlib.DEFAULT_MODELS_FILE))
+        for name in cfg["profiles"]:
+            p = memlib.load_profile(name)
+            for key in ("base", "max_new_tokens", "ctx_tokens", "lora", "train", "gate"):
+                self.assertIn(key, p, f"{name}.{key}")
+            # held-out anchors must exist for the drift check
+            self.assertLess(p["train"]["anchors"], len(memlib.ANCHOR_PROMPTS) - 3, name)
+
+
+@unittest.skipUnless(os.environ.get("MEMAGENT_SLOW_TESTS"), "set MEMAGENT_SLOW_TESTS=1 to load the tiny model")
+class WorkerProtocolTest(unittest.TestCase):
+    def test_roundtrip(self):
+        here = os.path.dirname(os.path.abspath(__file__))
+        env = dict(os.environ, CUDA_VISIBLE_DEVICES="")
+        p = subprocess.Popen([sys.executable, os.path.join(here, "worker.py"), "--profile", "tiny"],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                             text=True, env=env)
+        ready = json.loads(p.stdout.readline())
+        self.assertEqual(ready["type"], "ready")
+        p.stdin.write(json.dumps({"id": 7, "op": "generate", "stream": True, "max_new_tokens": 8,
+                                  "messages": [{"role": "user", "content": "Say hi"}]}) + "\n")
+        p.stdin.write(json.dumps({"id": 8, "op": "extract_facts", "text": "My cat is Tom."}) + "\n")
+        p.stdin.write(json.dumps({"id": 9, "op": "bogus"}) + "\n")
+        p.stdin.write(json.dumps({"id": 10, "op": "shutdown"}) + "\n")
+        p.stdin.flush()
+        lines = [json.loads(l) for l in p.stdout]
+        p.wait(timeout=60)
+        done = {m["id"]: m for m in lines if m["type"] in ("done", "error")}
+        self.assertTrue(any(m["type"] == "token" and m["id"] == 7 for m in lines))
+        self.assertEqual("".join(m["text"] for m in lines if m["type"] == "token").strip(), done[7]["text"])
+        self.assertEqual(done[8]["facts"][0]["value"], "Tom")
+        self.assertEqual(done[9]["type"], "error")
+
+
+if __name__ == "__main__":
+    unittest.main()

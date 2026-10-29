@@ -1,0 +1,8 @@
+# memagent trainer + inference worker
+# CPU-only (tiny profile):  pip install --index-url https://download.pytorch.org/whl/cpu torch
+torch>=2.3
+transformers>=4.51
+peft>=0.15
+accelerate>=1.0
+# GPU profiles with "quant": "4bit" (medium/large) also need:
+# bitsandbytes>=0.45
