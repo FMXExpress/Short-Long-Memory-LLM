@@ -93,3 +93,24 @@ Fixes:
   question echoed back into the prompt.
 - A configuration error (for example a missing models.json) prints a message and exits with
   code 2 instead of an unhandled-exception dump.
+
+## Small profile (Qwen2.5-1.5B, CPU), dev set
+
+| run | LoRA | LoRA+RAG | base+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
+|---|---|---|---|---|---|---|---|---|
+| small baseline | 0.883 | 1.000 | 0.967 | 0.067 | 0.55 | 0.87 | **1.61 (gate fails)** | 1811 |
+
+- The 1.5B model reads its memory block almost perfectly (0.97, against 0.37 for the 135M model).
+  For real-sized models RAG carries most of the weight; the LoRA adds recall when retrieval misses.
+- Confabulation remains the problem: 0.55, and 0.87 with a look-alike fact in the prompt.
+- The `small` hyperparameters were tuned on 3 facts (4 epochs, lr 3e-4) and drift too far with
+  30 facts (1.61 > 1.5): ten times the optimizer steps. The gate rejects that adapter, as it should,
+  but the defaults need to scale with the number of facts.
+
+## DPO abstention stage
+
+`train.dpo` in models.json (off by default) runs Direct Preference Optimization after SFT. The
+pairs are: unknown subject (sometimes with a same-shaped stored fact in the memory block) → chosen
+"You haven't told me that yet.", rejected = the model's own answer; and known fact → chosen the
+fact, rejected the abstention. The reference is the SFT model, scored once. The manifest records
+pair accuracy, abstention on held-out unknown subjects, and refusals of known facts.

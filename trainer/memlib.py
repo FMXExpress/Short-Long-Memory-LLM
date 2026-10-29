@@ -356,6 +356,90 @@ def raft_examples(n, priors, rng, p_oracle=0.75):
     return out
 
 
+# ---------------------------------------------------------------- DPO abstention
+# Direct Preference Optimization (Rafailov et al. 2023) as a second
+# consolidation stage. Pairs contrast the answers we want against the
+# model's own mistakes:
+#   unknown subject  -> chosen ABSTAIN, rejected = what the model actually said
+#   known fact       -> chosen the fact, rejected ABSTAIN (no over-refusal)
+# loss = -log sigmoid(beta * ((pi_c - ref_c) - (pi_r - ref_r))) + w * NLL(chosen)
+
+def is_abstain(ans):
+    a = ans.lower()
+    return any(p in a for p in ("haven't told me", "have not told me", "don't know", "do not know",
+                                "not sure", "no information"))
+
+
+def split_negative_subjects(facts, rng, n_eval=6):
+    """Negative subjects for training pairs, and a disjoint held-out few to
+    measure abstention on subjects DPO never saw."""
+    subs = _negative_subjects(facts, rng)
+    return subs[n_eval:], subs[:n_eval]
+
+
+def _memory_system(priors, items):
+    return (priors + "\n\n" if priors else "") + MEMORY_HEADER + "\n" + "\n".join("- " + t for t in items)
+
+
+def _look_alikes(subject, facts):
+    """Stored facts of the same shape as a subject ("my X's name", "my favorite X",
+    "the X code"): the near misses retrieval actually returns."""
+    def shape(s):
+        s = s.lower()
+        return ("name" if s.endswith("'s name") else "favorite" if "favorite" in s
+                else "code" if any(w in s for w in ("code", "password", "pin", "combination")) else "other")
+    same = [f for f in facts if shape(f["subject"]) == shape(subject)]
+    return same or facts
+
+
+def dpo_pairs(gen, facts, priors, rng, n_unknown, n_known, near_frac, neg_subjects):
+    """gen(messages) -> the current model's greedy answer. Returns a list of
+    (prompt_messages, chosen, rejected)."""
+    pairs = []
+    for s in (neg_subjects * (1 + n_unknown // max(1, len(neg_subjects))))[:n_unknown]:
+        q = rng.choice(subject_questions(s) + name_questions(s))
+        if facts and rng.random() < near_frac:
+            near = rng.choice(_look_alikes(s, facts))   # what the retriever would return
+            sys_msg = _memory_system(priors, [near["text"]])
+        else:
+            near, sys_msg = None, priors
+        msgs = ([{"role": "system", "content": sys_msg}] if sys_msg else []) + [{"role": "user", "content": q}]
+        own = gen(msgs)
+        # the model's own confabulation is the most useful negative; if it
+        # already abstains, use the look-alike fact it would be tempted to copy
+        rejected = own if own.strip() and not is_abstain(own) else \
+            (near["text"] if near else rng.choice(facts)["text"] if facts else None)
+        if rejected:
+            pairs.append((msgs, ABSTAIN, rejected))
+    known = [(f, q) for f in facts for q in list(dict.fromkeys(f["questions"]))[:-1]]   # never the probe
+    rng.shuffle(known)
+    for f, q in known[:n_known]:
+        msgs = ([{"role": "system", "content": priors}] if priors else []) + [{"role": "user", "content": q}]
+        pairs.append((msgs, f["text"], ABSTAIN))
+    rng.shuffle(pairs)
+    return pairs
+
+
+def seq_logprob(model, tok, examples, pad_id):
+    """Sum of answer-token log-probs per example ((ids, labels) pairs), and
+    the number of answer tokens. Keeps the graph when grads are enabled."""
+    import torch
+    n = max(len(x[0]) for x in examples)
+    ids = torch.full((len(examples), n), pad_id, dtype=torch.long)
+    lab = torch.full((len(examples), n), -100, dtype=torch.long)
+    att = torch.zeros((len(examples), n), dtype=torch.long)
+    for j, (a, b) in enumerate(examples):
+        ids[j, :len(a)] = torch.tensor(a)
+        lab[j, :len(b)] = torch.tensor(b)
+        att[j, :len(a)] = 1
+    ids, lab, att = ids.to(model.device), lab.to(model.device), att.to(model.device)
+    logits = model(input_ids=ids, attention_mask=att).logits[:, :-1].float()
+    tgt = lab[:, 1:]
+    mask = tgt != -100
+    lp = torch.log_softmax(logits, -1).gather(-1, tgt.clamp(min=0).unsqueeze(-1)).squeeze(-1)
+    return (lp * mask).sum(-1), mask.sum(-1)
+
+
 # ---------------------------------------------------------------- training data
 
 ANCHOR_PROMPTS = [

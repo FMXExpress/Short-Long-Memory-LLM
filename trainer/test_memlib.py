@@ -89,6 +89,38 @@ class LlmExtractionParsingTest(unittest.TestCase):
         self.assertEqual(len(memlib.facts_from_llm_output(out, "My passport expires in March 2027.")), 1)
 
 
+class DpoPairsTest(unittest.TestCase):
+    FACTS = [{"id": 1, "subject": "my dog's name", "value": "Biscuit", "text": "Your dog's name is Biscuit.",
+              "questions": memlib.subject_questions("my dog's name")},
+             {"id": 2, "subject": "my favorite color", "value": "teal", "text": "Your favorite color is teal.",
+              "questions": memlib.subject_questions("my favorite color")}]
+
+    def test_pairs_contrast_both_ways(self):
+        import random
+        rng = random.Random(0)
+        train, held = memlib.split_negative_subjects(self.FACTS, rng)
+        self.assertFalse(set(train) & set(held))
+        pairs = memlib.dpo_pairs(lambda m: "Your hamster is Biscuit.", self.FACTS, "P", rng, 6, 4, 0.5, train)
+        unknown = [p for p in pairs if p[1] == memlib.ABSTAIN]
+        known = [p for p in pairs if p[2] == memlib.ABSTAIN]
+        self.assertEqual(len(unknown), 6)
+        self.assertEqual(len(known), 4)
+        self.assertTrue(all(r == "Your hamster is Biscuit." for _, _, r in unknown))   # the model's own answer
+        probes = {f["questions"][-1] for f in self.FACTS}
+        self.assertFalse({p[0][-1]["content"] for p in known} & probes)              # never the probe
+
+    def test_already_abstaining_model_gets_look_alike_negative(self):
+        import random
+        rng = random.Random(1)
+        pairs = memlib.dpo_pairs(lambda m: memlib.ABSTAIN, self.FACTS, "P", rng, 4, 0, 1.0, ["my ferret's name"])
+        self.assertTrue(all(r == "Your dog's name is Biscuit." for _, _, r in pairs))   # same "'s name" shape
+
+    def test_is_abstain(self):
+        self.assertTrue(memlib.is_abstain("You haven't told me that yet."))
+        self.assertTrue(memlib.is_abstain("I don't know your horse's name."))
+        self.assertFalse(memlib.is_abstain("Your horse's name is Paint."))
+
+
 class DatasetTest(unittest.TestCase):
     def test_probe_held_out(self):
         facts = [{"id": 1, "text": "Your dog's name is Biscuit.", "value": "Biscuit",

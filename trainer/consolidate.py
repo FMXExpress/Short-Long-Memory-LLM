@@ -36,6 +36,72 @@ def read_facts(db_path):
     return facts
 
 
+def run_dpo(model, tok, facts, priors, tr, prof, seed, params):
+    """Second stage: DPO for abstention (see memlib "DPO abstention")."""
+    import torch
+    import torch.nn.functional as F
+    cfg = tr["dpo"]
+    rng = random.Random(seed + 1)
+    neg_train, neg_eval = memlib.split_negative_subjects(facts, rng)
+    max_len = tr["max_len"]
+
+    def gen(msgs):
+        model.eval()
+        model.config.use_cache = True
+        ans, _, _ = memlib.generate(tok, model, msgs, 40)
+        return ans
+
+    n_unknown = max(8, round(len(facts) * cfg.get("unknown", 1.0)))
+    n_known = max(8, round(len(facts) * cfg.get("known", 1.0)))
+    pairs = memlib.dpo_pairs(gen, facts, priors, rng, n_unknown, n_known, cfg.get("near_frac", 0.5), neg_train)
+    own = sum(1 for _, c, r in pairs if c == memlib.ABSTAIN and r not in [f["text"] for f in facts])
+    log(f"[dpo] pairs={len(pairs)} (unknown {n_unknown}, known {n_known}; {own} rejected answers are the model's own)")
+    chosen = [memlib.tokenize_example(tok, m + [{"role": "assistant", "content": c}], max_len) for m, c, _ in pairs]
+    rejected = [memlib.tokenize_example(tok, m + [{"role": "assistant", "content": r}], max_len) for m, _, r in pairs]
+
+    # reference = the model as SFT left it, scored once (no second copy in memory)
+    model.eval()
+    bs = cfg.get("batch", 4)
+    ref_c, ref_r = [], []
+    with torch.no_grad():
+        for i in range(0, len(pairs), bs):
+            ref_c.append(memlib.seq_logprob(model, tok, chosen[i:i + bs], tok.pad_token_id)[0])
+            ref_r.append(memlib.seq_logprob(model, tok, rejected[i:i + bs], tok.pad_token_id)[0])
+    ref_c, ref_r = torch.cat(ref_c), torch.cat(ref_r)
+
+    beta, w = cfg.get("beta", 0.1), cfg.get("sft_weight", 0.2)
+    opt = torch.optim.AdamW(params, lr=cfg.get("lr", 5e-5), weight_decay=0.0)
+    model.config.use_cache = False
+    order = list(range(len(pairs)))
+    for ep in range(cfg.get("epochs", 2)):
+        model.train()
+        rng.shuffle(order)
+        tot = acc = n = 0
+        for i in range(0, len(order), bs):
+            idx = order[i:i + bs]
+            pc, nc = memlib.seq_logprob(model, tok, [chosen[j] for j in idx], tok.pad_token_id)
+            pr, _ = memlib.seq_logprob(model, tok, [rejected[j] for j in idx], tok.pad_token_id)
+            margin = beta * ((pc - ref_c[idx]) - (pr - ref_r[idx]))
+            loss = -F.logsigmoid(margin).mean() + w * (-(pc / nc.clamp(min=1))).mean()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(params, 1.0)
+            opt.step()
+            opt.zero_grad()
+            tot += loss.item() * len(idx)
+            acc += (margin > 0).sum().item()
+            n += len(idx)
+        log(f"[dpo] epoch {ep + 1} loss={tot / n:.4f} pair-accuracy={acc / n:.2f}")
+
+    # abstention on subjects DPO never saw, and refusals of known facts
+    abst = sum(memlib.is_abstain(gen(([{"role": "system", "content": priors}] if priors else []) +
+                                     [{"role": "user", "content": rng.choice(memlib.subject_questions(s))}]))
+               for s in neg_eval)
+    stats = {"pairs": len(pairs), "own_rejected": own, "final_loss": round(tot / n, 4),
+             "pair_accuracy": round(acc / n, 3), "abstain_unseen": round(abst / max(1, len(neg_eval)), 3)}
+    log(f"[dpo] abstains on {abst}/{len(neg_eval)} unseen unknown subjects")
+    return stats
+
+
 def summary(code, **kw):
     print(json.dumps({"exit": code, **kw}), flush=True)
     return code
@@ -133,6 +199,8 @@ def main():
             n += 1
         log(f"[consolidate] epoch {ep + 1}/{tr['epochs']} loss={tot / max(n, 1):.4f}")
 
+    dpo_stats = run_dpo(model, tok, facts, priors, tr, prof, a.seed, params) if tr.get("dpo") else None
+
     # Eval gate: every active fact is probed with a held-out question and no
     # memory context, so a pass means the knowledge is in the weights.
     model.eval()
@@ -152,8 +220,10 @@ def main():
     ppl_ratio = memlib.ppl(heldout_loss) / memlib.ppl(base_heldout_loss)
     log(f"[consolidate] recall={recall:.2f} heldout_ppl_ratio={ppl_ratio:.3f}")
 
+    refusals = sum(1 for r in results if memlib.is_abstain(r["answer"]))
     metrics = {"recall": round(recall, 4), "ppl_ratio": round(ppl_ratio, 4),
-               "n_facts": len(facts), "n_passed": len(passed),
+               "refused_known": round(refusals / max(1, len(results)), 4),
+               "n_facts": len(facts), "n_passed": len(passed), "dpo": dpo_stats,
                "seconds": round(time.time() - t0, 1), "device": device}
     gate_ok = recall >= gate["min_recall"] and ppl_ratio <= gate["max_ppl_ratio"]
     metrics["gate_ok"] = gate_ok
