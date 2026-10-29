@@ -83,10 +83,17 @@ cache_dir={REPO}/cache
     script += [q for q, _ in questions] + unknown + ["/status", "/quit"]
     env = dict(os.environ, MEMAGENT_TEMPERATURE="0", MEMAGENT_TIMING="1")
     t = time.time()
-    p = subprocess.run([os.path.join(REPO, "build", "memagent"), "--config", ini],
-                       input="\n".join(script) + "\n", capture_output=True, text=True, env=env)
+    tpath = os.path.join(work, "transcript.txt")
+    print(f"[bench_agent] live transcript: {tpath}", flush=True)
+    # stream to a file, so a slow or stuck run can be inspected while it runs
+    with open(tpath, "w") as out:
+        subprocess.run([os.path.join(REPO, "build", "memagent"), "--config", ini],
+                       input="\n".join(script) + "\n", stdout=out, stderr=subprocess.STDOUT, text=True, env=env)
     wall = time.time() - t
-    open(os.path.join(work, "transcript.txt"), "w").write(p.stdout)
+
+    class _P:
+        stdout = open(tpath).read()
+    p = _P()
 
     rs = replies(p.stdout)
     by_turn = [r for r in rs if not r[0].startswith("/")]
