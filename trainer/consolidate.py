@@ -160,9 +160,18 @@ def main():
     negatives = memlib.negative_examples(facts, k, priors, rng) if k else []
     k = max(8, round(len(facts) * tr.get("raft", 0))) if tr.get("raft") else 0
     raft = memlib.raft_examples(k, priors, rng) if k else []
-    data = [memlib.tokenize_example(tok, m, tr["max_len"]) for m in train_chats + negatives + raft + anchors]
+    # anchors are a fixed set; with many facts they shrink to a few percent of
+    # the data and drift grows (tiny: 1.2 at 3 facts, 1.8 at 30). anchor_ratio
+    # replays them to keep a constant share.
+    replay = list(anchors)
+    ratio = tr.get("anchor_ratio")
+    if ratio and anchors:
+        n_other = len(train_chats) + len(negatives) + len(raft)
+        want = round(ratio * n_other / (1 - ratio))
+        replay = [anchors[i % len(anchors)] for i in range(max(len(anchors), want))]
+    data = [memlib.tokenize_example(tok, m, tr["max_len"]) for m in train_chats + negatives + raft + replay]
     log(f"[consolidate] examples={len(data)} (facts {len(train_chats)}, negatives {len(negatives)}, "
-        f"raft {len(raft)}, anchors {len(anchors)})")
+        f"raft {len(raft)}, anchors {len(replay)})")
 
     lc = prof["lora"]
     model.config.use_cache = False
