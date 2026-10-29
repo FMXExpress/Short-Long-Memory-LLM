@@ -176,3 +176,25 @@ What it costs: LoRA-alone accuracy falls from 0.88 to 0.63. Only 3 of the misses
 the rest are generic answers ("You drive a car."), which points at weaker fact memorization. That
 result is confounded, because epochs (4 → 2) and DPO changed together; the ablation (epochs 2, no
 DPO) is queued. Drift 1.55 still narrowly fails the 1.5 gate.
+
+## Held-out verification (facts_heldout.json: 20 facts, 40 questions, 20 unknown; never used for tuning)
+
+| tiny, current defaults | dev | held-out |
+|---|---|---|
+| extraction value accuracy | 1.00 | 1.00 |
+| LoRA | 0.80 | 0.80 |
+| LoRA + RAG | 0.917 | 0.925 |
+| base + RAG | 0.367 | 0.30 |
+| drift | 1.21 | 1.26 |
+
+Guard on the held-out answers (threshold 0.03 chosen on dev):
+
+| condition | without guard | with guard |
+|---|---|---|
+| known, LoRA | 0.800 | 0.800 (0 correct answers blocked) |
+| known, LoRA + RAG | 0.925 | 0.925 (0 blocked) |
+| confabulation, LoRA | 0.60 | **0.20** |
+| confabulation, LoRA + look-alike | 0.87 | **0.27** |
+| confabulation, base + look-alike | 0.33 | **0.00** |
+
+The dev-tuned settings carry over to unseen facts, and on held-out the guard costs no accuracy at all.
