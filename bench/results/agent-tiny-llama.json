@@ -1,0 +1,26 @@
+{
+ "label": "tiny, 30 facts, llama.cpp engine (threads = cores-1)",
+ "profile": "tiny",
+ "engine": "llama",
+ "n_facts": 30,
+ "facts_stored": 30,
+ "wall_seconds": 385.9,
+ "before_sleep": {
+  "accuracy": 0.35,
+  "confabulation": 0.0,
+  "n": 80
+ },
+ "after_sleep": {
+  "accuracy": 0.8,
+  "confabulation": 0.2,
+  "n": 80
+ },
+ "consolidation": {
+  "baked": "30",
+  "facts": "30",
+  "recall": "1.00",
+  "drift": "1.33"
+ },
+ "timing": "timing:   190 turns, avg ms: recall 27 extract 10 first-token 973 generate 1255 tools 0 summary 0 total 1293",
+ "transcript": "/tmp/benchagent-qz0wtm3e/transcript.txt"
+}

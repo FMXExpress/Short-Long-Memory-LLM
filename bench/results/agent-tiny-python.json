@@ -1,0 +1,26 @@
+{
+ "label": "tiny, 30 facts, python engine (same build)",
+ "profile": "tiny",
+ "engine": "python",
+ "n_facts": 30,
+ "facts_stored": 30,
+ "wall_seconds": 522.8,
+ "before_sleep": {
+  "accuracy": 0.317,
+  "confabulation": 0.0,
+  "n": 80
+ },
+ "after_sleep": {
+  "accuracy": 0.8,
+  "confabulation": 0.2,
+  "n": 80
+ },
+ "consolidation": {
+  "baked": "30",
+  "facts": "30",
+  "recall": "1.00",
+  "drift": "1.33"
+ },
+ "timing": "timing:   190 turns, avg ms: recall 30 extract 11 first-token 823 generate 1507 tools 0 summary 0 total 1548",
+ "transcript": "/tmp/benchagent-iy2a_h_h/transcript.txt"
+}

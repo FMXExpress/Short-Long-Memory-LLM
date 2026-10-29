@@ -252,3 +252,25 @@ bike") at 0.977 or more.
 
 The margin is 0.003 and the trade is roughly even (about +5 points of accuracy against about +6
 points of confabulation), so it is rejected. The guard stays as it is.
+
+## Engines: Python worker vs in-process llama.cpp (2026-10-29)
+
+Same build, same 30 facts, tiny profile, 4-core CPU, temperature 0
+(`bench_agent.py --engine python|llama`; results in `agent-tiny-python.json`, `agent-tiny-llama.json`).
+
+| Engine | accuracy before / after sleep | confabulation after | consolidation | avg turn | first token | wall |
+|---|---|---|---|---|---|---|
+| python (Transformers fp32) | 0.317 / 0.80 | 0.20 | 30/30, recall 1.00, drift 1.33 | 1548 ms | 823 ms | 523 s |
+| llama (GGUF f16, 3 threads) | 0.35 / 0.80 | 0.20 | 30/30, recall 1.00, drift 1.33 | **1293 ms** | 973 ms | **386 s** |
+
+- Quality is the same: the same LoRA (trained in PyTorch, exported to GGUF) gives the same
+  after-sleep scores. Before sleep 3 of 80 answers differ (f16 vs fp32 arithmetic); single
+  prompts checked by hand give token-identical replies.
+- Thread count matters more than anything else on CPU (5 chat turns, avg ms/turn): 1 thread 1455,
+  2 threads 832, **3 threads 625**, 4 threads 1506 (the Python engine: 1054). With every core
+  taken, ggml's spinning workers fight the agent thread and ONNX Runtime, so the default is now
+  all cores but one.
+- A `q8_0` base (145 MB vs 270 MB) is faster again at 2 threads (570 vs 832 ms) but changes the
+  greedy outputs; tiny stays f16, `medium`/`large` convert to `q8_0`.
+- The hot swap is a GGUF load: ~20 ms on tiny. The GGUF export adds ~5 s to a consolidation.
+- `make test-e2e-llama` passes (two consolidations, correction, /forget, /rollback, non-ASCII).

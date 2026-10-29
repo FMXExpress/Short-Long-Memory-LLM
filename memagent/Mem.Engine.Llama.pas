@@ -125,8 +125,11 @@ begin
   FTemplate := P;
 
   LThreads := FCfg.LlamaThreads;
+  (* All cores but one: ggml's workers spin while they wait, and with every
+     core taken they fight the agent thread and ONNX Runtime. Measured on 4
+     cores (tiny, 5 turns): 4 threads 1506 ms/turn, 3 threads 625 ms. *)
   if LThreads <= 0 then
-    LThreads := TThread.ProcessorCount;
+    LThreads := Max(1, Integer(TThread.ProcessorCount) - 1);
   CP := llama_context_default_params();
   CP.n_ctx := FCfg.CtxTokens;
   CP.n_batch := FCfg.CtxTokens;   { a whole prompt decodes in one call }

@@ -53,7 +53,7 @@ type
     LlamaLibDir: string;     { libllama + libggml*; default <cache_dir>/llama (scripts/llama_setup.sh) }
     LlamaSrcDir: string;     { llama.cpp checkout for convert_lora_to_gguf.py; default <cache_dir>/llama.cpp }
     GgufModel: string;       { the base model as GGUF; default <cache_dir>/gguf/<profile>.gguf }
-    LlamaThreads: Integer;   { 0 = all cores }
+    LlamaThreads: Integer;   { 0 = all cores but one }
     LlamaGpuLayers: Integer; { -1 = all layers on [gpu] infer (none when infer = -1) }
     { from the profile }
     BaseModel: string;
