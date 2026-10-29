@@ -137,6 +137,20 @@ jobs:
             try { [void][System.Runtime.InteropServices.NativeLibrary]::Load("$dir\$n"); "ok      $n" }
             catch { "FAILED  $n : $($_.Exception.Message)" }
           }
+      - name: Crash code (pwsh, native exit status)
+        continue-on-error: true
+        shell: pwsh
+        env:
+          MEMAGENT_DEBUG: "1"
+        run: |
+          Copy-Item -Recurse dist\memagent-windows-x64 $env:RUNNER_TEMP\probe
+          "/quit" | Set-Content $env:RUNNER_TEMP\in.txt
+          $p = Start-Process -FilePath "$env:RUNNER_TEMP\probe\memagent.exe" -WorkingDirectory $env:RUNNER_TEMP `
+            -RedirectStandardInput $env:RUNNER_TEMP\in.txt -RedirectStandardOutput $env:RUNNER_TEMP\o.txt `
+            -RedirectStandardError $env:RUNNER_TEMP\e.txt -NoNewWindow -Wait -PassThru
+          Get-Content $env:RUNNER_TEMP\o.txt -Tail 15
+          Get-Content $env:RUNNER_TEMP\e.txt -Tail 40
+          "exit code: 0x{0:X8}" -f $p.ExitCode
       - name: Smoke test (portable folder, run from elsewhere)
         env:
           MEMAGENT_DEBUG: "1"

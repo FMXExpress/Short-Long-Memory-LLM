@@ -100,7 +100,9 @@ begin
       Rewrite(GLog);
     GLogOpen := True;
   end;
-  llama_log_set(@LogCallback, nil);
+  { MEMAGENT_DEBUG=1 leaves llama.cpp's own (unbuffered) stderr logging on }
+  if GetEnvironmentVariable('MEMAGENT_DEBUG') <> '1' then
+    llama_log_set(@LogCallback, nil);
   LlamaTrace('backend init');
   llama_backend_init;
 
