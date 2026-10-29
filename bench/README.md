@@ -272,5 +272,5 @@ Same build, same 30 facts, tiny profile, 4-core CPU, temperature 0
   all cores but one.
 - A `q8_0` base (145 MB vs 270 MB) is faster again at 2 threads (570 vs 832 ms) but changes the
   greedy outputs; tiny stays f16, `medium`/`large` convert to `q8_0`.
-- The hot swap is a GGUF load: ~20 ms on tiny. The GGUF export adds ~5 s to a consolidation.
+- The hot swap is a GGUF load: ~20 ms on tiny. The GGUF export adds 3–4 s to a consolidation (`gguf_seconds` in the manifest).
 - `make test-e2e-llama` passes (two consolidations, correction, /forget, /rollback, non-ASCII).
