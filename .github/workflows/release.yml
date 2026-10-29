@@ -1,0 +1,151 @@
+name: release
+
+# Push a tag v* to build and publish a release:
+#   memagent-<ver>-linux-x64.tar.gz          portable folder, ./memagent
+#   memagent-<ver>-windows-x64-setup.exe     Inno Setup installer (per user, no admin)
+#   memagent-<ver>-windows-x64.zip           the same files, portable
+# Each binary is smoke-tested before anything is published: --provision
+# (verified TLS downloads, ONNX Runtime, GGUF model) and a short chat on the
+# in-process llama.cpp engine. Pull requests and workflow_dispatch build without publishing.
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:          # build + smoke-test only; publish runs for tags
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  LLAMA_TAG: b11985          # must match LLAMA_TAG in memagent/Mem.Llama.pas
+  SQLITE_ZIP: https://www.sqlite.org/2025/sqlite-dll-win-x64-3500400.zip
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04    # glibc 2.35: runs on most current distributions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="dev-${GITHUB_SHA::7}"; fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+      - name: Toolchain
+        run: sudo apt-get update && sudo apt-get install -y fpc cmake libsqlite3-0
+      - name: llama.cpp (portable CPU build)
+        run: |
+          git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
+          LLAMA_PORTABLE=1 LLAMA_LIBS_ONLY=1 scripts/llama_setup.sh
+      - name: Build and unit-test
+        run: |
+          make all build/extract_test
+          ./build/extract_test memagent/tests/extract_cases.json
+      - name: Package
+        run: scripts/package.sh "$VERSION"
+      - name: Smoke test (fresh folder, run from elsewhere)
+        run: |
+          mkdir -p /tmp/smoke/elsewhere
+          tar -C /tmp/smoke -xzf "dist/memagent-$VERSION-linux-x64.tar.gz"
+          cd /tmp/smoke/elsewhere
+          printf "My dog's name is Biscuit.\nWhat is my dog's name?\n/status\n/quit\n" \
+            | "/tmp/smoke/memagent-$VERSION-linux-x64/memagent" | tee out.txt
+          grep -q "via llama.cpp in-process" out.txt
+          grep -q "memory +#1\] Your dog's name is Biscuit" out.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/memagent-*-linux-x64.tar.gz
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="dev-${GITHUB_SHA::7}"; fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+      - name: Free Pascal (Lazarus ships FPC 3.2.2 for win64)
+        shell: pwsh
+        run: |
+          choco install lazarus -y --no-progress
+          $fpc = Get-ChildItem C:\lazarus\fpc -Recurse -Filter fpc.exe | Where-Object { $_.FullName -like '*x86_64-win64*' } | Select-Object -First 1
+          if (-not $fpc) { throw "fpc.exe not found under C:\lazarus\fpc" }
+          "FPC=$($fpc.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $fpc.FullName -iV
+      - name: Build and unit-test
+        run: |
+          mkdir -p build/units
+          "$FPC" -O2 -Sh -vewn -FUbuild/units -obuild/memagent.exe memagent/memagent.lpr
+          "$FPC" -O2 -Sh -vewn -Fumemagent -FUbuild/units -obuild/extract_test.exe memagent/tests/extract_test.lpr
+          ./build/extract_test.exe memagent/tests/extract_cases.json
+      - name: llama.cpp (portable CPU build)
+        run: |
+          git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
+          cmake -S cache/llama.cpp -B cache/llama.cpp/build -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF \
+            -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
+            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          cmake --build cache/llama.cpp/build --config Release --target llama -j 4
+          ls cache/llama.cpp/build/bin/Release
+      - name: Stage
+        run: |
+          OUT="dist/memagent-windows-x64"
+          SRC=cache/llama.cpp
+          mkdir -p "$OUT/trainer" "$OUT/llama.cpp"
+          cp build/memagent.exe "$OUT/"
+          cp $SRC/build/bin/Release/*.dll "$OUT/"
+          curl -fsSL -o /tmp/sqlite.zip "$SQLITE_ZIP" && unzip -o -j /tmp/sqlite.zip sqlite3.dll -d "$OUT"
+          curl -fsSL -o "$OUT/cacert.pem" https://curl.se/ca/cacert.pem
+          # OpenSSL 3: the runner image's, else Git for Windows'
+          for d in "/c/Program Files/OpenSSL/bin" "/c/Program Files/OpenSSL-Win64/bin" "/c/Program Files/Git/mingw64/bin"; do
+            if [ -f "$d/libssl-3-x64.dll" ]; then cp "$d/libssl-3-x64.dll" "$d/libcrypto-3-x64.dll" "$OUT/"; break; fi
+          done
+          [ -f "$OUT/libssl-3-x64.dll" ] || { echo "no OpenSSL 3 DLLs found"; exit 1; }
+          # VC++ runtime for the MSVC-built OpenSSL and ONNX Runtime DLLs (app-local deployment)
+          for f in vcruntime140.dll vcruntime140_1.dll msvcp140.dll; do cp "/c/Windows/System32/$f" "$OUT/"; done
+          cp models.json priors.md LICENSE "$OUT/"
+          cp packaging/README.release.md "$OUT/README.md"
+          cp trainer/memlib.py trainer/worker.py trainer/consolidate.py trainer/gguf_export.py trainer/requirements.txt "$OUT/trainer/"
+          cp -r $SRC/convert_lora_to_gguf.py $SRC/convert_hf_to_gguf.py $SRC/conversion $SRC/gguf-py "$OUT/llama.cpp/"
+          cp $SRC/LICENSE "$OUT/llama.cpp/LICENSE"
+          sed -e 's/^engine=.*/engine=auto/' -e 's/^infer=.*/infer=-1/' -e 's/^train=.*/train=-1/' \
+              -e 's#^;src_dir=.*#src_dir=llama.cpp#' -e 's/^;python=python3/;python=python/' memagent.ini > "$OUT/memagent.ini"
+          ls -la "$OUT"
+      - name: Smoke test (portable folder, run from elsewhere)
+        run: |
+          mkdir -p /tmp/smoke && cp -r dist/memagent-windows-x64 /tmp/smoke/
+          cd /tmp
+          printf "My dog's name is Biscuit.\nWhat is my dog's name?\n/status\n/quit\n" \
+            | /tmp/smoke/memagent-windows-x64/memagent.exe | tee out.txt
+          grep -q "via llama.cpp in-process" out.txt
+          grep -q "memory +#1\] Your dog's name is Biscuit" out.txt
+      - name: Installer and zip
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc /DAppVersion=$env:VERSION /DSrcDir="$PWD\dist\memagent-windows-x64" /DOutDir="$PWD\dist" packaging\memagent.iss
+          Compress-Archive -Path dist\memagent-windows-x64 -DestinationPath "dist\memagent-$env:VERSION-windows-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            dist/memagent-*-windows-x64-setup.exe
+            dist/memagent-*-windows-x64.zip
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true

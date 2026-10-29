@@ -11,7 +11,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Engine.Llama, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
 
 var
   Cfg: TMemConfig;
@@ -43,15 +43,16 @@ begin
     end;
     if Cfg.Provision then
     begin
-      (* Local retrieval models: ONNX Runtime + embedder + reranker *)
-      if ProvisionRetrieval(Cfg.CacheDir, Cfg.EmbedModel,
-        IfThen(Cfg.Reranker = 'off', '', Cfg.RerankModel)) and
-        ((Cfg.Guard = 'off') or ProvisionRetrieval(Cfg.CacheDir, Cfg.EmbedModel, Cfg.GuardModel)) then
-        WriteLn('retrieval models ready in ', Cfg.CacheDir)
+      (* everything a first run would fetch: the GGUF model for the llama
+         engine, ONNX Runtime + embedder + reranker + guard model *)
+      if ((Cfg.Engine = 'python') or EnsureGguf(Cfg, True)) and EnsureRetrieval(Cfg, True) then
+        WriteLn('models ready in ', Cfg.CacheDir)
       else
         ExitCode := 1;
       Exit;
     end;
+    if Cfg.AutoProvision and (Cfg.Embedder = 'auto') then
+      EnsureRetrieval(Cfg, False);
     WriteLn('memagent - profile ', Cfg.ProfileName, ' (', Cfg.BaseModel, ')');
     WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
     Ret := TRetrieval.Create(Cfg.CacheDir, Cfg.Embedder, Cfg.EmbedModel, Cfg.Reranker, Cfg.RerankModel);
@@ -70,10 +71,13 @@ begin
     WriteLn('guard: ', IfThen(Guard = nil, 'off', 'on (' + Cfg.GuardModel + ')'));
     Store := TMemStore.Create(Cfg.DbPath);
     { [agent] engine: the model behind the one TEngine seam }
-    if Cfg.Engine = 'llama' then
-      Engine := TLlamaEngine.Create(Cfg)
-    else
-      Engine := TPyWorkerEngine.Create(Cfg);
+    Engine := CreateEngine(Cfg);
+    if (Cfg.Engine = 'llama') and (FindPython(Cfg.PythonExe) = '') then
+    begin
+      WriteLn('training: off (no ', Cfg.PythonExe, ' found). Chat and short-term memory work; ',
+        'for long-term memory install Python and pip install -r trainer/requirements.txt');
+      Cfg.AutoConsolidate := False;
+    end;
     Cons := TConsolidator.Create(Cfg);
     Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
     try

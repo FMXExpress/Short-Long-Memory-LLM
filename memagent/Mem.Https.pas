@@ -15,7 +15,7 @@ unit Mem.Https;
      EnableOpenSSL3 adds those names before the library is first loaded.
 
    On Windows, put libssl-3-x64.dll and libcrypto-3-x64.dll next to
-   memagent.exe (e.g. from the curl for Windows or Lazarus distributions). *)
+   memagent.exe, with cacert.pem for the trusted roots (the installer does). *)
 
 {$mode objfpc}{$H+}
 
@@ -36,6 +36,7 @@ uses
 type
   TSslSet1Host = function(ssl: PSSL; hostname: PAnsiChar): cint; cdecl;
   TSslCtxDefaultPaths = function(ctx: PSSL_CTX): cint; cdecl;
+  TSslCtxLoadVerify = function(ctx: PSSL_CTX; CAfile, CApath: PAnsiChar): cint; cdecl;
   TErrErrorStringN = procedure(e: culong; buf: PAnsiChar; len: csize_t); cdecl;
 
   { TLS over an already-connected TCP socket, optionally after a CONNECT
@@ -80,6 +81,7 @@ type
 var
   GSslSet1Host: TSslSet1Host = nil;
   GCtxDefaultPaths: TSslCtxDefaultPaths = nil;
+  GCtxLoadVerify: TSslCtxLoadVerify = nil;
   GErrString: TErrErrorStringN = nil;
   GSslReady: Boolean = False;
 
@@ -111,6 +113,7 @@ begin
       'libssl-3-x64.dll + libcrypto-3-x64.dll next to the executable)');
   Pointer(GSslSet1Host) := GetProcedureAddress(SSLLibHandle, 'SSL_set1_host');
   Pointer(GCtxDefaultPaths) := GetProcedureAddress(SSLLibHandle, 'SSL_CTX_set_default_verify_paths');
+  Pointer(GCtxLoadVerify) := GetProcedureAddress(SSLLibHandle, 'SSL_CTX_load_verify_locations');
   Pointer(GErrString) := GetProcedureAddress(SSLUtilHandle, 'ERR_error_string_n');
   if (GSslSet1Host = nil) or (GCtxDefaultPaths = nil) then
     raise EInOutError.Create('OpenSSL is too old for hostname verification (need 1.1.0 or newer)');
@@ -173,7 +176,7 @@ end;
 
 procedure TVerifiedTlsHandler.StartTls;
 var
-  LHost: AnsiString;
+  LHost, LBundle: AnsiString;
   LRes: cint;
 begin
   EnsureSsl;
@@ -182,6 +185,12 @@ begin
   { the system CA store; also honours SSL_CERT_FILE / SSL_CERT_DIR }
   if GCtxDefaultPaths(FCtx.CTX) <> 1 then
     Fail('could not load the system CA certificates');
+  (* Windows has no OpenSSL CA store: a release ships cacert.pem (Mozilla's
+     roots, from curl.se) next to the executable *)
+  LBundle := AnsiString(ExtractFilePath(ParamStr(0)) + 'cacert.pem');
+  if FileExists(LBundle) and (GCtxLoadVerify <> nil) and
+     (GCtxLoadVerify(FCtx.CTX, PAnsiChar(LBundle), nil) <> 1) then
+    Fail('could not load ' + LBundle);
   FCtx.SetVerify(SSL_VERIFY_PEER, nil);
   FSsl := TSSL.Create(FCtx);
   if FSsl.SetFd(Socket.Handle) <> 1 then

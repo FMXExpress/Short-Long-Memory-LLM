@@ -21,7 +21,8 @@ type
     PythonExe: string;
     ModelsFile: string;
     ProfileName: string;
-    Engine: string;          { python (Transformers + PEFT worker) | llama (llama.cpp in-process) }
+    Engine: string;          { auto (llama when it loads, else python) | python | llama }
+    AutoProvision: Boolean;  { download missing models on startup (off: --offline / auto_provision=0) }
     InferGpu: Integer;
     TrainGpu: Integer;
     RecentTurns: Integer;
@@ -53,6 +54,7 @@ type
     LlamaLibDir: string;     { libllama + libggml*; default <cache_dir>/llama (scripts/llama_setup.sh) }
     LlamaSrcDir: string;     { llama.cpp checkout for convert_lora_to_gguf.py; default <cache_dir>/llama.cpp }
     GgufModel: string;       { the base model as GGUF; default <cache_dir>/gguf/<profile>.gguf }
+    GgufUrl: string;         (* where to download it when missing: models.json "gguf": {"url": ..} *)
     LlamaThreads: Integer;   { 0 = all cores but one }
     LlamaGpuLayers: Integer; { -1 = all layers on [gpu] infer (none when infer = -1) }
     { from the profile }
@@ -101,6 +103,22 @@ begin
     Result := ExpandFileName(IncludeTrailingPathDelimiter(ABase) + APath);
 end;
 
+(* where libllama is when [llama] lib_dir is not set: a source build
+   (scripts/llama_setup.sh) in <cache_dir>/llama, else the copy a release
+   ships next to the binary (lib/ on Linux, the exe folder on Windows) *)
+function DefaultLlamaLibDir(const ACacheDir: string): string;
+const
+  LIB = {$IFDEF MSWINDOWS}'llama.dll'{$ELSE}{$IFDEF DARWIN}'libllama.dylib'{$ELSE}'libllama.so'{$ENDIF}{$ENDIF};
+var
+  LDir: string;
+begin
+  for LDir in [IncludeTrailingPathDelimiter(ACacheDir) + 'llama', ExtractFilePath(ParamStr(0)) + 'lib',
+    ExtractFileDir(ParamStr(0))] do
+    if FileExists(IncludeTrailingPathDelimiter(LDir) + LIB) then
+      Exit(ExpandFileName(LDir));
+  Result := IncludeTrailingPathDelimiter(ACacheDir) + 'llama';
+end;
+
 function IniFloat(AIni: TIniFile; const AKey: string; ADefault: Double): Double;
 var
   LFmt: TFormatSettings;
@@ -116,7 +134,7 @@ var
   I: Integer;
   LIni: TIniFile;
   LBase, LCliProfile, LCliData, LCliEngine: string;
-  LCliNoAuto: Boolean;
+  LCliNoAuto, LCliOffline, LCliConfig: Boolean;
   LJson: TJSONData;
   LProf: TJSONObject;
   LStream: TFileStream;
@@ -128,6 +146,8 @@ begin
   LCliData := '';
   LCliEngine := '';
   LCliNoAuto := False;
+  LCliOffline := False;
+  LCliConfig := False;
   I := 1;
   while I <= ParamCount do
   begin
@@ -135,6 +155,7 @@ begin
     begin
       Inc(I);
       ConfigFile := ParamStr(I);
+      LCliConfig := True;
     end
     else if (ParamStr(I) = '--profile') and (I < ParamCount) then
     begin
@@ -153,11 +174,17 @@ begin
     end
     else if ParamStr(I) = '--no-auto' then
       LCliNoAuto := True
+    else if ParamStr(I) = '--offline' then
+      LCliOffline := True
     else if ParamStr(I) = '--provision' then
       Provision := True;
     Inc(I);
   end;
 
+  (* An installed copy is started from anywhere: without --config and with no
+     memagent.ini in the current directory, use the one next to the binary *)
+  if not LCliConfig and not FileExists(ConfigFile) then
+    ConfigFile := ExtractFilePath(ParamStr(0)) + 'memagent.ini';
   ConfigFile := ExpandFileName(ConfigFile);
   LBase := ExtractFileDir(ConfigFile);
   LIni := TIniFile.Create(ConfigFile);
@@ -166,9 +193,10 @@ begin
     DataDir := Abs_(LBase, LIni.ReadString('agent', 'data_dir', 'data'));
     PriorsFile := Abs_(LBase, LIni.ReadString('agent', 'priors', 'priors.md'));
     ModelsFile := Abs_(LBase, LIni.ReadString('agent', 'models', 'models.json'));
-    PythonExe := LIni.ReadString('agent', 'python', 'python3');
+    PythonExe := LIni.ReadString('agent', 'python', {$IFDEF MSWINDOWS}'python'{$ELSE}'python3'{$ENDIF});
     ProfileName := LIni.ReadString('agent', 'profile', '');
-    Engine := LowerCase(LIni.ReadString('agent', 'engine', 'python'));
+    Engine := LowerCase(LIni.ReadString('agent', 'engine', 'auto'));
+    AutoProvision := LIni.ReadBool('agent', 'auto_provision', True);
     RecentTurns := LIni.ReadInteger('agent', 'recent_turns', 6);
     RagK := LIni.ReadInteger('agent', 'rag_k', 3);
     MinFactConfidence := StrToFloatDef(LIni.ReadString('agent', 'min_fact_confidence', '0.5'), 0.5);
@@ -194,8 +222,11 @@ begin
     GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
     GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);
     { scripts/llama_setup.sh puts both under the cache directory }
-    LlamaLibDir := Abs_(LBase, LIni.ReadString('llama', 'lib_dir',
-      IncludeTrailingPathDelimiter(CacheDir) + 'llama'));
+    LlamaLibDir := LIni.ReadString('llama', 'lib_dir', '');
+    if LlamaLibDir <> '' then
+      LlamaLibDir := Abs_(LBase, LlamaLibDir)
+    else
+      LlamaLibDir := DefaultLlamaLibDir(CacheDir);
     LlamaSrcDir := Abs_(LBase, LIni.ReadString('llama', 'src_dir',
       IncludeTrailingPathDelimiter(CacheDir) + 'llama.cpp'));
     GgufModel := LIni.ReadString('llama', 'model', '');
@@ -212,10 +243,12 @@ begin
     DataDir := ExpandFileName(LCliData);
   if LCliNoAuto then
     AutoConsolidate := False;
+  if LCliOffline then
+    AutoProvision := False;
   if LCliEngine <> '' then
     Engine := LowerCase(LCliEngine);
-  if (Engine <> 'python') and (Engine <> 'llama') then
-    raise Exception.CreateFmt('[agent] engine must be python or llama, not "%s"', [Engine]);
+  if (Engine <> 'auto') and (Engine <> 'python') and (Engine <> 'llama') then
+    raise Exception.CreateFmt('[agent] engine must be auto, llama or python, not "%s"', [Engine]);
 
   LStream := TFileStream.Create(ModelsFile, fmOpenRead or fmShareDenyNone);
   try
@@ -236,6 +269,8 @@ begin
     Tools := LProf.Get('tools', False);
     Temperature := LProf.Get('temperature', 0.0);
     Extract := LProf.Get('extract', 'rules');
+    if LProf.Find('gguf') is TJSONObject then
+      GgufUrl := LProf.Objects['gguf'].Get('url', '');
   finally
     LJson.Free;
   end;

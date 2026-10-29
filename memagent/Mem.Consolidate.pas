@@ -96,7 +96,17 @@ begin
     { one pipe for both streams: the whole run goes to the log, and only
       the last JSON line matters to us }
     LProc.Options := [poUsePipes, poStderrToOutPut];
-    LProc.Execute;
+    try
+      LProc.Execute;
+    except
+      on E: Exception do
+      begin
+        FSummary := '{"exit":1,"reason":"cannot start ' + StringReplace(FCfg.PythonExe, '\', '/', [rfReplaceAll]) +
+          ' (install Python and trainer/requirements.txt)"}';
+        FExitCode := 1;
+        Exit;
+      end;
+    end;
     LTail := '';
     repeat
       N := LProc.Output.Read(LBuf, SizeOf(LBuf));

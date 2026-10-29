@@ -15,7 +15,17 @@ interface
 
 implementation
 
+{$IFDEF MSWINDOWS}
+uses
+  Windows;
+{$ENDIF}
+
 initialization
+  {$IFDEF MSWINDOWS}
+  { the console shows and reads UTF-8 ("Zoë"), not the OEM codepage }
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
+  {$ENDIF}
   SetMultiByteConversionCodePage(CP_UTF8);
   SetMultiByteFileSystemCodePage(CP_UTF8);
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
