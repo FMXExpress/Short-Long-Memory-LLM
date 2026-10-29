@@ -2,7 +2,7 @@ FPC      ?= fpc
 FPCFLAGS ?= -O2 -Sh -ve -vm6058
 BUILD    := build
 
-.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama bench-retrieval bench-memory
+.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama package bench-retrieval bench-memory
 
 all: $(BUILD)/memagent
 
@@ -61,6 +61,10 @@ test-e2e-llama: all
 # llama.cpp shared libraries + GGUF base model for the llama engine (PROFILES="tiny small")
 llama:
 	./scripts/llama_setup.sh $(PROFILES)
+
+# self-contained release folder + tarball in dist/ (VERSION=0.1.0); CI builds Windows (packaging/memagent.iss)
+package:
+	./scripts/package.sh $(VERSION)
 
 clean:
 	rm -rf $(BUILD)

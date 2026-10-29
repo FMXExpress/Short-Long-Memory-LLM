@@ -9,13 +9,31 @@ An always-on agent with two tiers of memory:
   learns the facts, the new adapter is checked against an eval gate, and it is **hot-swapped**
   into the running model between turns.
 
+## Install and run
+
+Download a release from the [Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
+
+- **Windows:** `memagent-<ver>-windows-x64-setup.exe` (per-user install, no admin rights; or the
+  portable `.zip`). Start it from the Start menu.
+- **Linux x64:** `memagent-<ver>-linux-x64.tar.gz`; unpack it and run `./memagent` (needs
+  `libsqlite3` and OpenSSL 3, which most distributions have).
+
+It is a console app: run it and type. The first start downloads the chat model (270 MB for the
+default `tiny` profile) and the local retrieval models; later starts work offline. Chat and
+short-term memory need nothing else. Long-term memory (training facts into a LoRA) also needs Python
+with `pip install -r trainer/requirements.txt`; without it memagent says `training: off` and keeps
+going.
+
+## How it is built
+
 The agent (loop, prompts, memory store, RAG, scheduling, adapter bookkeeping) is **Free Pascal**.
 The model runs behind one interface (`TEngine`), with two interchangeable engines
 (`[agent] engine=` or `--engine`):
 
 | Engine | What runs the model | Python at inference time |
 |---|---|---|
-| `python` (default) | `trainer/worker.py`: Transformers + PEFT, long-lived, JSON lines over stdin/stdout | yes |
+| `auto` (default) | `llama` when llama.cpp and the GGUF model load, else `python` | |
+| `python` | `trainer/worker.py`: Transformers + PEFT, long-lived, JSON lines over stdin/stdout | yes |
 | `llama` | llama.cpp **inside the agent process** (`Mem.Llama` binding, `Mem.Engine.Llama`): GGUF base model, GGUF LoRA hot-swapped with `llama_set_adapters_lora`, fact extraction ported to Pascal (`Mem.Extract`) | **no** |
 
 Training is Python with either engine, as a one-shot process the agent launches on `[gpu] train`:
@@ -98,8 +116,12 @@ horse's name?", it replies with the dog's name. Two measured countermeasures:
 make llama                          # = scripts/llama_setup.sh: llama.cpp b11985 as shared libraries in
                                     #   cache/llama, the GGUF converters, cache/gguf/tiny.gguf
 make llama PROFILES="tiny small"    # more base models;  LLAMA_CUDA=1 make llama  for the CUDA backend
-./build/memagent --engine llama     # or engine=llama in memagent.ini
+./build/memagent                    # engine=auto picks llama once the libraries are there
 ```
+
+Without a local conversion, the llama engine downloads the profile's GGUF from the `"gguf"` url in
+`models.json` on first start (published GGUFs of the same checkpoints; the LoRAs apply to them
+unchanged).
 
 With `engine=llama` the chat model, the LoRA swap and LLM fact extraction all run inside
 `memagent`; the only Python left is the trainer, which also writes the adapter as
@@ -132,9 +154,22 @@ converts from the full-precision Magistral checkpoint because its training base 
 sudo apt install fpc                      # Free Pascal 3.2+
 pip install -r trainer/requirements.txt   # CPU only: install torch from the CPU index first
 make                                      # -> build/memagent
-make provision                            # local embedder + reranker (optional; recommended)
+make llama                                # llama.cpp for the in-process engine (optional)
 ./build/memagent                          # uses memagent.ini; or --profile small --data ./data2
 ```
+
+Missing models (the GGUF base model, the embedder, reranker and guard model) are downloaded on the
+first start; `--offline` (or `auto_provision=0`) skips that, `--provision` downloads everything and
+exits. The config is `./memagent.ini`, else the one next to the binary.
+
+## Releases
+
+`make package VERSION=x.y.z` builds the Linux release folder and tarball in `dist/` (binary,
+llama.cpp libraries in `lib/`, config, trainer, GGUF converters). Pushing a tag `v*` runs
+`.github/workflows/release.yml`: it builds Linux and Windows (FPC from Lazarus, llama.cpp with the
+static MSVC runtime, sqlite3/OpenSSL 3 DLLs and `cacert.pem` bundled), smoke-tests each package on a
+fresh folder (downloads, then a chat on the llama engine), wraps Windows in the Inno Setup installer
+(`packaging/memagent.iss`) and publishes the release.
 
 `[gpu] infer=0 / train=1` puts inference on GPU 0 and training on GPU 1. Set either to `-1`
 to use the CPU.
@@ -183,98 +218,16 @@ LoRA, no RAG     > Your dog's name is Max.
 memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine (+ .Llama), Mem.Llama (llama.cpp binding),
                  Mem.Extract (fact extraction), Mem.Consolidate, Mem.Db, Mem.Config,
                  Mem.Retrieval (embedder + reranker), Mem.Embed.*, Mem.Rerank.Onnx, Mem.Tokenizer,
-                 Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download (provisioning)
+                 Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download + Mem.Setup (first-run downloads)
 trainer/         Python worker + consolidation trainer + GGUF export (gguf_export.py) + tests
 models.json      model profiles          memagent.ini  agent config          priors.md  system prompt
-scripts/         e2e_demo.sh, llama_setup.sh, ...       docs/  sample e2e transcript
+scripts/         e2e_demo.sh, llama_setup.sh, package.sh, ...       docs/  sample e2e transcript
+packaging/       Inno Setup script, release README          .github/workflows/release.yml  release build
+legacy/          the earlier Python prototypes
 PLAN.md          design notes and roadmap (in-process llama.cpp engine, PasClaw integration)
 ```
 
----
+## Legacy prototypes
 
-# Legacy: CragChat (Python prototype)
-
-A lightweight command-line chat application with retrieval-augmented generation (RAG) and LoRA fine-tuning built on top of Hugging Face Transformers.
-
----
-
-## Features
-
-* **Retrieval-Augmented Generation** (RAG) using ChromaDB to reference past chat history
-* **LoRA Fine-Tuning** for efficient continual learning on user conversations
-* **4-bit Quantization** with BitsAndBytes for memory-efficient inference
-* **Streaming Responses** via `TextIteratorStreamer` to display analysis and answers token-by-token
-
----
-
-## Requirements
-
-* Python 3.8 or higher
-* (Optional) CUDA‑enabled GPU for accelerated training and inference
-
----
-
-## Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/cragchat.git
-   cd cragchat
-   ```
-
-2. **Create and activate a virtual environment**
-
-   ```bash
-   python -m venv venv
-   # macOS / Linux:
-   source venv/bin/activate
-   # Windows:
-   venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-   If you don’t have a `requirements.txt`, you can install directly:
-
-   ```bash
-   pip install torch transformers bitsandbytes peft trl chromadb sentence-transformers datasets
-   ```
-
----
-
-## Usage
-
-Run the chat interface script:
-
-```bash
-python cragchat.py
-```
-
-* On first run, the script will initialize `chat_history.jsonl`, set up the ChromaDB vector store, and perform any necessary LoRA training.
-* Type your questions at the prompt (e.g., `Question: what is a horse?`) and watch the `<analysis>` and `<answer>` stream in real time.
-
----
-
-## Configuration
-
-All configuration options live at the top of `cragchat.py`:
-
-* **BASE\_MODEL\_ID**: the Hugging Face model identifier (default `unsloth/Magistral-Small-2506-bnb-4bit`)
-* **CHAT\_HISTORY\_FILE**: path to the JSONL log of past Q\&A
-* **LORA\_DIR**: directory for saving LoRA adapters
-* **CHROMA\_DIR**: local path for the ChromaDB database
-* **EMBED\_MODEL\_NAME**: Sentence-Transformers model for embeddings
-* **MAX\_NEW\_TOKENS**: maximum tokens per generated response
-
-Feel free to adjust batch sizes, learning rates, and other hyperparameters in the code to suit your environment.
-
----
-
-## License
-
-This project is released under the [MIT License](./LICENSE).
+The earlier Python prototypes this grew out of (CragChat, MemOS/MemCube experiments, `v2/`) are kept
+unchanged in [`legacy/`](legacy/README.md).

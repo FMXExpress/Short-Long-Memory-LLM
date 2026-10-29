@@ -99,7 +99,7 @@ two tiers.
 
 A Python process per turn would reload the model every time, which takes
 10–60 s, so the inference worker is kept running. Both scripts are mostly
-a refactor of the existing `v2/cragchat.py`.
+a refactor of the existing `legacy/v2/cragchat.py`.
 
 The worker can be replaced by in-process llama.cpp (localpal style) **without
 touching the agent**, because the agent only talks to the `TEngine`
@@ -158,7 +158,7 @@ streamed tokens come back on stdout; logs go to stderr, which FPC tails into
 {"id":9,"type":"error","message":"..."}
 ```
 
-Worker internals (refactored from `v2/cragchat.py`):
+Worker internals (refactored from `legacy/v2/cragchat.py`):
 
 - loads `BASE_MODEL_ID` in 4-bit with `CUDA_VISIBLE_DEVICES=0`, wrapped in
   `PeftModel` once the first adapter exists
@@ -216,7 +216,7 @@ file. Steps:
 1. **Dataset:** all active facts (not superseded or forgotten). For each
    fact, K Q→A paraphrases plus one held-out probe paraphrase, reusing
    `augment_training_data_with_fact_based_scaling` and
-   `generate_question_variations` from `v2/cragchat.py`. A fixed slice of
+   `generate_question_variations` from `legacy/v2/cragchat.py`. A fixed slice of
    generic chat data is mixed in to protect the priors.
 2. **Train:** QLoRA with PEFT/TRL using v2's hyperparameters (r = 64,
    α = 16, all projection layers, lr 5e-4). For the demo, always retrain
@@ -280,7 +280,7 @@ trainer/
   memlib.py                code shared by both: model loading, chat template, fact scaling (from v2)
   gguf_export.py           base model + adapters to GGUF for the llama engine
   requirements.txt         torch, transformers, peft, trl, bitsandbytes, datasets
-legacy/                    current Python prototypes (cragchat, memos, ...)
+legacy/                    the earlier Python prototypes (cragchat, memos, v2, ...)
 ```
 
 `memory.db` schema (fields kept close to PasClaw's fact record so a later

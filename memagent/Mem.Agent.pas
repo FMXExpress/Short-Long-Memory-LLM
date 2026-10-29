@@ -665,6 +665,8 @@ begin
             IfThen(FEngine.ActiveAdapter = '', 'the base model', FEngine.ActiveAdapter)]));
       3: Say('[sleep] nothing to consolidate');
     else
+      if LJson is TJSONObject then
+        LSummary := TJSONObject(LJson).Get('reason', LSummary);
       Say('[sleep] consolidation failed (exit ' + IntToStr(LCode) + '): ' + LSummary +
         ' -- see ' + IncludeTrailingPathDelimiter(FCfg.LogDir) + 'consolidate.log');
     end;
