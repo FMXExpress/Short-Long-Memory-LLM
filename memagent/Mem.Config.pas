@@ -44,6 +44,10 @@ type
     DedupMinRerank: Double;  { ... confirmed by the cross-encoder }
     DedupTextCos: Double;    { same value + text cosine at least this: a repeat, not a new fact }
     Provision: Boolean;      { --provision: download the retrieval models and exit }
+    { [guard]: licensing check against stored-value confabulation (Mem.Guard) }
+    Guard: string;           { auto (on when its model is provisioned) | on | off }
+    GuardModel: string;
+    GuardMinScore: Double;
     { from the profile }
     BaseModel: string;
     MaxNewTokens: Integer;
@@ -99,6 +103,7 @@ end;
 
 procedure TMemConfig.Load;
 var
+  LFmt: TFormatSettings;
   I: Integer;
   LIni: TIniFile;
   LBase, LCliProfile, LCliData: string;
@@ -107,6 +112,8 @@ var
   LProf: TJSONObject;
   LStream: TFileStream;
 begin
+  LFmt := DefaultFormatSettings;
+  LFmt.DecimalSeparator := '.';
   ConfigFile := 'memagent.ini';
   LCliProfile := '';
   LCliData := '';
@@ -167,6 +174,9 @@ begin
     DedupMinCos := IniFloat(LIni, 'dedup_min_cos', 0.7);
     DedupMinRerank := IniFloat(LIni, 'dedup_min_rerank', 0.5);
     DedupTextCos := IniFloat(LIni, 'dedup_text_cos', 0.9);
+    Guard := LowerCase(LIni.ReadString('guard', 'enabled', 'auto'));
+    GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
+    GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);
   finally
     LIni.Free;
   end;

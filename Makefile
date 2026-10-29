@@ -22,6 +22,10 @@ $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_retrieval memagent/tests/bench_retrieval.lpr
 
+$(BUILD)/bench_guard: memagent/*.pas memagent/tests/bench_guard.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_guard memagent/tests/bench_guard.lpr
+
 bench-retrieval: $(BUILD)/bench_retrieval
 	./$(BUILD)/bench_retrieval cache bench/facts.json
 

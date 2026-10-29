@@ -14,7 +14,7 @@ interface
 
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall;
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard;
 
 type
   TAgent = class
@@ -24,6 +24,7 @@ type
     FEngine: TEngine;
     FCons: TConsolidator;
     FRet: TRetrieval;
+    FGuard: TRetrieval;   { bge cross-encoder for Mem.Guard; nil = guard off }
     FLastRecall: TRecallTiming;
     { per-turn stage timing (MEMAGENT_TIMING=1 prints it; /status shows averages) }
     FTiming: Boolean;
@@ -54,7 +55,7 @@ type
     procedure Say(const S: string);
   public
     constructor Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator;
-      ARet: TRetrieval);
+      ARet: TRetrieval; AGuard: TRetrieval = nil);
     procedure Startup;
     procedure Turn(const AUser: string);
     procedure PollConsolidation;
@@ -77,8 +78,9 @@ begin
 end;
 
 constructor TAgent.Create(ACfg: TMemConfig; AStore: TMemStore; AEngine: TEngine; ACons: TConsolidator;
-  ARet: TRetrieval);
+  ARet: TRetrieval; AGuard: TRetrieval);
 begin
+  FGuard := AGuard;
   inherited Create;
   FCfg := ACfg;
   FStore := AStore;
@@ -509,7 +511,7 @@ var
   I: Integer;
   LT: TDateTime;
   LMs: array[0..7] of Double;    { 7: model extraction after the reply }
-  LRuleFacts: string;
+  LRuleFacts, LWhy: string;
 begin
   PollConsolidation;
   FTurnStart := Now;
@@ -528,9 +530,26 @@ begin
     EmbedMessage(LUserId, AUser);
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     Mark(LT, LMs[1]);
-    Write('pal> ');
-    LReply := FEngine.Generate(LMessages, True, @OnToken);
-    WriteLn;
+    if (FGuard <> nil) and (QuestionSubject(AUser) <> '') then
+    begin
+      (* A question about "my X": generate first, license, then show, so an
+         answer that borrows another subject's stored value ("horse" ->
+         the dog's name) is never displayed. *)
+      LReply := FEngine.Generate(LMessages, True, nil);
+      if not Licensed(FGuard, AUser, LReply, FStore.ActiveFacts, LWhy, FCfg.GuardMinScore) then
+      begin
+        Say('[guard] withheld an answer that used a stored value from: ' + LWhy);
+        LReply := ABSTAIN_REPLY;
+      end;
+      FFirstTokenMs := MilliSecondsBetween(Now, FTurnStart);
+      WriteLn('pal> ', LReply);
+    end
+    else
+    begin
+      Write('pal> ');
+      LReply := FEngine.Generate(LMessages, True, @OnToken);
+      WriteLn;
+    end;
     LMs[2] := FFirstTokenMs;
     Mark(LT, LMs[3]);
     I := 0;
@@ -782,6 +801,8 @@ begin
   begin
     Say('engine:   ' + FEngine.Describe);
     Say('recall:   ' + FRet.Describe);
+    Say('guard:    ' + IfThen(FGuard = nil, 'off', 'on (' + FGuard.Describe + ', min score ' +
+      FloatToStr(FCfg.GuardMinScore) + ')'));
     Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     Say('sleeping: ' + BoolToStr(FCons.Running, 'yes (training)', 'no'));

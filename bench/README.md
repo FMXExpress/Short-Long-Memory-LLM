@@ -136,3 +136,27 @@ time from 412 s to 186 s, while LoRA accuracy holds (0.80 vs 0.78). Drift tracks
 steps, so `tiny` now defaults to 4 epochs. Caveat: steps still grow with the number of facts, so a
 much larger fact set will need fewer epochs or a lower learning rate. The drift gate is the safety
 net.
+
+## Licensing guard (Mem.Guard), offline evaluation on recorded answers
+
+`build/bench_guard cache bench/facts.json bench/results/<run>.json` re-scores a memory benchmark's
+answers with the guard applied. Rule: for a "my X" question, an answer that contains stored values
+is licensed only if one of them belongs to a fact about X. "About X" means a shared content word,
+or a bge-reranker-base score of at least 0.03 for (question, "subject: text").
+
+| answers from | condition | accuracy | confabulation |
+|---|---|---|---|
+| tiny, 4 epochs | LoRA | 0.800 → 0.767 | 0.70 → **0.25** |
+| tiny, 4 epochs | LoRA + RAG (look-alike) | 0.917 → 0.867 | 0.73 → **0.27** |
+| small baseline | LoRA | 0.883 → 0.850 | 0.55 → **0.20** |
+| small baseline | LoRA + RAG (look-alike) | 1.000 → 0.933 | 0.87 → **0.33** |
+
+How the scoring was chosen (`gvar`/`gdiag` diagnostics):
+- ms-marco cannot separate real paraphrases from look-alikes at any threshold.
+- bge on (question, "subject: text") at 0.03 blocks 15/15 dev and 14/15 held-out look-alikes,
+  while keeping 22/27 dev and 16/17 held-out of the guarded known questions.
+- Scoring the question against the fact text alone, or subject against subject, separates worse.
+
+The remaining false blocks are synonyms bge misses (girl/daughter, boss/manager,
+employer/"where I work"). The 0.03 threshold was chosen on dev; held-out answers from a trained
+adapter are still to be scored.

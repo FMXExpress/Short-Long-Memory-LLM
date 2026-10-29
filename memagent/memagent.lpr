@@ -18,7 +18,7 @@ var
   Store: TMemStore;
   Engine: TEngine;
   Cons: TConsolidator;
-  Ret: TRetrieval;
+  Ret, Guard: TRetrieval;
   Agent: TAgent;
   Line: string;
   Interactive: Boolean;
@@ -45,7 +45,8 @@ begin
     begin
       (* Local retrieval models: ONNX Runtime + embedder + reranker *)
       if ProvisionRetrieval(Cfg.CacheDir, Cfg.EmbedModel,
-        IfThen(Cfg.Reranker = 'off', '', Cfg.RerankModel)) then
+        IfThen(Cfg.Reranker = 'off', '', Cfg.RerankModel)) and
+        ((Cfg.Guard = 'off') or ProvisionRetrieval(Cfg.CacheDir, Cfg.EmbedModel, Cfg.GuardModel)) then
         WriteLn('retrieval models ready in ', Cfg.CacheDir)
       else
         ExitCode := 1;
@@ -55,10 +56,22 @@ begin
     WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
     Ret := TRetrieval.Create(Cfg.CacheDir, Cfg.Embedder, Cfg.EmbedModel, Cfg.Reranker, Cfg.RerankModel);
     WriteLn('recall: ', Ret.Describe);
+    Guard := nil;
+    if Cfg.Guard <> 'off' then
+    begin
+      Guard := TRetrieval.Create(Cfg.CacheDir, 'off', '', 'auto', Cfg.GuardModel);
+      if not Guard.HasReranker then
+      begin
+        if Cfg.Guard = 'on' then
+          WriteLn(StdErr, 'guard: ', Cfg.GuardModel, ' is not provisioned (memagent --provision); guard off');
+        FreeAndNil(Guard);
+      end;
+    end;
+    WriteLn('guard: ', IfThen(Guard = nil, 'off', 'on (' + Cfg.GuardModel + ')'));
     Store := TMemStore.Create(Cfg.DbPath);
     Engine := TPyWorkerEngine.Create(Cfg);
     Cons := TConsolidator.Create(Cfg);
-    Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret);
+    Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
     try
       WriteLn('ready: ', Engine.Describe, '. /help for commands.');
       Agent.Startup;
@@ -103,6 +116,7 @@ begin
       Engine.Free;
       Store.Free;
       Ret.Free;
+      Guard.Free;
     end;
   finally
     Cfg.Free;
