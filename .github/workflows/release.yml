@@ -128,7 +128,18 @@ jobs:
           sed -e 's/^engine=.*/engine=auto/' -e 's/^infer=.*/infer=-1/' -e 's/^train=.*/train=-1/' \
               -e 's#^;src_dir=.*#src_dir=llama.cpp#' -e 's/^;python=python3/;python=python/' memagent.ini > "$OUT/memagent.ini"
           ls -la "$OUT"
+      - name: Probe the llama.cpp DLLs (names a missing dependency)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $dir = (Resolve-Path dist\memagent-windows-x64).Path
+          foreach ($n in 'ggml-base.dll','ggml-cpu.dll','ggml.dll','llama.dll','sqlite3.dll','libcrypto-3-x64.dll','libssl-3-x64.dll') {
+            try { [void][System.Runtime.InteropServices.NativeLibrary]::Load("$dir\$n"); "ok      $n" }
+            catch { "FAILED  $n : $($_.Exception.Message)" }
+          }
       - name: Smoke test (portable folder, run from elsewhere)
+        env:
+          MEMAGENT_DEBUG: "1"
         run: |
           mkdir -p /tmp/smoke && cp -r dist/memagent-windows-x64 /tmp/smoke/
           cd /tmp
