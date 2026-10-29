@@ -37,6 +37,11 @@ base model alone confabulates 0% (it refuses or rambles). Supervised examples di
 at 135M (E1). The next candidates are retrieval-side filtering, or preference training (DPO) on
 the larger profiles.
 
+Prompt experiment H1 (baseline adapter, evaluation only): the memory header "use an item only
+if it answers the question, otherwise say you haven't been told" gave LoRA+RAG 0.95 (+0.02,
+noise) and confabulation with a look-alike present of 0.87 (worse than 0.80). The 135M model
+does not follow the instruction, so the header is unchanged.
+
 ## Other findings from this round
 
 - **Extraction:** the rule extractor's value accuracy went from 0.77 to 1.00 on dev and is 1.00
