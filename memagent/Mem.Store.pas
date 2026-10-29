@@ -17,7 +17,7 @@ unit Mem.Store;
 interface
 
 uses
-  SysUtils, Classes, DateUtils, fpjson, Mem.Db, Mem.Retrieval;
+  SysUtils, Classes, DateUtils, Math, fpjson, Mem.Db, Mem.Retrieval;
 
 type
   TFactRec = record
@@ -79,6 +79,9 @@ type
     function ActiveFacts: TFactArray;
     function SearchFacts(const AQuery: string; ALimit: Integer; AIncludeBaked: Boolean): TFactArray;
     function ForgetFact(AId: Int64): Boolean;
+    function FactSubject(AId: Int64): string;
+    function FactText(AId: Int64): string;
+    procedure SetFactSubject(AId: Int64; const ASubject: string);
     function UnbakedCount: Integer;
     procedure ApplyManifest(const AAdapterId: string; APassed: TJSONArray);
     procedure ClearBaked;
@@ -149,6 +152,10 @@ begin
     FDb.ExecScript('ALTER TABLE facts ADD COLUMN emb BLOB;' +
       'ALTER TABLE facts ADD COLUMN subj_emb BLOB;' +
       'ALTER TABLE facts ADD COLUMN emb_model TEXT NOT NULL DEFAULT '''';');
+  { "skip messages whose fact is baked" is a correlated subquery per message;
+    without this index it scans every fact for every message on every query
+    (measured: 1.2 s/query at 2,500 messages) }
+  FDb.ExecScript('CREATE INDEX IF NOT EXISTS facts_source_msg ON facts(source_msg);');
   if not HasColumn('messages', 'emb') then
     FDb.ExecScript('ALTER TABLE messages ADD COLUMN emb BLOB;' +
       'ALTER TABLE messages ADD COLUMN emb_model TEXT NOT NULL DEFAULT '''';');
@@ -243,7 +250,7 @@ begin
   if LFts = '' then
     Exit;
   Q := FDb.Query('SELECT m.id, m.role, m.content FROM messages_fts f JOIN messages m ON m.id = f.rowid' +
-    ' WHERE messages_fts MATCH ? AND m.id < ? AND m.role = ''user''' +
+    ' WHERE messages_fts MATCH ? AND m.id < ? AND m.role = ''user'' AND rtrim(m.content) NOT LIKE ''%?''' +
     ' AND NOT EXISTS (SELECT 1 FROM facts x WHERE x.source_msg = m.id AND x.baked_in <> '''')' +
     ' ORDER BY bm25(messages_fts) LIMIT ?', [LFts, ABeforeId, ALimit]);
   try
@@ -449,8 +456,27 @@ begin
   end;
 end;
 
-{ cosine for every row the query returns as (id, emb), best first }
-function ScanVectors(Q: TSqlStmt; const AQVec: TVector): TScoredArray;
+{ moves the AK best entries (by Cos) to the front, in order; the rest stay
+  unsorted. O(k*n): only the top pool entries are ever read in order. }
+procedure TopK(var A: TScoredArray; AK: Integer);
+var
+  I, J, B: Integer;
+  T: TScored;
+begin
+  for I := 0 to Min(AK, Length(A)) - 1 do
+  begin
+    B := I;
+    for J := I + 1 to High(A) do
+      if A[J].Cos > A[B].Cos then
+        B := J;
+    T := A[I];
+    A[I] := A[B];
+    A[B] := T;
+  end;
+end;
+
+{ cosine for every row the query returns as (id, emb); the best AK first }
+function ScanVectors(Q: TSqlStmt; const AQVec: TVector; AK: Integer): TScoredArray;
 var
   N: Integer;
 begin
@@ -467,7 +493,7 @@ begin
   finally
     Q.Free;
   end;
-  SortScored(Result);
+  TopK(Result, AK);
 end;
 
 function CosOf(const AScan: TScoredArray; AId: Int64): Single;
@@ -537,7 +563,7 @@ begin
   LScan := nil;
   if Length(AQVec) > 0 then
     LScan := ScanVectors(FDb.Query('SELECT id, emb FROM facts WHERE superseded = 0 AND forgotten = 0' +
-      ' AND (? OR baked_in = '''') AND emb_model = ?', [AIncludeBaked, AModel]), AQVec);
+      ' AND (? OR baked_in = '''') AND emb_model = ?', [AIncludeBaked, AModel]), AQVec, APool);
   LFused := Fuse(LIds, LScan, AMinCos, APool);
   SetLength(Result, Length(LFused));
   for I := 0 to High(LFused) do
@@ -565,10 +591,12 @@ begin
     LIds[I] := LFts[I].Id;
   LScan := nil;
   if Length(AQVec) > 0 then
+    { a message that only asks something is not a memory: recalling an earlier
+      identical question just echoes the query back into the prompt }
     LScan := ScanVectors(FDb.Query('SELECT m.id, m.emb FROM messages m WHERE m.role = ''user''' +
-      ' AND m.id < ? AND m.emb_model = ?' +
+      ' AND m.id < ? AND m.emb_model = ? AND rtrim(m.content) NOT LIKE ''%?''' +
       ' AND NOT EXISTS (SELECT 1 FROM facts x WHERE x.source_msg = m.id AND x.baked_in <> '''')',
-      [ABeforeId, AModel]), AQVec);
+      [ABeforeId, AModel]), AQVec, APool);
   LFused := Fuse(LIds, LScan, AMinCos, APool);
   SetLength(Result, Length(LFused));
   for I := 0 to High(LFused) do
@@ -585,6 +613,22 @@ begin
     Result[I].Score := LFused[I].Cos;
     Result[I].Cos := CosOf(LScan, LFused[I].Id);
   end;
+end;
+
+function TMemStore.FactSubject(AId: Int64): string;
+begin
+  Result := FDb.ScalarStr('SELECT subject FROM facts WHERE id = ?', [AId]);
+end;
+
+function TMemStore.FactText(AId: Int64): string;
+begin
+  Result := FDb.ScalarStr('SELECT text FROM facts WHERE id = ?', [AId]);
+end;
+
+procedure TMemStore.SetFactSubject(AId: Int64; const ASubject: string);
+begin
+  FDb.Exec('UPDATE facts SET subject = ? WHERE id = ?', [ASubject, AId]);
+  FDb.Exec('UPDATE facts_fts SET subject = ? WHERE rowid = ?', [ASubject, AId]);
 end;
 
 function TMemStore.ForgetFact(AId: Int64): Boolean;

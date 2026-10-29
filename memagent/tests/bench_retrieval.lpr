@@ -28,8 +28,8 @@ const
     (Name: 'fts'; Embed: 'off'; Rerank: 'off'; RerankModel: ''; RerankMin: 0),
     (Name: 'static+fts'; Embed: 'static'; Rerank: 'off'; RerankModel: ''; RerankMin: 0),
     (Name: 'minilm+fts'; Embed: 'auto'; Rerank: 'off'; RerankModel: ''; RerankMin: 0),
-    (Name: 'minilm+fts+msmarco'; Embed: 'auto'; Rerank: 'auto'; RerankModel: 'ms-marco-minilm'; RerankMin: 0.005),
-    (Name: 'minilm+fts+bge'; Embed: 'auto'; Rerank: 'auto'; RerankModel: 'bge-reranker-base'; RerankMin: 0.0005));
+    (Name: 'minilm+fts+msmarco'; Embed: 'auto'; Rerank: 'auto'; RerankModel: 'ms-marco-minilm'; RerankMin: 0.0001),
+    (Name: 'minilm+fts+bge'; Embed: 'auto'; Rerank: 'auto'; RerankModel: 'bge-reranker-base'; RerankMin: 0.0001));
 
 var
   Data: TJSONObject;
@@ -135,7 +135,7 @@ begin
   Cfg.RetrievalPool := 8;
   Cfg.RagK := 3;
   Cfg.RagIncludeBaked := True;
-  Cfg.MinSimilarity := 0.35;
+  Cfg.MinSimilarity := 0.25;
   Cfg.StaticMinSimilarity := 0.3;
   Cfg.RerankMin := AMode.RerankMin;
   if Sweep then

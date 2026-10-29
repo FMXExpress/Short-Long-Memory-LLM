@@ -150,6 +150,20 @@ def _fact(text, subject, value, questions, confidence, kind="user"):
             "confidence": confidence, "kind": kind}
 
 
+_GREETING = re.compile(r"^(hi|hello|hey|thanks|thank you|ok|okay|good (morning|evening|night)|bye)\b", re.I)
+
+
+def has_statement(text):
+    """Does the message state anything? Questions and short greetings never
+    carry a durable fact, so they skip the (slow) model extraction pass."""
+    for sent in _sentences(text):
+        sent = sent.strip()
+        words = re.findall(r"\w+", sent)
+        if sent and not sent.endswith("?") and len(words) >= 3 and not (_GREETING.match(sent) and len(words) < 6):
+            return True
+    return False
+
+
 def extract_facts_rules(text):
     """Cheap, deterministic fact extraction from a user message.
 

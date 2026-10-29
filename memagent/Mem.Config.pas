@@ -161,9 +161,9 @@ begin
     Reranker := LowerCase(LIni.ReadString('retrieval', 'reranker', 'auto'));
     RerankModel := LIni.ReadString('retrieval', 'rerank_model', 'ms-marco-minilm');
     RetrievalPool := LIni.ReadInteger('retrieval', 'pool', 8);
-    MinSimilarity := IniFloat(LIni, 'min_similarity', 0.35);
+    MinSimilarity := IniFloat(LIni, 'min_similarity', 0.25);
     StaticMinSimilarity := IniFloat(LIni, 'static_min_similarity', 0.3);
-    RerankMin := IniFloat(LIni, 'rerank_min', 0.005);
+    RerankMin := IniFloat(LIni, 'rerank_min', 0.0001);
     DedupMinCos := IniFloat(LIni, 'dedup_min_cos', 0.7);
     DedupMinRerank := IniFloat(LIni, 'dedup_min_rerank', 0.5);
     DedupTextCos := IniFloat(LIni, 'dedup_text_cos', 0.9);

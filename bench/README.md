@@ -44,10 +44,47 @@ the larger profiles.
   "Dr.".
 - **RAG policy:** LoRA+RAG beats the LoRA alone by 15 points, and retrieval is capped at `rag_k`
   either way, so baked facts now stay retrievable (`rag_include_baked=1`).
-- **Retrieval sweep** (`BENCH_SWEEP=1`): a cosine floor of 0.25 instead of 0.35, and ms-marco
-  `rerank_min` 1e-4 instead of 0.005, raise hit@3 from 0.75 to about 0.97. Near-miss noise is
-  structural (e.g. "horse's name" lands next to "dog's name"). The defaults are not changed yet;
-  that needs a re-run with the 20 unknown questions.
+- **Retrieval thresholds (applied):** re-swept with the 20 unknown questions. The new defaults
+  are a cosine floor of 0.25 (was 0.35) and ms-marco `rerank_min` 1e-4 (was 0.005). hit@3 goes
+  from about 0.75 to 0.967 on dev and 0.975 on held-out; noise goes from about 0.45 to 0.85.
+  Recall wins because missing the fact costs 15 points of accuracy on every known question,
+  while a look-alike in the prompt adds about 10 points of confabulation, and only on questions
+  about unknown things.
 - **Reranker batching:** the float model (ms-marco) scores in one padded session run and matches
   per-pair scores exactly. The int8 model (bge) scores per pair, because its dynamic activation
   quantization makes batched scores depend on their batch-mates (up to 0.17 apart).
+
+## Profiling round (2026-10-29)
+
+**Retrieval at scale** (`bench_retrieval cache bench/facts.json <facts> <messages>`, MiniLM +
+ms-marco):
+
+| stored | before | after |
+|---|---|---|
+| 30 facts | 23 ms/query | 26 ms/query |
+| +500 facts, +2,500 messages | **1,210 ms**/query (search 1,187) | 8 ms search |
+| +2,000 facts, +10,000 messages | — | 65 ms/query (embed 8, search 36, rerank 21) |
+
+The cause was the "skip messages whose fact is baked" correlated subquery on `facts.source_msg`,
+which had no index. gprof showed only about 0.5 s of CPU in our own code; the rest was inside
+SQLite. Fixes: an index on `facts(source_msg)`, plus a top-k selection in place of the full
+insertion sort. Quality numbers are unchanged. Search now grows by about 3 ms per 1,000 stored
+rows; an in-memory vector cache is the next step if that ever matters.
+
+**Live turn latency** (`MEMAGENT_TIMING=1`, CPU, 5 scripted turns):
+
+| profile | first token before | first token after | cause |
+|---|---|---|---|
+| tiny | 0.5 s | 0.5 s | — |
+| small (Qwen2.5-1.5B) | **7.9 s** avg (up to 11 s) | **2.5 s** avg | the model fact-extraction pass (5–8 s) ran before the reply, even for questions and greetings |
+
+Fixes:
+- The model extraction pass now runs after the reply. The instant rule pass stays before it.
+- Messages with no statement (questions, greetings) skip the model extraction pass entirely.
+- A tool-stored fact gets the user's own framing ("my sister") when the later extraction repeats it.
+
+**Other:**
+- Messages that only ask a question are no longer recalled as memories; an earlier identical
+  question echoed back into the prompt.
+- A configuration error (for example a missing models.json) prints a message and exits with
+  code 2 instead of an unhandled-exception dump.

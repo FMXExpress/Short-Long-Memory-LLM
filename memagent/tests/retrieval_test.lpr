@@ -86,10 +86,10 @@ begin
     end;
     Check(Length(R.Embed('hello')) = 384, 'MiniLM embeds to 384 dims');
     { semantic recall the keyword tier cannot do: no shared content words }
-    Check(Cos(R, 'Where is my home?', 'You live in Reykjavik.') >= 0.35, 'home ~ live in (cosine)');
-    Check(Cos(R, 'Who employs me?', 'You work at Zorblax Industries.') >= 0.35, 'employs ~ work at (cosine)');
-    Check(Cos(R, 'Tell me a joke', 'You live in Reykjavik.') < 0.35, 'unrelated stays under the floor');
-    Check(Cos(R, 'What is the capital of France?', 'Your dog''s name is Biscuit.') < 0.35,
+    Check(Cos(R, 'Where is my home?', 'You live in Reykjavik.') >= 0.25, 'home ~ live in (cosine)');
+    Check(Cos(R, 'Who employs me?', 'You work at Zorblax Industries.') >= 0.25, 'employs ~ work at (cosine)');
+    Check(Cos(R, 'Tell me a joke', 'You live in Reykjavik.') < 0.25, 'unrelated stays under the floor');
+    Check(Cos(R, 'What is the capital of France?', 'Your dog''s name is Biscuit.') < 0.25,
       'unrelated stays under the floor (2)');
     { why dedup needs the cross-encoder: cosine ranks the wrong pair higher }
     Check(Cos(R, 'my sister''s name', 'my brother''s name') > Cos(R, 'my dog''s name', 'what my dog is called'),
@@ -101,8 +101,8 @@ begin
     end;
     Check(Rr(R, 'What is my pet called?', 'Your dog''s name is Biscuit.') >
       Rr(R, 'What is my pet called?', 'The wifi password is tulip42.'), 'reranker orders by relevance');
-    Check(Rr(R, 'Where is my home?', 'You live in Reykjavik.') >= 0.005, 'relevant pair clears rerank_min');
-    Check(Rr(R, 'Tell me a joke', 'You live in Reykjavik.') < 0.005, 'irrelevant pair is dropped');
+    Check(Rr(R, 'Where is my home?', 'You live in Reykjavik.') >= 0.0001, 'relevant pair clears rerank_min');
+    Check(Rr(R, 'Tell me a joke', 'You live in Reykjavik.') < 0.0001, 'irrelevant pair is dropped');
     Check(SameSubject(R, 'my dog''s name', 'the name of my dog'), 'same subject: dog''s name / name of my dog');
     Check(SameSubject(R, 'my dog''s name', 'what my dog is called'), 'same subject: dog''s name / what my dog is called');
     Check(not SameSubject(R, 'my sister''s name', 'my brother''s name'), 'different subject: sister / brother');

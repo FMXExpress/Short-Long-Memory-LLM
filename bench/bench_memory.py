@@ -51,10 +51,13 @@ def build_db(path, facts):
     con.close()
 
 
+MEMORY_HEADER = "Relevant memory:"
+
+
 def ask(tok, model, priors, q, memory=None):
     sys_msg = priors
     if memory:
-        sys_msg += "\n\nRelevant memory:\n- " + memory
+        sys_msg += "\n\n" + MEMORY_HEADER + "\n- " + memory
     ans, _, _ = memlib.generate(tok, model, [{"role": "system", "content": sys_msg},
                                              {"role": "user", "content": q}], 40)
     return ans
@@ -69,7 +72,11 @@ def main():
     ap.add_argument("--adapter", help="evaluate an existing adapter instead of training one")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
+    ap.add_argument("--memory-header", help="wording of the memory block header (prompt experiments)")
     a = ap.parse_args()
+    global MEMORY_HEADER
+    if a.memory_header:
+        MEMORY_HEADER = a.memory_header
 
     data = json.load(open(a.facts, encoding="utf-8"))
     facts = data["facts"][:a.n] if a.n else data["facts"]
@@ -156,7 +163,7 @@ def main():
         unknown_rows.append(row)
     n_q = len(rows)
     res = {
-        "label": a.label, "profile": a.profile, "n_facts": len(facts), "n_questions": n_q,
+        "label": a.label, "profile": a.profile, "memory_header": MEMORY_HEADER, "n_facts": len(facts), "n_questions": n_q,
         "extraction_value_acc": round(ext_ok / len(facts), 3),
         "accuracy": {c: round(score[c] / n_q, 3) for c in conds},
         "interference": {c: round(wrong[c] / n_q, 3) for c in conds},

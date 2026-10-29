@@ -56,6 +56,17 @@ class RuleExtractionTest(unittest.TestCase):
         self.assertEqual(f["value"], "teal")
 
 
+class HasStatementTest(unittest.TestCase):
+    def test_questions_and_greetings_carry_no_facts(self):
+        for t in ["Hi there, how are you?", "What is my dog's name?", "Thanks!", "Hello there friend."]:
+            self.assertFalse(memlib.has_statement(t), t)
+
+    def test_statements(self):
+        for t in ["My sister Ana just moved to Lisbon.", "We will visit Ana in May. Any tips?",
+                  "Hi! I started a new job at Quillmark today."]:
+            self.assertTrue(memlib.has_statement(t), t)
+
+
 class LlmExtractionParsingTest(unittest.TestCase):
     SRC = "My sister Ana just moved to Lisbon, she works there as a nurse."
 

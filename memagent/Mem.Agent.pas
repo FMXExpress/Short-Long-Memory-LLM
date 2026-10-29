@@ -42,11 +42,11 @@ type
     procedure EmbedMessage(AId: Int64; const AText: string);
     procedure Backfill;
     function SameSubject(const ASubject: string): Int64;
-    function NearDuplicate(AFact: TJSONObject): Boolean;
+    function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
       items joined by '; ', or '' when there were none }
-    function ExtractFacts(const AUser: string; AMsgId: Int64): string;
+    function ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string = 'auto'): string;
     procedure MaybeSummarize;
     procedure MaybeAutoConsolidate;
     function PromoteManifest(const ADir: string): Boolean;
@@ -212,7 +212,7 @@ begin
       EmbedMessage(LPending[I].Id, LPending[I].Text);
 end;
 
-function TAgent.NearDuplicate(AFact: TJSONObject): Boolean;
+function TAgent.NearDuplicate(AFact: TJSONObject): Int64;
 var
   LSubjects: TSubjectArray;
   LVec: TVector;
@@ -224,7 +224,7 @@ begin
      different subjects. Same value + near-identical text: skip the insert.
      Unlike SameSubject this only ever skips, never overwrites, so a false
      positive costs nothing. *)
-  Result := False;
+  Result := 0;
   if FRet.Tier = 'off' then
     Exit;
   LSubjects := FStore.SubjectVectors(FRet.EmbedderId);
@@ -235,7 +235,7 @@ begin
       if LVec = nil then
         LVec := FRet.Embed(AFact.Get('text', ''));
       if Cosine(LVec, FRet.Embed(LSubjects[I].Text)) >= FCfg.DedupTextCos then
-        Exit(True);
+        Exit(LSubjects[I].Id);
     end;
 end;
 
@@ -414,23 +414,33 @@ begin
   Result := True;
 end;
 
-function TAgent.ExtractFacts(const AUser: string; AMsgId: Int64): string;
+function TAgent.ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string): string;
 var
   LFacts: TJSONArray;
   I: Integer;
   LFact: TJSONObject;
-  LId: Int64;
+  LId, LDupId: Int64;
+  LOldSubject: string;
 begin
   Result := '';
-  LFacts := FEngine.ExtractFacts(AUser);
+  LFacts := FEngine.ExtractFacts(AUser, AMode);
   try
     for I := 0 to LFacts.Count - 1 do
     begin
       LFact := LFacts.Objects[I];
       if LFact.Get('confidence', 0.0) < FCfg.MinFactConfidence then
         Continue;
-      if NearDuplicate(LFact) then
+      LDupId := NearDuplicate(LFact);
+      if LDupId <> 0 then
       begin
+        { the repeat may carry the user's own framing ("my sister") that the
+          stored copy lacks (a remember tool call during the reply came first) }
+        LOldSubject := FStore.FactSubject(LDupId);
+        if SameText(Copy(LFact.Get('subject', ''), 1, 3), 'my ') and not SameText(Copy(LOldSubject, 1, 3), 'my ') then
+        begin
+          FStore.SetFactSubject(LDupId, LFact.Get('subject', ''));
+          EmbedFact(LDupId, FStore.FactText(LDupId), LFact.Get('subject', ''));
+        end;
         Result := Result + IfThen(Result = '', '', '; ') + 'already known: ' + LFact.Get('text', '');
         Continue;
       end;
@@ -498,7 +508,8 @@ var
   LUserId: Int64;
   I: Integer;
   LT: TDateTime;
-  LMs: array[0..6] of Double;
+  LMs: array[0..7] of Double;    { 7: model extraction after the reply }
+  LRuleFacts: string;
 begin
   PollConsolidation;
   FTurnStart := Now;
@@ -515,7 +526,7 @@ begin
        a second, worse-phrased copy. *)
     LUserId := FStore.AddMessage(FSession, 'user', AUser);
     EmbedMessage(LUserId, AUser);
-    ExtractFacts(AUser, LUserId);
+    LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     Mark(LT, LMs[1]);
     Write('pal> ');
     LReply := FEngine.Generate(LMessages, True, @OnToken);
@@ -535,8 +546,15 @@ begin
     LMessages.Free;
   end;
   FStore.AddMessage(FSession, 'assistant', LReply);
+  (* The model extraction pass runs after the reply: on the small profile it
+     is a 5-8 s generation, and before the reply it held back the first token
+     (measured 8-11 s). The worker skips it for questions and greetings. *)
+  if LRuleFacts = '' then
+    ExtractFacts(AUser, LUserId, 'llm');
+  Mark(LT, LMs[7]);
   MaybeSummarize;
   Mark(LT, LMs[5]);
+  LMs[1] := LMs[1] + LMs[7];
   LMs[6] := MilliSecondsBetween(Now, FTurnStart);
   Inc(FTurns);
   for I := 0 to 6 do

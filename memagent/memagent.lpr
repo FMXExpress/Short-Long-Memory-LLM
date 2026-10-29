@@ -31,7 +31,16 @@ begin
   {$ENDIF}
   Cfg := TMemConfig.Create;
   try
-    Cfg.Load;
+    try
+      Cfg.Load;
+    except
+      on E: Exception do
+      begin
+        WriteLn(StdErr, 'memagent: configuration error: ', E.Message);
+        ExitCode := 2;
+        Exit;
+      end;
+    end;
     if Cfg.Provision then
     begin
       (* Local retrieval models: ONNX Runtime + embedder + reranker *)

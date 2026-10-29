@@ -22,7 +22,8 @@ type
     function Generate(AMessages: TJSONArray; AUseAdapter: Boolean; AOnToken: TTokenEvent;
       AMaxNewTokens: Integer = 0): string; virtual; abstract;
     { caller frees the result }
-    function ExtractFacts(const AText: string): TJSONArray; virtual; abstract;
+    { AMode: 'rules' (instant), 'llm' (model pass only), 'auto' (rules, else model) }
+    function ExtractFacts(const AText, AMode: string): TJSONArray; virtual; abstract;
     procedure LoadAdapter(const APath, AName: string); virtual; abstract;
     procedure ClearAdapter; virtual; abstract;
     function ActiveAdapter: string; virtual; abstract;
@@ -49,7 +50,7 @@ type
     destructor Destroy; override;
     function Generate(AMessages: TJSONArray; AUseAdapter: Boolean; AOnToken: TTokenEvent;
       AMaxNewTokens: Integer = 0): string; override;
-    function ExtractFacts(const AText: string): TJSONArray; override;
+    function ExtractFacts(const AText, AMode: string): TJSONArray; override;
     procedure LoadAdapter(const APath, AName: string); override;
     procedure ClearAdapter; override;
     function ActiveAdapter: string; override;
@@ -246,11 +247,11 @@ begin
   end;
 end;
 
-function TPyWorkerEngine.ExtractFacts(const AText: string): TJSONArray;
+function TPyWorkerEngine.ExtractFacts(const AText, AMode: string): TJSONArray;
 var
   LRes: TJSONObject;
 begin
-  LRes := Call(TJSONObject.Create(['op', 'extract_facts', 'text', AText]), nil);
+  LRes := Call(TJSONObject.Create(['op', 'extract_facts', 'text', AText, 'mode', AMode]), nil);
   try
     Result := LRes.Arrays['facts'].Clone as TJSONArray;
   finally

@@ -95,16 +95,19 @@ class Worker:
         return {"text": text, "usage": {"in": n_in, "out": n_out}}
 
     def op_extract_facts(self, req):
-        text = req["text"]
-        facts = self.memlib.extract_facts_rules(text)
-        if "llm" in self.prof.get("extract", "") and not facts:
-            ctx = self.model.disable_adapter() if self.active else None
-            if ctx:
-                with ctx:
-                    facts = self.memlib.extract_facts_llm(self.tok, self.model, text)
-            else:
-                facts = self.memlib.extract_facts_llm(self.tok, self.model, text)
-        return {"facts": facts}
+        """mode "rules": the instant rule pass only (memagent runs it before the
+        reply); "llm": the model pass only (run after the reply, so it never
+        delays the first token); "auto": rules, then the model if they found
+        nothing (tool calls)."""
+        text, mode = req["text"], req.get("mode", "auto")
+        use_llm = "llm" in self.prof.get("extract", "") and self.memlib.has_statement(text)
+        facts = [] if mode == "llm" else self.memlib.extract_facts_rules(text)
+        if mode == "rules" or not use_llm or (mode == "auto" and facts):
+            return {"facts": facts}
+        if self.active:
+            with self.model.disable_adapter():
+                return {"facts": self.memlib.extract_facts_llm(self.tok, self.model, text)}
+        return {"facts": self.memlib.extract_facts_llm(self.tok, self.model, text)}
 
     def op_load_adapter(self, req):
         """Hot swap: load the new adapter next to the old one, switch, drop the old."""
