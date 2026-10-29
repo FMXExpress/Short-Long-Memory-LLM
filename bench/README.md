@@ -218,3 +218,21 @@ With the guard on, the system-level comparison:
 DPO adds nothing once the guard runs and costs accuracy, so it stays implemented but off. The
 `medium`/`large` hyperparameters (8 epochs, from v2) are untested; the same step-driven drift is
 likely, so run `scripts/profile_smoke.sh medium --train` on a GPU before relying on them.
+
+## End-to-end system benchmark (bench/bench_agent.py, the real binary)
+
+The tiny profile with the current defaults, CPU, 30 dev facts told as plain sentences, then 60
+held-out questions and 20 unknown questions, asked before and after one `/sleep`:
+
+| | before sleep (RAG) | after sleep (LoRA + RAG + guard) |
+|---|---|---|
+| accuracy | 0.317 | **0.800** |
+| confabulation | 0.00 | 0.20 |
+
+- All 30 facts were extracted from conversation.
+- Consolidation learned all 30 facts (recall 1.00, drift 1.33).
+- 2.7 s per turn (first token 1.4 s); the whole run took 732 s, covering 190 turns and one
+  training run.
+- After sleep, the system matches LoRA-alone accuracy (0.80) rather than oracle LoRA+RAG (0.92).
+  Real retrieval plus the guard's few false blocks cost about 12 points; that gap is the next target.
+- The confabulation rate (0.20) matches the guard's offline prediction (0.25).

@@ -1,0 +1,25 @@
+{
+ "label": "tiny, 30 facts, defaults",
+ "profile": "tiny",
+ "n_facts": 30,
+ "facts_stored": 30,
+ "wall_seconds": 732.4,
+ "before_sleep": {
+  "accuracy": 0.317,
+  "confabulation": 0.0,
+  "n": 80
+ },
+ "after_sleep": {
+  "accuracy": 0.8,
+  "confabulation": 0.2,
+  "n": 80
+ },
+ "consolidation": {
+  "baked": "30",
+  "facts": "30",
+  "recall": "1.00",
+  "drift": "1.33"
+ },
+ "timing": "timing:   190 turns, avg ms: recall 47 extract 17 first-token 1448 generate 2674 tools 0 summary 0 total 2737",
+ "transcript": "/tmp/benchagent-iulfvyw_/transcript.txt"
+}
