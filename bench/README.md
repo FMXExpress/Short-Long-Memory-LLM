@@ -17,7 +17,7 @@ Tiny profile (SmolLM2-135M), CPU, 30 dev facts, 60 held-out questions, 20 unknow
 
 | run | LoRA | LoRA+RAG | base+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
 |---|---|---|---|---|---|---|---|---|
-| baseline | 0.783 | 0.933 | 0.367 | 0.067 | see below | see below | 1.78 | 412 |
+| baseline | 0.783 | 0.933 | 0.367 | 0.067 | 0.70 | 0.80 | 1.78 | 412 |
 | E1: names + negatives 0.5 + RAFT 0.5 | 0.617 | 0.917 | 0.367 | 0.033 | 0.65 | 0.73 | 1.42 | 504 |
 | E2: names only | 0.767 | 0.900 | 0.367 | 0.100 | 0.60 | 0.73 | 1.50 | 408 |
 
@@ -29,8 +29,13 @@ hallucination, and a model's sense of what it knows is hard to train. Negatives 
 for `tiny`.
 
 E2 finding: the generic name-question shapes give no accuracy gain on their own (0.767 vs 0.783,
-within run-to-run noise), so they stay off. The baseline is being re-scored with the 20-question
-unknown set so its confabulation numbers are comparable.
+within run-to-run noise), so they stay off.
+
+Confabulation is the open problem: with the LoRA, 60-70% of questions about things never stated
+get a stored value as the answer, and 73-80% when a look-alike fact is also in the prompt. The
+base model alone confabulates 0% (it refuses or rambles). Supervised examples did not fix this
+at 135M (E1). The next candidates are retrieval-side filtering, or preference training (DPO) on
+the larger profiles.
 
 ## Other findings from this round
 
