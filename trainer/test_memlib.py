@@ -171,5 +171,21 @@ class WorkerProtocolTest(unittest.TestCase):
         self.assertEqual(done[9]["type"], "error")
 
 
+class GgufExportTest(unittest.TestCase):
+    def test_every_profile_converts_from_a_full_precision_checkpoint(self):
+        import gguf_export
+        for name in ("tiny", "small", "medium", "large"):
+            source, outtype = gguf_export.gguf_settings(memlib.load_profile(name))
+            self.assertNotIn("bnb", source.lower(), name)   # convert_hf_to_gguf cannot read bnb-4bit
+            self.assertIn(outtype, ("f16", "bf16", "q8_0", "f32"))
+        self.assertEqual(gguf_export.gguf_settings(memlib.load_profile("tiny"))[0],
+                         memlib.load_profile("tiny")["base"])
+
+    def test_missing_converter_names_the_setup_script(self):
+        import gguf_export
+        with self.assertRaisesRegex(FileNotFoundError, "llama_setup.sh"):
+            gguf_export._converter("/nonexistent", "convert_lora_to_gguf.py")
+
+
 if __name__ == "__main__":
     unittest.main()

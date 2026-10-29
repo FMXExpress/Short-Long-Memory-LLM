@@ -10,12 +10,17 @@ An always-on agent with two tiers of memory:
   into the running model between turns.
 
 The agent (loop, prompts, memory store, RAG, scheduling, adapter bookkeeping) is **Free Pascal**.
-Python only does the tensor work, as two processes the agent launches:
+The model runs behind one interface (`TEngine`), with two interchangeable engines
+(`[agent] engine=` or `--engine`):
 
-| Process | Lifetime | Device | Job |
-|---|---|---|---|
-| `trainer/worker.py` | long-lived, JSON lines over stdin/stdout | `[gpu] infer` | generate (streamed), extract facts, load/swap LoRA |
-| `trainer/consolidate.py` | one-shot, exit code + JSON summary | `[gpu] train` | facts → paraphrase dataset → LoRA → recall/drift gate → `data/adapters/mem-<ts>/` |
+| Engine | What runs the model | Python at inference time |
+|---|---|---|
+| `python` (default) | `trainer/worker.py`: Transformers + PEFT, long-lived, JSON lines over stdin/stdout | yes |
+| `llama` | llama.cpp **inside the agent process** (`Mem.Llama` binding, `Mem.Engine.Llama`): GGUF base model, GGUF LoRA hot-swapped with `llama_set_adapters_lora`, fact extraction ported to Pascal (`Mem.Extract`) | **no** |
+
+Training is Python with either engine, as a one-shot process the agent launches on `[gpu] train`:
+`trainer/consolidate.py` turns facts into a paraphrase dataset, trains a LoRA, checks it against a
+recall/drift gate and writes `data/adapters/mem-<ts>/` (plus `adapter.gguf` for the llama engine).
 
 **RAG is the write-ahead log for the LoRA.** A new fact is available straight away through RAG.
 Once an adapter answers the fact's held-out probe question with no context, the fact is marked
@@ -87,6 +92,40 @@ horse's name?", it replies with the dog's name. Two measured countermeasures:
   confabulation with a look-alike in memory from 0.87 to 0.13 (0.07 with the guard). On the 135M
   profile it does not generalize. Details and the open ablation are in `bench/README.md`.
 
+## Engines: Python worker or in-process llama.cpp
+
+```sh
+make llama                          # = scripts/llama_setup.sh: llama.cpp b11985 as shared libraries in
+                                    #   cache/llama, the GGUF converters, cache/gguf/tiny.gguf
+make llama PROFILES="tiny small"    # more base models;  LLAMA_CUDA=1 make llama  for the CUDA backend
+./build/memagent --engine llama     # or engine=llama in memagent.ini
+```
+
+With `engine=llama` the chat model, the LoRA swap and LLM fact extraction all run inside
+`memagent`; the only Python left is the trainer, which also writes the adapter as
+`adapter.gguf` (`convert_lora_to_gguf.py`) before it announces it, so the swap itself is a file
+load (~20 ms on tiny). An adapter trained while the Python engine was selected is converted on
+first use. Both engines read the same memory store and adapters, so a data directory can switch
+engines at any time.
+
+How the two stay equivalent:
+
+- **Same prompt:** the model's own chat template (`llama_chat_apply_template`), special tokens
+  parsed, no extra BOS, as `apply_chat_template` + `add_special_tokens=False` in the worker.
+- **Same decoding:** greedy at temperature 0 (top-p 0.9 sampling otherwise) and an HF-style
+  repetition penalty of 1.1 over prompt *and* reply (prompt tokens are fed to the penalty sampler).
+  On the tiny profile both engines give token-identical replies at temperature 0.
+- **Same extraction:** `Mem.Extract` is a port of `memlib.extract_facts_rules`, `has_statement`,
+  the LLM extraction prompt, JSON parsing and grounding. `make test` checks it against 232 cases
+  dumped from the Python side (`memagent/tests/gen_extract_cases.py`).
+- **Same GPU split:** the model is pinned to `[gpu] infer` (`main_gpu`, no layer split), so the
+  training GPU stays free.
+
+`Mem.Llama` binds `llama.h` at tag `b11985` (the tag `llama_setup.sh` builds); record layouts are
+checked against the C compiler's sizes at compile time, so a header drift fails the build instead
+of corrupting memory. Medium/large profiles convert to `q8_0` (`models.json` `"gguf"`); `large`
+converts from the full-precision Magistral checkpoint because its training base is bnb-4bit.
+
 ## Build and run
 
 ```sh
@@ -108,10 +147,11 @@ both without RAG), `/sleep` (consolidate now), `/wait`, `/adapter`, `/rollback`,
 ## Tests
 
 ```sh
-make test                              # Pascal retrieval checks, TLS verification checks, Python unit tests
+make test                              # Pascal extraction parity + retrieval checks, TLS checks, Python unit tests
 MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the real tiny model
 make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
                                        #   consolidations, a correction, /forget, /rollback, non-ASCII facts
+make test-e2e-llama                    # the same on the in-process llama.cpp engine (after make llama)
 scripts/resilience_test.sh <e2e dir>   # restart keeps the active adapter (and a rollback), killed worker is
                                        #   restarted with the LoRA re-applied, static-embedder fallback,
                                        #   /quit during training waits and promotes
@@ -140,12 +180,13 @@ LoRA, no RAG     > Your dog's name is Max.
 ## Layout
 
 ```
-memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Db, Mem.Config,
+memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine (+ .Llama), Mem.Llama (llama.cpp binding),
+                 Mem.Extract (fact extraction), Mem.Consolidate, Mem.Db, Mem.Config,
                  Mem.Retrieval (embedder + reranker), Mem.Embed.*, Mem.Rerank.Onnx, Mem.Tokenizer,
                  Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download (provisioning)
-trainer/         Python worker + consolidation trainer + tests
+trainer/         Python worker + consolidation trainer + GGUF export (gguf_export.py) + tests
 models.json      model profiles          memagent.ini  agent config          priors.md  system prompt
-scripts/         e2e_demo.sh            docs/  sample e2e transcript
+scripts/         e2e_demo.sh, llama_setup.sh, ...       docs/  sample e2e transcript
 PLAN.md          design notes and roadmap (in-process llama.cpp engine, PasClaw integration)
 ```
 

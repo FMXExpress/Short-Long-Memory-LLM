@@ -1,0 +1,2625 @@
+{
+ "rules": [
+  {
+   "text": "My dog's name is Biscuit.",
+   "facts": [
+    {
+     "text": "Your dog's name is Biscuit.",
+     "subject": "my dog's name",
+     "value": "Biscuit",
+     "questions": [
+      "What is my dog's name?",
+      "What's my dog's name?",
+      "Do you remember my dog's name?",
+      "Tell me my dog's name.",
+      "Remind me, what is my dog's name?",
+      "Can you recall my dog's name?",
+      "I forgot my dog's name. What is it?",
+      "Do you know what my dog's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Hi, my name is Ada Lovelace and I like math.",
+   "facts": [
+    {
+     "text": "Your name is Ada Lovelace.",
+     "subject": "my name",
+     "value": "Ada Lovelace",
+     "questions": [
+      "What is my name?",
+      "What's my name?",
+      "Do you remember my name?",
+      "Tell me my name.",
+      "Remind me, what is my name?",
+      "Can you recall my name?",
+      "I forgot my name. What is it?",
+      "Do you know what my name is?",
+      "Who am I?"
+     ],
+     "confidence": 0.9,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The wifi password is tulip42.",
+   "facts": [
+    {
+     "text": "The wifi password is tulip42.",
+     "subject": "the wifi password",
+     "value": "tulip42",
+     "questions": [
+      "What is the wifi password?",
+      "What's the wifi password?",
+      "Do you remember the wifi password?",
+      "Tell me the wifi password.",
+      "Remind me, what is the wifi password?",
+      "Can you recall the wifi password?",
+      "I forgot the wifi password. What is it?",
+      "Do you know what the wifi password is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Remember that the wifi password is tulip42.",
+   "facts": [
+    {
+     "text": "The wifi password is tulip42.",
+     "subject": "the wifi password",
+     "value": "tulip42",
+     "questions": [
+      "What is the wifi password?",
+      "What's the wifi password?",
+      "Do you remember the wifi password?",
+      "Tell me the wifi password.",
+      "Remind me, what is the wifi password?",
+      "Can you recall the wifi password?",
+      "I forgot the wifi password. What is it?",
+      "Do you know what the wifi password is?"
+     ],
+     "confidence": 0.7,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I live in Reykjavik",
+   "facts": [
+    {
+     "text": "You live in Reykjavik.",
+     "subject": "where I live",
+     "value": "Reykjavik",
+     "questions": [
+      "Where do I live?",
+      "Where is my home?",
+      "Do you remember where I live?",
+      "Which city do I live in?",
+      "Remind me where I live.",
+      "Do you know where I live?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I work at Zorblax Industries.",
+   "facts": [
+    {
+     "text": "You work at Zorblax Industries.",
+     "subject": "where I work",
+     "value": "Zorblax Industries",
+     "questions": [
+      "Where do I work?",
+      "Who is my employer?",
+      "Do you remember where I work?",
+      "Which company do I work for?",
+      "Remind me where I work.",
+      "Do you know where I work?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "What is my dog's name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Hello there",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "My dentist appointment is on Friday.",
+   "facts": [
+    {
+     "text": "Your dentist appointment is on Friday.",
+     "subject": "my dentist appointment",
+     "value": "Friday",
+     "questions": [
+      "What is my dentist appointment?",
+      "What's my dentist appointment?",
+      "Do you remember my dentist appointment?",
+      "Tell me my dentist appointment.",
+      "Remind me, what is my dentist appointment?",
+      "Can you recall my dentist appointment?",
+      "I forgot my dentist appointment. What is it?",
+      "Do you know what my dentist appointment is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My car is a green Volvo.",
+   "facts": [
+    {
+     "text": "Your car is a green Volvo.",
+     "subject": "my car",
+     "value": "green Volvo",
+     "questions": [
+      "What is my car?",
+      "What's my car?",
+      "Do you remember my car?",
+      "Tell me my car.",
+      "Remind me, what is my car?",
+      "Can you recall my car?",
+      "I forgot my car. What is it?",
+      "Do you know what my car is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My bike is called Rocket.",
+   "facts": [
+    {
+     "text": "Your bike is called Rocket.",
+     "subject": "my bike",
+     "value": "Rocket",
+     "questions": [
+      "What is my bike?",
+      "What's my bike?",
+      "Do you remember my bike?",
+      "Tell me my bike.",
+      "Remind me, what is my bike?",
+      "Can you recall my bike?",
+      "I forgot my bike. What is it?",
+      "Do you know what my bike is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My doctor is Dr. Okafor.",
+   "facts": [
+    {
+     "text": "Your doctor is Dr. Okafor.",
+     "subject": "my doctor",
+     "value": "Dr. Okafor",
+     "questions": [
+      "What is my doctor?",
+      "What's my doctor?",
+      "Do you remember my doctor?",
+      "Tell me my doctor.",
+      "Remind me, what is my doctor?",
+      "Can you recall my doctor?",
+      "I forgot my doctor. What is it?",
+      "Do you know what my doctor is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite color is teal and I like boats.",
+   "facts": [
+    {
+     "text": "Your favorite color is teal.",
+     "subject": "my favorite color",
+     "value": "teal",
+     "questions": [
+      "What is my favorite color?",
+      "What's my favorite color?",
+      "Do you remember my favorite color?",
+      "Tell me my favorite color.",
+      "Remind me, what is my favorite color?",
+      "Can you recall my favorite color?",
+      "I forgot my favorite color. What is it?",
+      "Do you know what my favorite color is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Hi there, how are you?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Thanks!",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Hello there friend.",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "My sister Ana just moved to Lisbon.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "We will visit Ana in May. Any tips?",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Hi! I started a new job at Quillmark today.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "please remember: my locker code is 4471",
+   "facts": [
+    {
+     "text": "Your locker code is 4471.",
+     "subject": "my locker code",
+     "value": "4471",
+     "questions": [
+      "What is my locker code?",
+      "What's my locker code?",
+      "Do you remember my locker code?",
+      "Tell me my locker code.",
+      "Remind me, what is my locker code?",
+      "Can you recall my locker code?",
+      "I forgot my locker code. What is it?",
+      "Do you know what my locker code is?"
+     ],
+     "confidence": 0.9,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Our dentist is Dr. Mbeki, e.g. the one downtown. My cat is Tom!",
+   "facts": [
+    {
+     "text": "The dentist is Dr. Mbeki, e.g. the one downtown.",
+     "subject": "the dentist",
+     "value": "Dr. Mbeki, e.g. the one downtown",
+     "questions": [
+      "What is the dentist?",
+      "What's the dentist?",
+      "Do you remember the dentist?",
+      "Tell me the dentist.",
+      "Remind me, what is the dentist?",
+      "Can you recall the dentist?",
+      "I forgot the dentist. What is it?",
+      "Do you know what the dentist is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    },
+    {
+     "text": "Your cat is Tom.",
+     "subject": "my cat",
+     "value": "Tom",
+     "questions": [
+      "What is my cat?",
+      "What's my cat?",
+      "Do you remember my cat?",
+      "Tell me my cat.",
+      "Remind me, what is my cat?",
+      "Can you recall my cat?",
+      "I forgot my cat. What is it?",
+      "Do you know what my cat is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My name is josé",
+   "facts": [
+    {
+     "text": "Your name is josé.",
+     "subject": "my name",
+     "value": "josé",
+     "questions": [
+      "What is my name?",
+      "What's my name?",
+      "Do you remember my name?",
+      "Tell me my name.",
+      "Remind me, what is my name?",
+      "Can you recall my name?",
+      "I forgot my name. What is it?",
+      "Do you know what my name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My name is José Álvarez.",
+   "facts": [
+    {
+     "text": "Your name is José Álvarez.",
+     "subject": "my name",
+     "value": "José Álvarez",
+     "questions": [
+      "What is my name?",
+      "What's my name?",
+      "Do you remember my name?",
+      "Tell me my name.",
+      "Remind me, what is my name?",
+      "Can you recall my name?",
+      "I forgot my name. What is it?",
+      "Do you know what my name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My café is Ümlaut Bäckerei and we love it.",
+   "facts": [
+    {
+     "text": "Your café is Ümlaut Bäckerei.",
+     "subject": "my café",
+     "value": "Ümlaut Bäckerei",
+     "questions": [
+      "What is my café?",
+      "What's my café?",
+      "Do you remember my café?",
+      "Tell me my café.",
+      "Remind me, what is my café?",
+      "Can you recall my café?",
+      "I forgot my café. What is it?",
+      "Do you know what my café is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The meeting is at the Grand Hotel. It is late.",
+   "facts": [
+    {
+     "text": "The meeting is Grand Hotel.",
+     "subject": "the meeting",
+     "value": "Grand Hotel",
+     "questions": [
+      "What is the meeting?",
+      "What's the meeting?",
+      "Do you remember the meeting?",
+      "Tell me the meeting.",
+      "Remind me, what is the meeting?",
+      "Can you recall the meeting?",
+      "I forgot the meeting. What is it?",
+      "Do you know what the meeting is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My plan is it",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "the answer is   that",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My keys are in the drawer\n\nI work for the Acme Corp",
+   "facts": [
+    {
+     "text": "Your keys are in the drawer.",
+     "subject": "my keys",
+     "value": "drawer",
+     "questions": [
+      "What is my keys?",
+      "What's my keys?",
+      "Do you remember my keys?",
+      "Tell me my keys.",
+      "Remind me, what is my keys?",
+      "Can you recall my keys?",
+      "I forgot my keys. What is it?",
+      "Do you know what my keys is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    },
+    {
+     "text": "You work at Acme Corp.",
+     "subject": "where I work",
+     "value": "Acme Corp",
+     "questions": [
+      "Where do I work?",
+      "Who is my employer?",
+      "Do you remember where I work?",
+      "Which company do I work for?",
+      "Remind me where I work.",
+      "Do you know where I work?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My son's teacher was Mrs. Ito; she retired.",
+   "facts": [
+    {
+     "text": "Your son's teacher was Mrs. Ito; she retired.",
+     "subject": "my son's teacher",
+     "value": "Mrs. Ito; she retired",
+     "questions": [
+      "What is my son's teacher?",
+      "What's my son's teacher?",
+      "Do you remember my son's teacher?",
+      "Tell me my son's teacher.",
+      "Remind me, what is my son's teacher?",
+      "Can you recall my son's teacher?",
+      "I forgot my son's teacher. What is it?",
+      "Do you know what my son's teacher is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Remember, my gate code is 1234 because I forget",
+   "facts": [
+    {
+     "text": "Your gate code is 1234.",
+     "subject": "my gate code",
+     "value": "1234",
+     "questions": [
+      "What is my gate code?",
+      "What's my gate code?",
+      "Do you remember my gate code?",
+      "Tell me my gate code.",
+      "Remind me, what is my gate code?",
+      "Can you recall my gate code?",
+      "I forgot my gate code. What is it?",
+      "Do you know what my gate code is?"
+     ],
+     "confidence": 0.9,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My mother is called an Annie",
+   "facts": [
+    {
+     "text": "Your mother is called an Annie.",
+     "subject": "my mother",
+     "value": "Annie",
+     "questions": [
+      "What is my mother?",
+      "What's my mother?",
+      "Do you remember my mother?",
+      "Tell me my mother.",
+      "Remind me, what is my mother?",
+      "Can you recall my mother?",
+      "I forgot my mother. What is it?",
+      "Do you know what my mother is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favourite band is \"The Cure\".",
+   "facts": [
+    {
+     "text": "Your favourite band is The Cure.",
+     "subject": "my favourite band",
+     "value": "The Cure",
+     "questions": [
+      "What is my favourite band?",
+      "What's my favourite band?",
+      "Do you remember my favourite band?",
+      "Tell me my favourite band.",
+      "Remind me, what is my favourite band?",
+      "Can you recall my favourite band?",
+      "I forgot my favourite band. What is it?",
+      "Do you know what my favourite band is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "  ",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Ok cool thanks a lot",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Good morning! My boss is Priya.",
+   "facts": [
+    {
+     "text": "Your boss is Priya.",
+     "subject": "my boss",
+     "value": "Priya",
+     "questions": [
+      "What is my boss?",
+      "What's my boss?",
+      "Do you remember my boss?",
+      "Tell me my boss.",
+      "Remind me, what is my boss?",
+      "Can you recall my boss?",
+      "I forgot my boss. What is it?",
+      "Do you know what my boss is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My dog's name is Biscuit.",
+   "facts": [
+    {
+     "text": "Your dog's name is Biscuit.",
+     "subject": "my dog's name",
+     "value": "Biscuit",
+     "questions": [
+      "What is my dog's name?",
+      "What's my dog's name?",
+      "Do you remember my dog's name?",
+      "Tell me my dog's name.",
+      "Remind me, what is my dog's name?",
+      "Can you recall my dog's name?",
+      "I forgot my dog's name. What is it?",
+      "Do you know what my dog's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My cat's name is Zoë.",
+   "facts": [
+    {
+     "text": "Your cat's name is Zoë.",
+     "subject": "my cat's name",
+     "value": "Zoë",
+     "questions": [
+      "What is my cat's name?",
+      "What's my cat's name?",
+      "Do you remember my cat's name?",
+      "Tell me my cat's name.",
+      "Remind me, what is my cat's name?",
+      "Can you recall my cat's name?",
+      "I forgot my cat's name. What is it?",
+      "Do you know what my cat's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My sister's name is Ana.",
+   "facts": [
+    {
+     "text": "Your sister's name is Ana.",
+     "subject": "my sister's name",
+     "value": "Ana",
+     "questions": [
+      "What is my sister's name?",
+      "What's my sister's name?",
+      "Do you remember my sister's name?",
+      "Tell me my sister's name.",
+      "Remind me, what is my sister's name?",
+      "Can you recall my sister's name?",
+      "I forgot my sister's name. What is it?",
+      "Do you know what my sister's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My brother's name is Leo.",
+   "facts": [
+    {
+     "text": "Your brother's name is Leo.",
+     "subject": "my brother's name",
+     "value": "Leo",
+     "questions": [
+      "What is my brother's name?",
+      "What's my brother's name?",
+      "Do you remember my brother's name?",
+      "Tell me my brother's name.",
+      "Remind me, what is my brother's name?",
+      "Can you recall my brother's name?",
+      "I forgot my brother's name. What is it?",
+      "Do you know what my brother's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I live in Reykjavik.",
+   "facts": [
+    {
+     "text": "You live in Reykjavik.",
+     "subject": "where I live",
+     "value": "Reykjavik",
+     "questions": [
+      "Where do I live?",
+      "Where is my home?",
+      "Do you remember where I live?",
+      "Which city do I live in?",
+      "Remind me where I live.",
+      "Do you know where I live?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My hometown is Porto.",
+   "facts": [
+    {
+     "text": "Your hometown is Porto.",
+     "subject": "my hometown",
+     "value": "Porto",
+     "questions": [
+      "What is my hometown?",
+      "What's my hometown?",
+      "Do you remember my hometown?",
+      "Tell me my hometown.",
+      "Remind me, what is my hometown?",
+      "Can you recall my hometown?",
+      "I forgot my hometown. What is it?",
+      "Do you know what my hometown is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I work at Zorblax Industries.",
+   "facts": [
+    {
+     "text": "You work at Zorblax Industries.",
+     "subject": "where I work",
+     "value": "Zorblax Industries",
+     "questions": [
+      "Where do I work?",
+      "Who is my employer?",
+      "Do you remember where I work?",
+      "Which company do I work for?",
+      "Remind me where I work.",
+      "Do you know where I work?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My job title is pipeline engineer.",
+   "facts": [
+    {
+     "text": "Your job title is pipeline engineer.",
+     "subject": "my job title",
+     "value": "pipeline engineer",
+     "questions": [
+      "What is my job title?",
+      "What's my job title?",
+      "Do you remember my job title?",
+      "Tell me my job title.",
+      "Remind me, what is my job title?",
+      "Can you recall my job title?",
+      "I forgot my job title. What is it?",
+      "Do you know what my job title is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Remember that the wifi password is tulip42.",
+   "facts": [
+    {
+     "text": "The wifi password is tulip42.",
+     "subject": "the wifi password",
+     "value": "tulip42",
+     "questions": [
+      "What is the wifi password?",
+      "What's the wifi password?",
+      "Do you remember the wifi password?",
+      "Tell me the wifi password.",
+      "Remind me, what is the wifi password?",
+      "Can you recall the wifi password?",
+      "I forgot the wifi password. What is it?",
+      "Do you know what the wifi password is?"
+     ],
+     "confidence": 0.7,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite color is teal.",
+   "facts": [
+    {
+     "text": "Your favorite color is teal.",
+     "subject": "my favorite color",
+     "value": "teal",
+     "questions": [
+      "What is my favorite color?",
+      "What's my favorite color?",
+      "Do you remember my favorite color?",
+      "Tell me my favorite color.",
+      "Remind me, what is my favorite color?",
+      "Can you recall my favorite color?",
+      "I forgot my favorite color. What is it?",
+      "Do you know what my favorite color is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite food is ramen.",
+   "facts": [
+    {
+     "text": "Your favorite food is ramen.",
+     "subject": "my favorite food",
+     "value": "ramen",
+     "questions": [
+      "What is my favorite food?",
+      "What's my favorite food?",
+      "Do you remember my favorite food?",
+      "Tell me my favorite food.",
+      "Remind me, what is my favorite food?",
+      "Can you recall my favorite food?",
+      "I forgot my favorite food. What is it?",
+      "Do you know what my favorite food is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My car is a green Volvo.",
+   "facts": [
+    {
+     "text": "Your car is a green Volvo.",
+     "subject": "my car",
+     "value": "green Volvo",
+     "questions": [
+      "What is my car?",
+      "What's my car?",
+      "Do you remember my car?",
+      "Tell me my car.",
+      "Remind me, what is my car?",
+      "Can you recall my car?",
+      "I forgot my car. What is it?",
+      "Do you know what my car is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My birthday is on March 3rd.",
+   "facts": [
+    {
+     "text": "Your birthday is on March 3rd.",
+     "subject": "my birthday",
+     "value": "March 3rd",
+     "questions": [
+      "What is my birthday?",
+      "What's my birthday?",
+      "Do you remember my birthday?",
+      "Tell me my birthday.",
+      "Remind me, what is my birthday?",
+      "Can you recall my birthday?",
+      "I forgot my birthday. What is it?",
+      "Do you know what my birthday is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My son's name is Teo.",
+   "facts": [
+    {
+     "text": "Your son's name is Teo.",
+     "subject": "my son's name",
+     "value": "Teo",
+     "questions": [
+      "What is my son's name?",
+      "What's my son's name?",
+      "Do you remember my son's name?",
+      "Tell me my son's name.",
+      "Remind me, what is my son's name?",
+      "Can you recall my son's name?",
+      "I forgot my son's name. What is it?",
+      "Do you know what my son's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My daughter's name is Mila.",
+   "facts": [
+    {
+     "text": "Your daughter's name is Mila.",
+     "subject": "my daughter's name",
+     "value": "Mila",
+     "questions": [
+      "What is my daughter's name?",
+      "What's my daughter's name?",
+      "Do you remember my daughter's name?",
+      "Tell me my daughter's name.",
+      "Remind me, what is my daughter's name?",
+      "Can you recall my daughter's name?",
+      "I forgot my daughter's name. What is it?",
+      "Do you know what my daughter's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My doctor is Dr. Okafor.",
+   "facts": [
+    {
+     "text": "Your doctor is Dr. Okafor.",
+     "subject": "my doctor",
+     "value": "Dr. Okafor",
+     "questions": [
+      "What is my doctor?",
+      "What's my doctor?",
+      "Do you remember my doctor?",
+      "Tell me my doctor.",
+      "Remind me, what is my doctor?",
+      "Can you recall my doctor?",
+      "I forgot my doctor. What is it?",
+      "Do you know what my doctor is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My gym is Ironworks.",
+   "facts": [
+    {
+     "text": "Your gym is Ironworks.",
+     "subject": "my gym",
+     "value": "Ironworks",
+     "questions": [
+      "What is my gym?",
+      "What's my gym?",
+      "Do you remember my gym?",
+      "Tell me my gym.",
+      "Remind me, what is my gym?",
+      "Can you recall my gym?",
+      "I forgot my gym. What is it?",
+      "Do you know what my gym is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite band is Radiohead.",
+   "facts": [
+    {
+     "text": "Your favorite band is Radiohead.",
+     "subject": "my favorite band",
+     "value": "Radiohead",
+     "questions": [
+      "What is my favorite band?",
+      "What's my favorite band?",
+      "Do you remember my favorite band?",
+      "Tell me my favorite band.",
+      "Remind me, what is my favorite band?",
+      "Can you recall my favorite band?",
+      "I forgot my favorite band. What is it?",
+      "Do you know what my favorite band is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My bike is called Rocket.",
+   "facts": [
+    {
+     "text": "Your bike is called Rocket.",
+     "subject": "my bike",
+     "value": "Rocket",
+     "questions": [
+      "What is my bike?",
+      "What's my bike?",
+      "Do you remember my bike?",
+      "Tell me my bike.",
+      "Remind me, what is my bike?",
+      "Can you recall my bike?",
+      "I forgot my bike. What is it?",
+      "Do you know what my bike is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The project codename is Bluefin.",
+   "facts": [
+    {
+     "text": "The project codename is Bluefin.",
+     "subject": "the project codename",
+     "value": "Bluefin",
+     "questions": [
+      "What is the project codename?",
+      "What's the project codename?",
+      "Do you remember the project codename?",
+      "Tell me the project codename.",
+      "Remind me, what is the project codename?",
+      "Can you recall the project codename?",
+      "I forgot the project codename. What is it?",
+      "Do you know what the project codename is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The office door code is 4417.",
+   "facts": [
+    {
+     "text": "The office door code is 4417.",
+     "subject": "the office door code",
+     "value": "4417",
+     "questions": [
+      "What is the office door code?",
+      "What's the office door code?",
+      "Do you remember the office door code?",
+      "Tell me the office door code.",
+      "Remind me, what is the office door code?",
+      "Can you recall the office door code?",
+      "I forgot the office door code. What is it?",
+      "Do you know what the office door code is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My manager's name is Priya.",
+   "facts": [
+    {
+     "text": "Your manager's name is Priya.",
+     "subject": "my manager's name",
+     "value": "Priya",
+     "questions": [
+      "What is my manager's name?",
+      "What's my manager's name?",
+      "Do you remember my manager's name?",
+      "Tell me my manager's name.",
+      "Remind me, what is my manager's name?",
+      "Can you recall my manager's name?",
+      "I forgot my manager's name. What is it?",
+      "Do you know what my manager's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My allergy is penicillin.",
+   "facts": [
+    {
+     "text": "Your allergy is penicillin.",
+     "subject": "my allergy",
+     "value": "penicillin",
+     "questions": [
+      "What is my allergy?",
+      "What's my allergy?",
+      "Do you remember my allergy?",
+      "Tell me my allergy.",
+      "Remind me, what is my allergy?",
+      "Can you recall my allergy?",
+      "I forgot my allergy. What is it?",
+      "Do you know what my allergy is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My blood type is O negative.",
+   "facts": [
+    {
+     "text": "Your blood type is O negative.",
+     "subject": "my blood type",
+     "value": "O negative",
+     "questions": [
+      "What is my blood type?",
+      "What's my blood type?",
+      "Do you remember my blood type?",
+      "Tell me my blood type.",
+      "Remind me, what is my blood type?",
+      "Can you recall my blood type?",
+      "I forgot my blood type. What is it?",
+      "Do you know what my blood type is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My native language is Portuguese.",
+   "facts": [
+    {
+     "text": "Your native language is Portuguese.",
+     "subject": "my native language",
+     "value": "Portuguese",
+     "questions": [
+      "What is my native language?",
+      "What's my native language?",
+      "Do you remember my native language?",
+      "Tell me my native language.",
+      "Remind me, what is my native language?",
+      "Can you recall my native language?",
+      "I forgot my native language. What is it?",
+      "Do you know what my native language is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My dentist appointment is on Friday.",
+   "facts": [
+    {
+     "text": "Your dentist appointment is on Friday.",
+     "subject": "my dentist appointment",
+     "value": "Friday",
+     "questions": [
+      "What is my dentist appointment?",
+      "What's my dentist appointment?",
+      "Do you remember my dentist appointment?",
+      "Tell me my dentist appointment.",
+      "Remind me, what is my dentist appointment?",
+      "Can you recall my dentist appointment?",
+      "I forgot my dentist appointment. What is it?",
+      "Do you know what my dentist appointment is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My partner's name is Sam.",
+   "facts": [
+    {
+     "text": "Your partner's name is Sam.",
+     "subject": "my partner's name",
+     "value": "Sam",
+     "questions": [
+      "What is my partner's name?",
+      "What's my partner's name?",
+      "Do you remember my partner's name?",
+      "Tell me my partner's name.",
+      "Remind me, what is my partner's name?",
+      "Can you recall my partner's name?",
+      "I forgot my partner's name. What is it?",
+      "Do you know what my partner's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite book is Dune.",
+   "facts": [
+    {
+     "text": "Your favorite book is Dune.",
+     "subject": "my favorite book",
+     "value": "Dune",
+     "questions": [
+      "What is my favorite book?",
+      "What's my favorite book?",
+      "Do you remember my favorite book?",
+      "Tell me my favorite book.",
+      "Remind me, what is my favorite book?",
+      "Can you recall my favorite book?",
+      "I forgot my favorite book. What is it?",
+      "Do you know what my favorite book is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My running goal is a marathon in October.",
+   "facts": [
+    {
+     "text": "Your running goal is a marathon in October.",
+     "subject": "my running goal",
+     "value": "marathon in October",
+     "questions": [
+      "What is my running goal?",
+      "What's my running goal?",
+      "Do you remember my running goal?",
+      "Tell me my running goal.",
+      "Remind me, what is my running goal?",
+      "Can you recall my running goal?",
+      "I forgot my running goal. What is it?",
+      "Do you know what my running goal is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My laptop is a ThinkPad X1.",
+   "facts": [
+    {
+     "text": "Your laptop is a ThinkPad X1.",
+     "subject": "my laptop",
+     "value": "ThinkPad X1",
+     "questions": [
+      "What is my laptop?",
+      "What's my laptop?",
+      "Do you remember my laptop?",
+      "Tell me my laptop.",
+      "Remind me, what is my laptop?",
+      "Can you recall my laptop?",
+      "I forgot my laptop. What is it?",
+      "Do you know what my laptop is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My dog, what's he called again?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Remind me what I named my dog.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "What did I name my cat?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "My cat is called what?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my sister?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my sister called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my brother?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my brother called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which city is my home?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where am I living these days?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where did I grow up?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which town do I come from originally?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my employer?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which company pays my salary?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What do I do for a living?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my role at work?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How do I log into the wifi?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the password for the wireless network?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which colour do I like best?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my preferred color?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What do I love to eat most?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my go-to dish?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What do I drive?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which vehicle do I own?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When was I born?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "On which day do I celebrate my birthday?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my boy called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my son?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my girl called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my daughter?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my physician?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which doctor do I see?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where do I work out?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which fitness club am I a member of?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which group do I like listening to most?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my favourite music act?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What did I name my bicycle?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my bike's nickname?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What are we calling the project internally?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the code name of our project?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How do I get into the office?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the code for the office entrance?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my boss?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who do I report to?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What am I allergic to?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which medicine should I avoid?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What blood group do I have?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which blood type am I?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my mother tongue?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which language did I grow up speaking?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When do I see the dentist?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which day is my dental checkup?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who am I dating?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my partner called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which novel do I love most?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the book I'd recommend above all?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What race am I training for?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What am I aiming for with my running?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What computer do I use?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which notebook do I own?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my horse's name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What did I name my parrot?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my aunt called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my cousin?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where does my aunt live?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which city was my father born in?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where did I work before?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is the garage door code?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the password for my email?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my favorite movie?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my favorite drink?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What does my partner do for work?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When is my partner's birthday?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What motorbike do I own?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my son's favorite toy?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my grandmother called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which school did I go to?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What instrument do I play?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How tall am I?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my phone number?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "My rabbit's name is Clover.",
+   "facts": [
+    {
+     "text": "Your rabbit's name is Clover.",
+     "subject": "my rabbit's name",
+     "value": "Clover",
+     "questions": [
+      "What is my rabbit's name?",
+      "What's my rabbit's name?",
+      "Do you remember my rabbit's name?",
+      "Tell me my rabbit's name.",
+      "Remind me, what is my rabbit's name?",
+      "Can you recall my rabbit's name?",
+      "I forgot my rabbit's name. What is it?",
+      "Do you know what my rabbit's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My mother's name is Helga.",
+   "facts": [
+    {
+     "text": "Your mother's name is Helga.",
+     "subject": "my mother's name",
+     "value": "Helga",
+     "questions": [
+      "What is my mother's name?",
+      "What's my mother's name?",
+      "Do you remember my mother's name?",
+      "Tell me my mother's name.",
+      "Remind me, what is my mother's name?",
+      "Can you recall my mother's name?",
+      "I forgot my mother's name. What is it?",
+      "Do you know what my mother's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My father's name is Bruno.",
+   "facts": [
+    {
+     "text": "Your father's name is Bruno.",
+     "subject": "my father's name",
+     "value": "Bruno",
+     "questions": [
+      "What is my father's name?",
+      "What's my father's name?",
+      "Do you remember my father's name?",
+      "Tell me my father's name.",
+      "Remind me, what is my father's name?",
+      "Can you recall my father's name?",
+      "I forgot my father's name. What is it?",
+      "Do you know what my father's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I live in Tallinn.",
+   "facts": [
+    {
+     "text": "You live in Tallinn.",
+     "subject": "where I live",
+     "value": "Tallinn",
+     "questions": [
+      "Where do I live?",
+      "Where is my home?",
+      "Do you remember where I live?",
+      "Which city do I live in?",
+      "Remind me where I live.",
+      "Do you know where I live?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My university was Delft.",
+   "facts": [
+    {
+     "text": "Your university was Delft.",
+     "subject": "my university",
+     "value": "Delft",
+     "questions": [
+      "What is my university?",
+      "What's my university?",
+      "Do you remember my university?",
+      "Tell me my university.",
+      "Remind me, what is my university?",
+      "Can you recall my university?",
+      "I forgot my university. What is it?",
+      "Do you know what my university is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I work at Quillmark.",
+   "facts": [
+    {
+     "text": "You work at Quillmark.",
+     "subject": "where I work",
+     "value": "Quillmark",
+     "questions": [
+      "Where do I work?",
+      "Who is my employer?",
+      "Do you remember where I work?",
+      "Which company do I work for?",
+      "Remind me where I work.",
+      "Do you know where I work?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite sport is fencing.",
+   "facts": [
+    {
+     "text": "Your favorite sport is fencing.",
+     "subject": "my favorite sport",
+     "value": "fencing",
+     "questions": [
+      "What is my favorite sport?",
+      "What's my favorite sport?",
+      "Do you remember my favorite sport?",
+      "Tell me my favorite sport.",
+      "Remind me, what is my favorite sport?",
+      "Can you recall my favorite sport?",
+      "I forgot my favorite sport. What is it?",
+      "Do you know what my favorite sport is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite fruit is mango.",
+   "facts": [
+    {
+     "text": "Your favorite fruit is mango.",
+     "subject": "my favorite fruit",
+     "value": "mango",
+     "questions": [
+      "What is my favorite fruit?",
+      "What's my favorite fruit?",
+      "Do you remember my favorite fruit?",
+      "Tell me my favorite fruit.",
+      "Remind me, what is my favorite fruit?",
+      "Can you recall my favorite fruit?",
+      "I forgot my favorite fruit. What is it?",
+      "Do you know what my favorite fruit is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The router admin password is maple77.",
+   "facts": [
+    {
+     "text": "The router admin password is maple77.",
+     "subject": "the router admin password",
+     "value": "maple77",
+     "questions": [
+      "What is the router admin password?",
+      "What's the router admin password?",
+      "Do you remember the router admin password?",
+      "Tell me the router admin password.",
+      "Remind me, what is the router admin password?",
+      "Can you recall the router admin password?",
+      "I forgot the router admin password. What is it?",
+      "Do you know what the router admin password is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My boat's name is Wanderer.",
+   "facts": [
+    {
+     "text": "Your boat's name is Wanderer.",
+     "subject": "my boat's name",
+     "value": "Wanderer",
+     "questions": [
+      "What is my boat's name?",
+      "What's my boat's name?",
+      "Do you remember my boat's name?",
+      "Tell me my boat's name.",
+      "Remind me, what is my boat's name?",
+      "Can you recall my boat's name?",
+      "I forgot my boat's name. What is it?",
+      "Do you know what my boat's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My shoe size is 44.",
+   "facts": [
+    {
+     "text": "Your shoe size is 44.",
+     "subject": "my shoe size",
+     "value": "44",
+     "questions": [
+      "What is my shoe size?",
+      "What's my shoe size?",
+      "Do you remember my shoe size?",
+      "Tell me my shoe size.",
+      "Remind me, what is my shoe size?",
+      "Can you recall my shoe size?",
+      "I forgot my shoe size. What is it?",
+      "Do you know what my shoe size is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My dentist is Dr. Ferreira.",
+   "facts": [
+    {
+     "text": "Your dentist is Dr. Ferreira.",
+     "subject": "my dentist",
+     "value": "Dr. Ferreira",
+     "questions": [
+      "What is my dentist?",
+      "What's my dentist?",
+      "Do you remember my dentist?",
+      "Tell me my dentist.",
+      "Remind me, what is my dentist?",
+      "Can you recall my dentist?",
+      "I forgot my dentist. What is it?",
+      "Do you know what my dentist is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My niece's name is Ilse.",
+   "facts": [
+    {
+     "text": "Your niece's name is Ilse.",
+     "subject": "my niece's name",
+     "value": "Ilse",
+     "questions": [
+      "What is my niece's name?",
+      "What's my niece's name?",
+      "Do you remember my niece's name?",
+      "Tell me my niece's name.",
+      "Remind me, what is my niece's name?",
+      "Can you recall my niece's name?",
+      "I forgot my niece's name. What is it?",
+      "Do you know what my niece's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favorite season is autumn.",
+   "facts": [
+    {
+     "text": "Your favorite season is autumn.",
+     "subject": "my favorite season",
+     "value": "autumn",
+     "questions": [
+      "What is my favorite season?",
+      "What's my favorite season?",
+      "Do you remember my favorite season?",
+      "Tell me my favorite season.",
+      "Remind me, what is my favorite season?",
+      "Can you recall my favorite season?",
+      "I forgot my favorite season. What is it?",
+      "Do you know what my favorite season is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My team's standup is at 9:15.",
+   "facts": [
+    {
+     "text": "Your team's standup is at 9:15.",
+     "subject": "my team's standup",
+     "value": "9:15",
+     "questions": [
+      "What is my team's standup?",
+      "What's my team's standup?",
+      "Do you remember my team's standup?",
+      "Tell me my team's standup.",
+      "Remind me, what is my team's standup?",
+      "Can you recall my team's standup?",
+      "I forgot my team's standup. What is it?",
+      "Do you know what my team's standup is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My bank is Nordvik Savings.",
+   "facts": [
+    {
+     "text": "Your bank is Nordvik Savings.",
+     "subject": "my bank",
+     "value": "Nordvik Savings",
+     "questions": [
+      "What is my bank?",
+      "What's my bank?",
+      "Do you remember my bank?",
+      "Tell me my bank.",
+      "Remind me, what is my bank?",
+      "Can you recall my bank?",
+      "I forgot my bank. What is it?",
+      "Do you know what my bank is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My middle name is Aurelio.",
+   "facts": [
+    {
+     "text": "Your middle name is Aurelio.",
+     "subject": "my middle name",
+     "value": "Aurelio",
+     "questions": [
+      "What is my middle name?",
+      "What's my middle name?",
+      "Do you remember my middle name?",
+      "Tell me my middle name.",
+      "Remind me, what is my middle name?",
+      "Can you recall my middle name?",
+      "I forgot my middle name. What is it?",
+      "Do you know what my middle name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My preferred editor is Neovim.",
+   "facts": [
+    {
+     "text": "Your preferred editor is Neovim.",
+     "subject": "my preferred editor",
+     "value": "Neovim",
+     "questions": [
+      "What is my preferred editor?",
+      "What's my preferred editor?",
+      "Do you remember my preferred editor?",
+      "Tell me my preferred editor.",
+      "Remind me, what is my preferred editor?",
+      "Can you recall my preferred editor?",
+      "I forgot my preferred editor. What is it?",
+      "Do you know what my preferred editor is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My flight number is KL1123.",
+   "facts": [
+    {
+     "text": "Your flight number is KL1123.",
+     "subject": "my flight number",
+     "value": "KL1123",
+     "questions": [
+      "What is my flight number?",
+      "What's my flight number?",
+      "Do you remember my flight number?",
+      "Tell me my flight number.",
+      "Remind me, what is my flight number?",
+      "Can you recall my flight number?",
+      "I forgot my flight number. What is it?",
+      "Do you know what my flight number is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My coffee order is a flat white.",
+   "facts": [
+    {
+     "text": "Your coffee order is a flat white.",
+     "subject": "my coffee order",
+     "value": "flat white",
+     "questions": [
+      "What is my coffee order?",
+      "What's my coffee order?",
+      "Do you remember my coffee order?",
+      "Tell me my coffee order.",
+      "Remind me, what is my coffee order?",
+      "Can you recall my coffee order?",
+      "I forgot my coffee order. What is it?",
+      "Do you know what my coffee order is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "What's the bunny called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What name did I give my rabbit?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my mom?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my mum called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my dad?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my father called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What city do I live in now?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where's home for me?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where did I study?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which university did I attend?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which firm employs me?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where is my job?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which sport do I enjoy most?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my best-loved sport?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which fruit do I like best?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What fruit is my favourite?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How do I log into the router?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the router's admin password?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my boat called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What did I name the boat?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What size shoes do I wear?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which shoe size am I?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who looks after my teeth?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which dentist do I go to?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my niece called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my niece?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which time of year do I like most?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What season do I prefer?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When is our daily standup?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What time does my team meet each morning?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where do I keep my money?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which bank am I with?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What second given name do I have?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the name between my first and last name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which text editor do I use?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What do I write code in?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which flight am I on?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my flight?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How do I take my coffee?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What coffee should you order for me?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my goat's name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my stepmother?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my uncle called?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where does my uncle live?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which high school did I attend?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Where does my partner work?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What sport did I play as a child?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which vegetable do I hate?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's the password for my laptop?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my car's name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my hat size?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Who is my optician?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my nephew's name?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When is my next holiday?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "When is the quarterly review?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What's my favorite restaurant?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "How many siblings do I have?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my zodiac sign?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Which hotel am I staying at?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What is my license plate?",
+   "facts": [],
+   "has_statement": false
+  }
+ ],
+ "llm": [
+  {
+   "out": "{\n  \"text\": \"Your sister Ana lives in Lisbon.\",\n  \"subject\": \"my sister's city\",\n  \"value\": \"Lisbon\"\n}",
+   "source": "My sister Ana just moved to Lisbon, she works there as a nurse.",
+   "facts": [
+    {
+     "text": "Your sister Ana lives in Lisbon.",
+     "subject": "my sister's city",
+     "value": "Lisbon",
+     "questions": [
+      "What is my sister's city?",
+      "What's my sister's city?",
+      "Do you remember my sister's city?",
+      "Tell me my sister's city.",
+      "Remind me, what is my sister's city?",
+      "Can you recall my sister's city?",
+      "I forgot my sister's city. What is it?",
+      "Do you know what my sister's city is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ]
+  },
+  {
+   "out": "Sure! {\"text\": \"Your sister Ana lives in Lisbon.\", \"subject\": \"my sister's city\", \"value\": \"Lisbon\"}\n{\"text\": \"Your sister Ana is a nurse.\", \"subject\": \"my sister's job\", \"value\": \"nurse\"} {broken",
+   "source": "My sister Ana just moved to Lisbon, she works there as a nurse.",
+   "facts": [
+    {
+     "text": "Your sister Ana lives in Lisbon.",
+     "subject": "my sister's city",
+     "value": "Lisbon",
+     "questions": [
+      "What is my sister's city?",
+      "What's my sister's city?",
+      "Do you remember my sister's city?",
+      "Tell me my sister's city.",
+      "Remind me, what is my sister's city?",
+      "Can you recall my sister's city?",
+      "I forgot my sister's city. What is it?",
+      "Do you know what my sister's city is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    },
+    {
+     "text": "Your sister Ana is a nurse.",
+     "subject": "my sister's job",
+     "value": "nurse",
+     "questions": [
+      "What is my sister's job?",
+      "What's my sister's job?",
+      "Do you remember my sister's job?",
+      "Tell me my sister's job.",
+      "Remind me, what is my sister's job?",
+      "Can you recall my sister's job?",
+      "I forgot my sister's job. What is it?",
+      "Do you know what my sister's job is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ]
+  },
+  {
+   "out": "{\"text\": \"The current time is 14:30.\", \"subject\": \"time\", \"value\": \"14:30\"}",
+   "source": "What time is it right now?",
+   "facts": []
+  },
+  {
+   "out": "{\"text\": \"Your passport expires in March 2027.\", \"subject\": \"my passport expiry\", \"value\": \"March 2027\"}",
+   "source": "My passport expires in March 2027.",
+   "facts": [
+    {
+     "text": "Your passport expires in March 2027.",
+     "subject": "my passport expiry",
+     "value": "March 2027",
+     "questions": [
+      "What is my passport expiry?",
+      "What's my passport expiry?",
+      "Do you remember my passport expiry?",
+      "Tell me my passport expiry.",
+      "Remind me, what is my passport expiry?",
+      "Can you recall my passport expiry?",
+      "I forgot my passport expiry. What is it?",
+      "Do you know what my passport expiry is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ]
+  },
+  {
+   "out": "{\"text\": \"x\", \"subject\": \"my number\", \"value\": 42} {\"text\": \"{nested}\", \"subject\": \"s\", \"value\": \"Lisbon\"}",
+   "source": "My sister Ana just moved to Lisbon, she works there as a nurse. 42",
+   "facts": [
+    {
+     "text": "x",
+     "subject": "my number",
+     "value": "42",
+     "questions": [
+      "What is my number?",
+      "What's my number?",
+      "Do you remember my number?",
+      "Tell me my number.",
+      "Remind me, what is my number?",
+      "Can you recall my number?",
+      "I forgot my number. What is it?",
+      "Do you know what my number is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    },
+    {
+     "text": "{nested}",
+     "subject": "s",
+     "value": "Lisbon",
+     "questions": [
+      "What is s?",
+      "What's s?",
+      "Do you remember s?",
+      "Tell me s.",
+      "Remind me, what is s?",
+      "Can you recall s?",
+      "I forgot s. What is it?",
+      "Do you know what s is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ]
+  },
+  {
+   "out": "[{\"text\": \"a\", \"subject\": \"b\"}] {\"text\": \"t \\\" q\", \"subject\": \"s\", \"value\": \"nurse\"}",
+   "source": "My sister Ana just moved to Lisbon, she works there as a nurse.",
+   "facts": [
+    {
+     "text": "t \" q",
+     "subject": "s",
+     "value": "nurse",
+     "questions": [
+      "What is s?",
+      "What's s?",
+      "Do you remember s?",
+      "Tell me s.",
+      "Remind me, what is s?",
+      "Can you recall s?",
+      "I forgot s. What is it?",
+      "Do you know what s is?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ]
+  }
+ ]
+}

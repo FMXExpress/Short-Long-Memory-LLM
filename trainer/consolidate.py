@@ -115,6 +115,8 @@ def main():
     ap.add_argument("--models")
     ap.add_argument("--priors", help="system prompt file, so training matches inference")
     ap.add_argument("--seed", type=int, default=1234)
+    ap.add_argument("--gguf", metavar="LLAMA_SRC",
+                    help="also write adapter.gguf for the llama.cpp engine, with the converter in this checkout")
     ap.add_argument("--no-gate", action="store_true", help="save the adapter even if the eval gate fails (benchmarks)")
     a = ap.parse_args()
 
@@ -243,6 +245,10 @@ def main():
     path = os.path.join(a.out, adapter_id)
     os.makedirs(path, exist_ok=True)
     model.save_pretrained(path)
+    if a.gguf:
+        # before ready.json: the in-process engine loads adapter.gguf on the swap
+        import gguf_export
+        _, metrics["gguf_seconds"] = gguf_export.export_adapter(path, prof, a.gguf)
     manifest = {"id": adapter_id, "path": os.path.abspath(path), "profile": prof["name"],
                 "base": prof["base"], "created": dt.datetime.now().isoformat(timespec="seconds"),
                 "fact_ids": [f["id"] for f in facts], "passed_fact_ids": passed,

@@ -11,6 +11,7 @@ rm -rf "$DIR/data"; mkdir -p "$DIR"
 cat > "$DIR/memagent.ini" <<INI
 [agent]
 profile=$PROFILE
+engine=${MEMAGENT_ENGINE:-python}
 models=$PWD/models.json
 priors=$PWD/priors.md
 data_dir=$DIR/data

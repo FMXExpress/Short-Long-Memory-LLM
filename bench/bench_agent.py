@@ -7,6 +7,7 @@ Everything is the production path: rule/LLM extraction, hybrid retrieval with
 the reranker, the agent's prompt, the trainer and the hot swap.
 
   python3 bench/bench_agent.py --profile tiny --out bench/results/agent-tiny.json
+  python3 bench/bench_agent.py --profile tiny --engine llama   (in-process llama.cpp)
 """
 import argparse
 import json
@@ -52,6 +53,7 @@ def main():
     ap.add_argument("--n", type=int, default=0)
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
+    ap.add_argument("--engine", default="python", choices=["python", "llama"])
     a = ap.parse_args()
 
     data = json.load(open(a.facts, encoding="utf-8"))
@@ -63,6 +65,7 @@ def main():
     with open(ini, "w") as f:
         f.write(f"""[agent]
 profile={a.profile}
+engine={a.engine}
 models={REPO}/models.json
 priors={REPO}/priors.md
 data_dir={work}/data
@@ -102,7 +105,7 @@ cache_dir={REPO}/cache
     phase_len = len(questions) + len(unknown)
     phases = {"before_sleep": qa[:phase_len], "after_sleep": qa[phase_len:2 * phase_len]}
     stored = len(re.findall(r"^\[memory [+~]#", p.stdout, re.M))
-    res = {"label": a.label, "profile": a.profile, "n_facts": len(facts), "facts_stored": stored,
+    res = {"label": a.label, "profile": a.profile, "engine": a.engine, "n_facts": len(facts), "facts_stored": stored,
            "wall_seconds": round(wall, 1)}
     for name, rows in phases.items():
         known_rows, unk_rows = rows[:len(questions)], rows[len(questions):]

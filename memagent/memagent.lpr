@@ -11,7 +11,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Engine.Llama, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
 
 var
   Cfg: TMemConfig;
@@ -69,7 +69,11 @@ begin
     end;
     WriteLn('guard: ', IfThen(Guard = nil, 'off', 'on (' + Cfg.GuardModel + ')'));
     Store := TMemStore.Create(Cfg.DbPath);
-    Engine := TPyWorkerEngine.Create(Cfg);
+    { [agent] engine: the model behind the one TEngine seam }
+    if Cfg.Engine = 'llama' then
+      Engine := TLlamaEngine.Create(Cfg)
+    else
+      Engine := TPyWorkerEngine.Create(Cfg);
     Cons := TConsolidator.Create(Cfg);
     Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
     try

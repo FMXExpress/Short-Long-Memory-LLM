@@ -86,6 +86,11 @@ begin
     LProc.Parameters.Add(FCfg.ModelsFile);
     LProc.Parameters.Add('--priors');
     LProc.Parameters.Add(FCfg.PriorsFile);
+    if FCfg.Engine = 'llama' then
+    begin
+      LProc.Parameters.Add('--gguf');
+      LProc.Parameters.Add(FCfg.LlamaSrcDir);
+    end;
     InheritEnvironment(LProc);
     LProc.Environment.Add(GpuEnv(FCfg.TrainGpu));
     { one pipe for both streams: the whole run goes to the log, and only

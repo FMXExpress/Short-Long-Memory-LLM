@@ -1,6 +1,6 @@
 # Plan: "memagent", a Free Pascal Agent Demo with Short- and Long-Term Memory
 
-## Status (2026-10-28)
+## Status (2026-10-29)
 
 M1–M5 are implemented and tested end to end on the `tiny` profile (SmolLM2-135M, CPU):
 `make test` runs the unit tests and the worker protocol test, and `make test-e2e` runs the real
@@ -56,6 +56,22 @@ Full test pass from a fresh clone, plus fixes found by it (2026-10-29):
   failed the drift gate (1.75×), so they are now 4 epochs at lr 3e-4: recall 1.00, drift 1.45×.
 - **Fixed: `Mem.Https` ignored `NO_PROXY`.**
 
+In-process llama.cpp engine (2026-10-29), selectable against the Python worker:
+
+- **Binding:** `Mem.Llama` loads libllama/libggml with dynlibs (the agent still runs without
+  them) and binds the ~35 calls it needs at llama.cpp tag `b11985`. Record layouts are asserted
+  at compile time against the sizes the C compiler reports for that header.
+- **Engine:** `Mem.Engine.Llama.TLlamaEngine` implements `TEngine`: chat template, prompt decode,
+  sampler chain (penalties 1.1 over prompt+reply, greedy or top-p), UTF-8-safe streaming, LoRA
+  swap with `llama_adapter_lora_init` + `llama_set_adapters_lora`, `/ab` by detaching the adapter
+  for one call. Selected with `engine=llama` or `--engine llama`; `memagent.lpr` is the only
+  place that knows which engine runs.
+- **Extraction:** `Mem.Extract` ports the rule extractor, `has_statement`, the LLM prompt, JSON
+  parsing and grounding, verified against cases dumped from memlib (458/458 checks).
+- **GGUF:** `trainer/gguf_export.py` converts the base model (`scripts/llama_setup.sh`) and each
+  adapter (`consolidate.py --gguf`, before `ready.json`, so the swap never waits); the engine
+  converts older adapters on first load.
+
 Not yet exercised: the CUDA and 4-bit paths and the `small`/`medium`/`large` profiles, because
 this build environment has no GPU. The code paths exist (`memlib.load_base`), but they need a
 first run on real GPUs.
@@ -85,9 +101,9 @@ A Python process per turn would reload the model every time, which takes
 10–60 s, so the inference worker is kept running. Both scripts are mostly
 a refactor of the existing `v2/cragchat.py`.
 
-Later, the worker can be replaced by in-process llama.cpp (localpal style,
-see §9) **without touching the agent**, because the agent only talks to an
-`IEngine` interface.
+The worker can be replaced by in-process llama.cpp (localpal style) **without
+touching the agent**, because the agent only talks to the `TEngine`
+interface. This is now built: `[agent] engine=llama` (see Status).
 
 ```
  ┌─────────────── memagent (FPC console app) ───────────────────────┐
@@ -249,7 +265,10 @@ FWorker.Execute;
 ```
 memagent/
   memagent.lpr             entry point + REPL
-  Mem.Engine.pas           IEngine interface + TPyWorkerEngine (TProcess / JSON lines)
+  Mem.Engine.pas           TEngine interface + TPyWorkerEngine (TProcess / JSON lines)
+  Mem.Engine.Llama.pas     TLlamaEngine: llama.cpp in-process (engine=llama)
+  Mem.Llama.pas            dynlibs binding to llama.h (pinned tag)
+  Mem.Extract.pas          rule + LLM-output fact extraction (port of memlib)
   Mem.Store.pas            sqldb SQLite: messages, facts (FTS5), summary, adapters
   Mem.Agent.pas            turn loop (§4), prompt assembly, tool parsing
   Mem.Consolidate.pas      scheduler, lock, one-shot trainer launch, ready.json watch
@@ -259,6 +278,7 @@ trainer/
   worker.py                §3, inference worker (GPU 0)
   consolidate.py           §5, training job (GPU 1)
   memlib.py                code shared by both: model loading, chat template, fact scaling (from v2)
+  gguf_export.py           base model + adapters to GGUF for the llama engine
   requirements.txt         torch, transformers, peft, trl, bitsandbytes, datasets
 legacy/                    current Python prototypes (cragchat, memos, ...)
 ```
@@ -289,13 +309,10 @@ only reads `facts`, and its results come back through the manifest.
 
 ## 9. Later
 
-- **No Python at inference time:** add `TLlamaEngine` behind `IEngine`, a
-  thin FPC binding to a pinned `llama.h` (localpal's design, but its
-  vendored llama-cpp-delphi is Delphi-only and uses the removed
-  `llama_lora_adapter_*` names; current names are `llama_adapter_lora_init`
-  and `llama_set_adapters_lora`). The trainer then also runs
-  `convert_lora_to_gguf.py`. The agent does not change.
-- **PasClaw:** `IEngine` becomes a local provider, `facts` maps to
+- ~~**No Python at inference time**~~: done, `TLlamaEngine` (see Status).
+  Next step there: train with llama.cpp's own finetune and drop Python
+  entirely, once its LoRA training covers the eval gate's needs.
+- **PasClaw:** `TEngine` becomes a local provider, `facts` maps to
   `PasClaw.Memory.Facts` (plus a `baked_in` column), and consolidation
   becomes a cron skill next to `@maintain`.
 
