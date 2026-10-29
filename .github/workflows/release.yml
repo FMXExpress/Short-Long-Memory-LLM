@@ -100,8 +100,7 @@ jobs:
           git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
           cmake -S cache/llama.cpp -B cache/llama.cpp/build -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF \
             -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
-            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-            -DGGML_OPENMP=OFF
+            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DGGML_OPENMP=OFF
           cmake --build cache/llama.cpp/build --config Release --target llama -j 4
           ls cache/llama.cpp/build/bin/Release
       - name: Stage
@@ -118,7 +117,9 @@ jobs:
             if [ -f "$d/libssl-3-x64.dll" ]; then cp "$d/libssl-3-x64.dll" "$d/libcrypto-3-x64.dll" "$OUT/"; break; fi
           done
           [ -f "$OUT/libssl-3-x64.dll" ] || { echo "no OpenSSL 3 DLLs found"; exit 1; }
-          # VC++ runtime for the MSVC-built OpenSSL and ONNX Runtime DLLs (app-local deployment)
+          # VC++ runtime (app-local) for llama.cpp, OpenSSL and ONNX Runtime. llama.cpp must use the
+          # shared runtime (/MD): with /MT each DLL has its own heap, and C++ objects passed between
+          # ggml and llama crash the model load (0xC0000409)
           for f in vcruntime140.dll vcruntime140_1.dll msvcp140.dll; do cp "/c/Windows/System32/$f" "$OUT/"; done
           cp models.json priors.md LICENSE "$OUT/"
           cp packaging/README.release.md "$OUT/README.md"

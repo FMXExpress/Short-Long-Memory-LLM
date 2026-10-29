@@ -166,8 +166,8 @@ exits. The config is `./memagent.ini`, else the one next to the binary.
 
 `make package VERSION=x.y.z` builds the Linux release folder and tarball in `dist/` (binary,
 llama.cpp libraries in `lib/`, config, trainer, GGUF converters). Pushing a tag `v*` runs
-`.github/workflows/release.yml`: it builds Linux and Windows (FPC from Lazarus, llama.cpp with the
-static MSVC runtime, sqlite3/OpenSSL 3 DLLs and `cacert.pem` bundled), smoke-tests each package on a
+`.github/workflows/release.yml` (or run it by hand with `version=x.y.z`): it builds Linux and Windows
+(FPC from Lazarus; llama.cpp, the VC++ runtime, sqlite3/OpenSSL 3 DLLs and `cacert.pem` bundled), smoke-tests each package on a
 fresh folder (downloads, then a chat on the llama engine), wraps Windows in the Inno Setup installer
 (`packaging/memagent.iss`) and publishes the release.
 
