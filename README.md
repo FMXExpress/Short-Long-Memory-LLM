@@ -71,6 +71,22 @@ tunnels through `HTTPS_PROXY` and loads OpenSSL 3. Linux and macOS use the syste
 On **Windows**, put `libssl-3-x64.dll` and `libcrypto-3-x64.dll` next to `memagent.exe`; they ship
 with curl for Windows and with Lazarus.
 
+## Confabulation guard and abstention training
+
+Fine-tuning facts into a LoRA makes the model eager to answer from memory. Asked "What's my
+horse's name?", it replies with the dog's name. Two measured countermeasures:
+
+- **Licensing guard** (`Mem.Guard`, `[guard]` in memagent.ini, on when bge-reranker-base is
+  provisioned). For a question about "my X", an answer that uses a stored value belonging to a
+  different subject is replaced with "You haven't told me that yet." In the live agent it blocks
+  aunt → the sister's name and parrot → the cat's name, and lets dog, sister and cat through. In
+  the benchmarks, confabulation goes from 0.70 to 0.25 (tiny) and from 0.55 to 0.20 (small), for
+  3-7 points of accuracy.
+- **DPO abstention stage** (`train.dpo` in models.json, off by default): preference pairs
+  "abstain > the model's own wrong answer" and "fact > abstain". On the 1.5B profile it cuts
+  confabulation with a look-alike in memory from 0.87 to 0.13 (0.07 with the guard). On the 135M
+  profile it does not generalize. Details and the open ablation are in `bench/README.md`.
+
 ## Build and run
 
 ```sh
