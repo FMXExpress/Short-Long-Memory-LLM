@@ -1,18 +1,24 @@
 name: release
 
-# Push a tag v* to build and publish a release:
+# Push a tag v*, or run the workflow by hand with a version, to build and publish a release:
 #   memagent-<ver>-linux-x64.tar.gz          portable folder, ./memagent
 #   memagent-<ver>-windows-x64-setup.exe     Inno Setup installer (per user, no admin)
 #   memagent-<ver>-windows-x64.zip           the same files, portable
 # Each binary is smoke-tested before anything is published: --provision
 # (verified TLS downloads, ONNX Runtime, GGUF model) and a short chat on the
-# in-process llama.cpp engine. Pull requests and workflow_dispatch build without publishing.
+# in-process llama.cpp engine. Pull requests, and a manual run without a version, build without
+# publishing; a manual run with version=x.y.z tags the commit it ran on as vx.y.z.
 
 on:
   push:
     tags: ["v*"]
   pull_request:          # build + smoke-test only; publish runs for tags
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 0.1.0): tags this commit v<version> and publishes. Empty = build only."
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -27,8 +33,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="dev-${GITHUB_SHA::7}"; fi
+          if [[ -n "$INPUT_VERSION" ]]; then V="${INPUT_VERSION#v}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"
+          else V="dev-${GITHUB_SHA::7}"; fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
       - name: Toolchain
         run: sudo apt-get update && sudo apt-get install -y fpc cmake libsqlite3-0
@@ -64,8 +74,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="dev-${GITHUB_SHA::7}"; fi
+          if [[ -n "$INPUT_VERSION" ]]; then V="${INPUT_VERSION#v}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"
+          else V="dev-${GITHUB_SHA::7}"; fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
       - name: Free Pascal (Lazarus ships FPC 3.2.2 for win64)
         shell: pwsh
@@ -86,7 +100,8 @@ jobs:
           git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
           cmake -S cache/llama.cpp -B cache/llama.cpp/build -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF \
             -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
-            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+            -DGGML_OPENMP=OFF
           cmake --build cache/llama.cpp/build --config Release --target llama -j 4
           ls cache/llama.cpp/build/bin/Release
       - name: Stage
@@ -117,8 +132,18 @@ jobs:
         run: |
           mkdir -p /tmp/smoke && cp -r dist/memagent-windows-x64 /tmp/smoke/
           cd /tmp
+          set +e
           printf "My dog's name is Biscuit.\nWhat is my dog's name?\n/status\n/quit\n" \
-            | /tmp/smoke/memagent-windows-x64/memagent.exe | tee out.txt
+            | /tmp/smoke/memagent-windows-x64/memagent.exe > out.txt 2>&1
+          code=$?
+          set -e
+          cat out.txt
+          echo "memagent exit code: $code"
+          if [ $code -ne 0 ]; then
+            echo "--- llama.log"; cat /tmp/smoke/memagent-windows-x64/data/logs/llama.log 2>/dev/null | tail -40 || true
+            ls -la /tmp/smoke/memagent-windows-x64/cache/gguf || true
+            exit 1
+          fi
           grep -q "via llama.cpp in-process" out.txt
           grep -q "memory +#1\] Your dog's name is Biscuit" out.txt
       - name: Installer and zip
@@ -136,7 +161,7 @@ jobs:
             dist/memagent-*-windows-x64.zip
 
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.version != ''
     needs: [linux, windows]
     runs-on: ubuntu-latest
     steps:
@@ -147,5 +172,8 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          # a manual run creates the tag on the commit it built
+          tag_name: ${{ inputs.version != '' && format('v{0}', inputs.version) || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ contains(inputs.version != '' && inputs.version || github.ref_name, '-') }}
           generate_release_notes: true
