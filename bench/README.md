@@ -100,6 +100,7 @@ Fixes:
 |---|---|---|---|---|---|---|---|---|
 | small baseline | 0.883 | 1.000 | 0.967 | 0.067 | 0.55 | 0.87 | **1.61 (gate fails)** | 1811 |
 | small, epochs 2 + DPO (β 0.1, lr 1e-4, 3 epochs, 60 pairs) | 0.633 | 0.933 | 0.967 | 0.083 | 0.35 | **0.13** | 1.55 | 6465 |
+| **small, epochs 2** (ablation, no DPO) | **0.883** | **1.000** | 0.967 | 0.067 | 0.55 | 0.53 | **1.37 (passes)** | 1151 |
 
 - The 1.5B model reads its memory block almost perfectly (0.97, against 0.37 for the 135M model).
   For real-sized models RAG carries most of the weight; the LoRA adds recall when retrieval misses.
@@ -198,3 +199,22 @@ Guard on the held-out answers (threshold 0.03 chosen on dev):
 | confabulation, base + look-alike | 0.33 | **0.00** |
 
 The dev-tuned settings carry over to unseen facts, and on held-out the guard costs no accuracy at all.
+
+## Decision: small = 2 epochs + guard; DPO stays off
+
+The ablation separates the two changes:
+- **2 epochs (instead of 4):** the same LoRA accuracy (0.883), now passing the drift gate
+  (1.37 against 1.61), look-alike confabulation down from 0.87 to 0.53, and 36% faster training.
+  This is the new `small` default.
+- **DPO:** it causes the LoRA-alone drop (0.88 → 0.63) and costs 5.6× the training time.
+
+With the guard on, the system-level comparison:
+
+| small | LoRA+RAG accuracy | confab. LoRA | confab. LoRA+look-alike |
+|---|---|---|---|
+| 2 epochs + guard | **0.933** | **0.15** | **0.067** |
+| 2 epochs + DPO + guard | 0.867 | 0.20 | 0.067 |
+
+DPO adds nothing once the guard runs and costs accuracy, so it stays implemented but off. The
+`medium`/`large` hyperparameters (8 epochs, from v2) are untested; the same step-driven drift is
+likely, so run `scripts/profile_smoke.sh medium --train` on a GPU before relying on them.

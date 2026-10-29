@@ -49,7 +49,7 @@
         "targets": "all-linear"
       },
       "train": {
-        "epochs": 4,
+        "epochs": 2,
         "lr": 0.0003,
         "batch": 8,
         "grad_accum": 1,
