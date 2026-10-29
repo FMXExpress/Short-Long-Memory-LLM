@@ -2,7 +2,7 @@ FPC      ?= fpc
 FPCFLAGS ?= -O2 -Sh -ve -vm6058
 BUILD    := build
 
-.PHONY: all clean test test-pascal test-https test-e2e provision bench-retrieval bench-memory
+.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama bench-retrieval bench-memory
 
 all: $(BUILD)/memagent
 
@@ -17,6 +17,10 @@ $(BUILD)/retrieval_test: memagent/*.pas memagent/tests/retrieval_test.lpr
 $(BUILD)/https_get: memagent/*.pas memagent/tests/https_get.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/https_get memagent/tests/https_get.lpr
+
+$(BUILD)/extract_test: memagent/*.pas memagent/tests/extract_test.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/extract_test memagent/tests/extract_test.lpr
 
 $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 	@mkdir -p $(BUILD)/units
@@ -39,7 +43,8 @@ provision: all
 test: test-pascal test-https
 	python3 -m unittest discover -s trainer -p 'test_*.py' -v
 
-test-pascal: $(BUILD)/retrieval_test
+test-pascal: $(BUILD)/retrieval_test $(BUILD)/extract_test
+	./$(BUILD)/extract_test memagent/tests/extract_cases.json
 	./$(BUILD)/retrieval_test cache
 
 # certificate verification + NO_PROXY against a local openssl s_server
@@ -48,6 +53,14 @@ test-https: $(BUILD)/https_get
 
 test-e2e: all
 	./scripts/e2e_demo.sh
+
+# the same demo on the in-process llama.cpp engine
+test-e2e-llama: all
+	MEMAGENT_ENGINE=llama ./scripts/e2e_demo.sh
+
+# llama.cpp shared libraries + GGUF base model for the llama engine (PROFILES="tiny small")
+llama:
+	./scripts/llama_setup.sh $(PROFILES)
 
 clean:
 	rm -rf $(BUILD)

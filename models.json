@@ -6,6 +6,9 @@
       "base": "HuggingFaceTB/SmolLM2-135M-Instruct",
       "dtype": "float32",
       "quant": "none",
+      "gguf": {
+        "outtype": "f16"
+      },
       "ctx_tokens": 2048,
       "max_new_tokens": 96,
       "temperature": 0.0,
@@ -37,6 +40,9 @@
       "base": "Qwen/Qwen2.5-1.5B-Instruct",
       "dtype": "bfloat16",
       "quant": "none",
+      "gguf": {
+        "outtype": "f16"
+      },
       "ctx_tokens": 4096,
       "max_new_tokens": 256,
       "temperature": 0.7,
@@ -69,6 +75,9 @@
       "base": "Qwen/Qwen3-4B-Instruct-2507",
       "dtype": "bfloat16",
       "quant": "4bit",
+      "gguf": {
+        "outtype": "q8_0"
+      },
       "ctx_tokens": 8192,
       "max_new_tokens": 512,
       "temperature": 0.7,
@@ -101,6 +110,10 @@
       "base": "unsloth/Magistral-Small-2506-bnb-4bit",
       "dtype": "bfloat16",
       "quant": "4bit",
+      "gguf": {
+        "source": "unsloth/Magistral-Small-2506",
+        "outtype": "q8_0"
+      },
       "ctx_tokens": 16384,
       "max_new_tokens": 1024,
       "temperature": 0.7,

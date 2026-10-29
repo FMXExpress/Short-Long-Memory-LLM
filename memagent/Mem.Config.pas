@@ -21,6 +21,7 @@ type
     PythonExe: string;
     ModelsFile: string;
     ProfileName: string;
+    Engine: string;          { python (Transformers + PEFT worker) | llama (llama.cpp in-process) }
     InferGpu: Integer;
     TrainGpu: Integer;
     RecentTurns: Integer;
@@ -48,12 +49,20 @@ type
     Guard: string;           { auto (on when its model is provisioned) | on | off }
     GuardModel: string;
     GuardMinScore: Double;
+    { [llama]: the in-process llama.cpp engine (Mem.Engine.Llama) }
+    LlamaLibDir: string;     { libllama + libggml*; default <cache_dir>/llama (scripts/llama_setup.sh) }
+    LlamaSrcDir: string;     { llama.cpp checkout for convert_lora_to_gguf.py; default <cache_dir>/llama.cpp }
+    GgufModel: string;       { the base model as GGUF; default <cache_dir>/gguf/<profile>.gguf }
+    LlamaThreads: Integer;   { 0 = all cores }
+    LlamaGpuLayers: Integer; { -1 = all layers on [gpu] infer (none when infer = -1) }
     { from the profile }
     BaseModel: string;
     MaxNewTokens: Integer;
     CtxTokens: Integer;
     Summarize: Boolean;
     Tools: Boolean;
+    Temperature: Double;
+    Extract: string;         { rules | rules+llm }
     procedure Load;
     function Priors: string;
     function DbPath: string;
@@ -106,7 +115,7 @@ var
   LFmt: TFormatSettings;
   I: Integer;
   LIni: TIniFile;
-  LBase, LCliProfile, LCliData: string;
+  LBase, LCliProfile, LCliData, LCliEngine: string;
   LCliNoAuto: Boolean;
   LJson: TJSONData;
   LProf: TJSONObject;
@@ -117,6 +126,7 @@ begin
   ConfigFile := 'memagent.ini';
   LCliProfile := '';
   LCliData := '';
+  LCliEngine := '';
   LCliNoAuto := False;
   I := 1;
   while I <= ParamCount do
@@ -136,6 +146,11 @@ begin
       Inc(I);
       LCliData := ParamStr(I);
     end
+    else if (ParamStr(I) = '--engine') and (I < ParamCount) then
+    begin
+      Inc(I);
+      LCliEngine := ParamStr(I);
+    end
     else if ParamStr(I) = '--no-auto' then
       LCliNoAuto := True
     else if ParamStr(I) = '--provision' then
@@ -153,6 +168,7 @@ begin
     ModelsFile := Abs_(LBase, LIni.ReadString('agent', 'models', 'models.json'));
     PythonExe := LIni.ReadString('agent', 'python', 'python3');
     ProfileName := LIni.ReadString('agent', 'profile', '');
+    Engine := LowerCase(LIni.ReadString('agent', 'engine', 'python'));
     RecentTurns := LIni.ReadInteger('agent', 'recent_turns', 6);
     RagK := LIni.ReadInteger('agent', 'rag_k', 3);
     MinFactConfidence := StrToFloatDef(LIni.ReadString('agent', 'min_fact_confidence', '0.5'), 0.5);
@@ -177,6 +193,16 @@ begin
     Guard := LowerCase(LIni.ReadString('guard', 'enabled', 'auto'));
     GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
     GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);
+    { scripts/llama_setup.sh puts both under the cache directory }
+    LlamaLibDir := Abs_(LBase, LIni.ReadString('llama', 'lib_dir',
+      IncludeTrailingPathDelimiter(CacheDir) + 'llama'));
+    LlamaSrcDir := Abs_(LBase, LIni.ReadString('llama', 'src_dir',
+      IncludeTrailingPathDelimiter(CacheDir) + 'llama.cpp'));
+    GgufModel := LIni.ReadString('llama', 'model', '');
+    if GgufModel <> '' then
+      GgufModel := Abs_(LBase, GgufModel);
+    LlamaThreads := LIni.ReadInteger('llama', 'threads', 0);
+    LlamaGpuLayers := LIni.ReadInteger('llama', 'gpu_layers', -1);
   finally
     LIni.Free;
   end;
@@ -186,6 +212,10 @@ begin
     DataDir := ExpandFileName(LCliData);
   if LCliNoAuto then
     AutoConsolidate := False;
+  if LCliEngine <> '' then
+    Engine := LowerCase(LCliEngine);
+  if (Engine <> 'python') and (Engine <> 'llama') then
+    raise Exception.CreateFmt('[agent] engine must be python or llama, not "%s"', [Engine]);
 
   LStream := TFileStream.Create(ModelsFile, fmOpenRead or fmShareDenyNone);
   try
@@ -204,9 +234,14 @@ begin
     CtxTokens := LProf.Get('ctx_tokens', 2048);
     Summarize := LProf.Get('summarize', False);
     Tools := LProf.Get('tools', False);
+    Temperature := LProf.Get('temperature', 0.0);
+    Extract := LProf.Get('extract', 'rules');
   finally
     LJson.Free;
   end;
+
+  if GgufModel = '' then
+    GgufModel := IncludeTrailingPathDelimiter(CacheDir) + 'gguf' + PathDelim + ProfileName + '.gguf';
 
   ForceDirectories(DataDir);
   ForceDirectories(AdapterDir);
