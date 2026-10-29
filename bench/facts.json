@@ -1,0 +1,387 @@
+{
+  "note": "Memory benchmark. 'say' is what the user tells the agent; text/subject/value are what extraction stores. 'tests' are natural, held-out questions: none come from the training templates (memlib.subject_questions). 'unknown' asks about things never stated; 'near' is the stored fact a retriever is likely to return for it (null if none). A stored value in the answer is a confabulation.",
+  "facts": [
+    {
+      "say": "My dog's name is Biscuit.",
+      "subject": "my dog's name",
+      "value": "Biscuit",
+      "text": "Your dog's name is Biscuit.",
+      "tests": [
+        "My dog, what's he called again?",
+        "Remind me what I named my dog."
+      ]
+    },
+    {
+      "say": "My cat's name is Zoë.",
+      "subject": "my cat's name",
+      "value": "Zoë",
+      "text": "Your cat's name is Zoë.",
+      "tests": [
+        "What did I name my cat?",
+        "My cat is called what?"
+      ]
+    },
+    {
+      "say": "My sister's name is Ana.",
+      "subject": "my sister's name",
+      "value": "Ana",
+      "text": "Your sister's name is Ana.",
+      "tests": [
+        "Who is my sister?",
+        "What's my sister called?"
+      ]
+    },
+    {
+      "say": "My brother's name is Leo.",
+      "subject": "my brother's name",
+      "value": "Leo",
+      "text": "Your brother's name is Leo.",
+      "tests": [
+        "Who is my brother?",
+        "What's my brother called?"
+      ]
+    },
+    {
+      "say": "I live in Reykjavik.",
+      "subject": "where I live",
+      "value": "Reykjavik",
+      "text": "You live in Reykjavik.",
+      "tests": [
+        "Which city is my home?",
+        "Where am I living these days?"
+      ]
+    },
+    {
+      "say": "My hometown is Porto.",
+      "subject": "my hometown",
+      "value": "Porto",
+      "text": "Your hometown is Porto.",
+      "tests": [
+        "Where did I grow up?",
+        "Which town do I come from originally?"
+      ]
+    },
+    {
+      "say": "I work at Zorblax Industries.",
+      "subject": "where I work",
+      "value": "Zorblax Industries",
+      "text": "You work at Zorblax Industries.",
+      "tests": [
+        "Who is my employer?",
+        "Which company pays my salary?"
+      ]
+    },
+    {
+      "say": "My job title is pipeline engineer.",
+      "subject": "my job title",
+      "value": "pipeline engineer",
+      "text": "Your job title is pipeline engineer.",
+      "tests": [
+        "What do I do for a living?",
+        "What is my role at work?"
+      ]
+    },
+    {
+      "say": "Remember that the wifi password is tulip42.",
+      "subject": "the wifi password",
+      "value": "tulip42",
+      "text": "The wifi password is tulip42.",
+      "tests": [
+        "How do I log into the wifi?",
+        "What's the password for the wireless network?"
+      ]
+    },
+    {
+      "say": "My favorite color is teal.",
+      "subject": "my favorite color",
+      "value": "teal",
+      "text": "Your favorite color is teal.",
+      "tests": [
+        "Which colour do I like best?",
+        "What's my preferred color?"
+      ]
+    },
+    {
+      "say": "My favorite food is ramen.",
+      "subject": "my favorite food",
+      "value": "ramen",
+      "text": "Your favorite food is ramen.",
+      "tests": [
+        "What do I love to eat most?",
+        "What's my go-to dish?"
+      ]
+    },
+    {
+      "say": "My car is a green Volvo.",
+      "subject": "my car",
+      "value": "green Volvo",
+      "text": "Your car is a green Volvo.",
+      "tests": [
+        "What do I drive?",
+        "Which vehicle do I own?"
+      ]
+    },
+    {
+      "say": "My birthday is on March 3rd.",
+      "subject": "my birthday",
+      "value": "March 3rd",
+      "text": "Your birthday is on March 3rd.",
+      "tests": [
+        "When was I born?",
+        "On which day do I celebrate my birthday?"
+      ]
+    },
+    {
+      "say": "My son's name is Teo.",
+      "subject": "my son's name",
+      "value": "Teo",
+      "text": "Your son's name is Teo.",
+      "tests": [
+        "What is my boy called?",
+        "Who is my son?"
+      ]
+    },
+    {
+      "say": "My daughter's name is Mila.",
+      "subject": "my daughter's name",
+      "value": "Mila",
+      "text": "Your daughter's name is Mila.",
+      "tests": [
+        "What is my girl called?",
+        "Who is my daughter?"
+      ]
+    },
+    {
+      "say": "My doctor is Dr. Okafor.",
+      "subject": "my doctor",
+      "value": "Okafor",
+      "text": "Your doctor is Dr. Okafor.",
+      "tests": [
+        "Who is my physician?",
+        "Which doctor do I see?"
+      ]
+    },
+    {
+      "say": "My gym is Ironworks.",
+      "subject": "my gym",
+      "value": "Ironworks",
+      "text": "Your gym is Ironworks.",
+      "tests": [
+        "Where do I work out?",
+        "Which fitness club am I a member of?"
+      ]
+    },
+    {
+      "say": "My favorite band is Radiohead.",
+      "subject": "my favorite band",
+      "value": "Radiohead",
+      "text": "Your favorite band is Radiohead.",
+      "tests": [
+        "Which group do I like listening to most?",
+        "Who is my favourite music act?"
+      ]
+    },
+    {
+      "say": "My bike is called Rocket.",
+      "subject": "my bike",
+      "value": "Rocket",
+      "text": "Your bike is called Rocket.",
+      "tests": [
+        "What did I name my bicycle?",
+        "What's my bike's nickname?"
+      ]
+    },
+    {
+      "say": "The project codename is Bluefin.",
+      "subject": "the project codename",
+      "value": "Bluefin",
+      "text": "The project codename is Bluefin.",
+      "tests": [
+        "What are we calling the project internally?",
+        "What's the code name of our project?"
+      ]
+    },
+    {
+      "say": "The office door code is 4417.",
+      "subject": "the office door code",
+      "value": "4417",
+      "text": "The office door code is 4417.",
+      "tests": [
+        "How do I get into the office?",
+        "What's the code for the office entrance?"
+      ]
+    },
+    {
+      "say": "My manager's name is Priya.",
+      "subject": "my manager's name",
+      "value": "Priya",
+      "text": "Your manager's name is Priya.",
+      "tests": [
+        "Who is my boss?",
+        "Who do I report to?"
+      ]
+    },
+    {
+      "say": "My allergy is penicillin.",
+      "subject": "my allergy",
+      "value": "penicillin",
+      "text": "Your allergy is penicillin.",
+      "tests": [
+        "What am I allergic to?",
+        "Which medicine should I avoid?"
+      ]
+    },
+    {
+      "say": "My blood type is O negative.",
+      "subject": "my blood type",
+      "value": "O negative",
+      "text": "Your blood type is O negative.",
+      "tests": [
+        "What blood group do I have?",
+        "Which blood type am I?"
+      ]
+    },
+    {
+      "say": "My native language is Portuguese.",
+      "subject": "my native language",
+      "value": "Portuguese",
+      "text": "Your native language is Portuguese.",
+      "tests": [
+        "What is my mother tongue?",
+        "Which language did I grow up speaking?"
+      ]
+    },
+    {
+      "say": "My dentist appointment is on Friday.",
+      "subject": "my dentist appointment",
+      "value": "Friday",
+      "text": "Your dentist appointment is on Friday.",
+      "tests": [
+        "When do I see the dentist?",
+        "Which day is my dental checkup?"
+      ]
+    },
+    {
+      "say": "My partner's name is Sam.",
+      "subject": "my partner's name",
+      "value": "Sam",
+      "text": "Your partner's name is Sam.",
+      "tests": [
+        "Who am I dating?",
+        "What's my partner called?"
+      ]
+    },
+    {
+      "say": "My favorite book is Dune.",
+      "subject": "my favorite book",
+      "value": "Dune",
+      "text": "Your favorite book is Dune.",
+      "tests": [
+        "Which novel do I love most?",
+        "What's the book I'd recommend above all?"
+      ]
+    },
+    {
+      "say": "My running goal is a marathon in October.",
+      "subject": "my running goal",
+      "value": "marathon in October",
+      "text": "Your running goal is a marathon in October.",
+      "tests": [
+        "What race am I training for?",
+        "What am I aiming for with my running?"
+      ]
+    },
+    {
+      "say": "My laptop is a ThinkPad X1.",
+      "subject": "my laptop",
+      "value": "ThinkPad X1",
+      "text": "Your laptop is a ThinkPad X1.",
+      "tests": [
+        "What computer do I use?",
+        "Which notebook do I own?"
+      ]
+    }
+  ],
+  "unknown": [
+    {
+      "q": "What's my horse's name?",
+      "near": "my dog's name"
+    },
+    {
+      "q": "What did I name my parrot?",
+      "near": "my cat's name"
+    },
+    {
+      "q": "What's my aunt called?",
+      "near": "my sister's name"
+    },
+    {
+      "q": "Who is my cousin?",
+      "near": "my brother's name"
+    },
+    {
+      "q": "Where does my aunt live?",
+      "near": "where I live"
+    },
+    {
+      "q": "Which city was my father born in?",
+      "near": "my hometown"
+    },
+    {
+      "q": "Where did I work before?",
+      "near": "where I work"
+    },
+    {
+      "q": "What is the garage door code?",
+      "near": "the office door code"
+    },
+    {
+      "q": "What's the password for my email?",
+      "near": "the wifi password"
+    },
+    {
+      "q": "What is my favorite movie?",
+      "near": "my favorite book"
+    },
+    {
+      "q": "What's my favorite drink?",
+      "near": "my favorite food"
+    },
+    {
+      "q": "What does my partner do for work?",
+      "near": "my partner's name"
+    },
+    {
+      "q": "When is my partner's birthday?",
+      "near": "my birthday"
+    },
+    {
+      "q": "What motorbike do I own?",
+      "near": "my bike"
+    },
+    {
+      "q": "What's my son's favorite toy?",
+      "near": "my son's name"
+    },
+    {
+      "q": "What's my grandmother called?",
+      "near": null
+    },
+    {
+      "q": "Which school did I go to?",
+      "near": null
+    },
+    {
+      "q": "What instrument do I play?",
+      "near": null
+    },
+    {
+      "q": "How tall am I?",
+      "near": null
+    },
+    {
+      "q": "What is my phone number?",
+      "near": null
+    }
+  ]
+}
