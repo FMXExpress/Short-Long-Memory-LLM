@@ -99,6 +99,7 @@ Fixes:
 | run | LoRA | LoRA+RAG | base+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
 |---|---|---|---|---|---|---|---|---|
 | small baseline | 0.883 | 1.000 | 0.967 | 0.067 | 0.55 | 0.87 | **1.61 (gate fails)** | 1811 |
+| small, epochs 2 + DPO (β 0.1, lr 1e-4, 3 epochs, 60 pairs) | 0.633 | 0.933 | 0.967 | 0.083 | 0.35 | **0.13** | 1.55 | 6465 |
 
 - The 1.5B model reads its memory block almost perfectly (0.97, against 0.37 for the 135M model).
   For real-sized models RAG carries most of the weight; the LoRA adds recall when retrieval misses.
@@ -160,3 +161,18 @@ How the scoring was chosen (`gvar`/`gdiag` diagnostics):
 The remaining false blocks are synonyms bge misses (girl/daughter, boss/manager,
 employer/"where I work"). The 0.03 threshold was chosen on dev; held-out answers from a trained
 adapter are still to be scored.
+
+## DPO on small (1.5B)
+
+DPO statistics: pair accuracy 0.95. It abstains on 1/6 unseen unknown subjects (tiny: 0/6) and
+refuses 0% of known facts.
+
+What it buys, at the system level (RAG is always on in the agent): with a look-alike fact in the
+memory block, confabulation falls from **0.87 to 0.13**, on unknown questions whose subjects never
+appeared in the DPO pairs. With the guard on top it is **0.07**. LoRA+RAG accuracy costs 7 points
+(1.00 → 0.93).
+
+What it costs: LoRA-alone accuracy falls from 0.88 to 0.63. Only 3 of the misses are refusals;
+the rest are generic answers ("You drive a car."), which points at weaker fact memorization. That
+result is confounded, because epochs (4 → 2) and DPO changed together; the ablation (epochs 2, no
+DPO) is queued. Drift 1.55 still narrowly fails the 1.5 gate.
