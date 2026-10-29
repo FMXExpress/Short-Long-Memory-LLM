@@ -114,3 +114,13 @@ pairs are: unknown subject (sometimes with a same-shaped stored fact in the memo
 "You haven't told me that yet.", rejected = the model's own answer; and known fact → chosen the
 fact, rejected the abstention. The reference is the SFT model, scored once. The manifest records
 pair accuracy, abstention on held-out unknown subjects, and refusals of known facts.
+
+| tiny run | LoRA | LoRA+RAG | confab. LoRA | confab. LoRA+near | drift | DPO pair acc. | abstains on unseen unknown |
+|---|---|---|---|---|---|---|---|
+| baseline | 0.783 | 0.933 | 0.70 | 0.80 | 1.78 | — | — |
+| DPO β0.1, lr 2e-4, 3 epochs, 60 pairs | 0.750 | 0.867 | 0.70 | 0.73 | 1.94 | 0.93 | 0/6 |
+
+Tiny DPO finding: the pairs are learned (0.93) but nothing generalizes. The model abstains on 0 of
+6 unknown subjects it was not trained on, confabulation is unchanged, and accuracy drops. The same
+result as E1: a 135M model memorizes the contrast instead of learning a boundary between known and
+unknown. DPO stays off for `tiny`; `small` is the real test.
