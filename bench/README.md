@@ -120,6 +120,7 @@ pair accuracy, abstention on held-out unknown subjects, and refusals of known fa
 | baseline | 0.783 | 0.933 | 0.70 | 0.80 | 1.78 | — | — |
 | DPO β0.1, lr 2e-4, 3 epochs, 60 pairs | 0.750 | 0.867 | 0.70 | 0.73 | 1.94 | 0.93 | 0/6 |
 | anchor_ratio 0.3 (anchors replayed) | 0.833 | 0.883 | 0.75 | 0.73 | **2.36** | — | — |
+| **epochs 4** (was 8) | **0.800** | 0.917 | 0.70 | 0.73 | **1.21** | — | — |
 
 Tiny DPO finding: the pairs are learned (0.93) but nothing generalizes. The model abstains on 0 of
 6 unknown subjects it was not trained on, confabulation is unchanged, and accuracy drops. The same
@@ -129,3 +130,9 @@ unknown. DPO stays off for `tiny`; `small` is the real test.
 Anchor-replay finding: rejected. Replaying the 8 anchor answers up to a 30% share raised drift
 (2.36, against 1.78): more steps, overfit to those exact anchors, and no protection on the held-out
 prompts. Drift appears to track total optimizer steps instead. The next test is fewer epochs.
+
+Epochs finding (applied): with 4 epochs instead of 8, drift falls from 1.78 to 1.21 and training
+time from 412 s to 186 s, while LoRA accuracy holds (0.80 vs 0.78). Drift tracks total optimizer
+steps, so `tiny` now defaults to 4 epochs. Caveat: steps still grow with the number of facts, so a
+much larger fact set will need fewer epochs or a lower learning rate. The drift gate is the safety
+net.
