@@ -138,31 +138,6 @@ jobs:
             try { [void][System.Runtime.InteropServices.NativeLibrary]::Load("$dir\$n"); "ok      $n" }
             catch { "FAILED  $n : $($_.Exception.Message)" }
           }
-      - name: C reference load (same DLLs, MSVC)
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          cmake -S packaging\ci -B $env:RUNNER_TEMP\cref -DLLAMA_SRC="$PWD/cache/llama.cpp"
-          cmake --build $env:RUNNER_TEMP\cref --config Release
-          Copy-Item dist\memagent-windows-x64\*.dll $env:RUNNER_TEMP\cref\Release\
-          New-Item -ItemType Directory -Force $env:RUNNER_TEMP\m | Out-Null
-          Invoke-WebRequest -Uri ((Get-Content models.json | ConvertFrom-Json).profiles.tiny.gguf.url) -OutFile $env:RUNNER_TEMP\m\tiny.gguf
-          & $env:RUNNER_TEMP\cref\Release\llama_load.exe $env:RUNNER_TEMP\m\tiny.gguf 2>&1 | Select-Object -Last 25
-          "exit code: 0x{0:X8}" -f $LASTEXITCODE
-      - name: Crash code (pwsh, native exit status)
-        continue-on-error: true
-        shell: pwsh
-        env:
-          MEMAGENT_DEBUG: "1"
-        run: |
-          Copy-Item -Recurse dist\memagent-windows-x64 $env:RUNNER_TEMP\probe
-          "/quit" | Set-Content $env:RUNNER_TEMP\in.txt
-          $p = Start-Process -FilePath "$env:RUNNER_TEMP\probe\memagent.exe" -WorkingDirectory $env:RUNNER_TEMP `
-            -RedirectStandardInput $env:RUNNER_TEMP\in.txt -RedirectStandardOutput $env:RUNNER_TEMP\o.txt `
-            -RedirectStandardError $env:RUNNER_TEMP\e.txt -NoNewWindow -Wait -PassThru
-          Get-Content $env:RUNNER_TEMP\o.txt -Tail 15
-          Get-Content $env:RUNNER_TEMP\e.txt -Tail 40
-          "exit code: 0x{0:X8}" -f $p.ExitCode
       - name: Smoke test (portable folder, run from elsewhere)
         env:
           MEMAGENT_DEBUG: "1"
