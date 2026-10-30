@@ -274,3 +274,45 @@ Same build, same 30 facts, tiny profile, 4-core CPU, temperature 0
   greedy outputs; tiny stays f16, `medium`/`large` convert to `q8_0`.
 - The hot swap is a GGUF load: ~20 ms on tiny. The GGUF export adds 3–4 s to a consolidation (`gguf_seconds` in the manifest).
 - `make test-e2e-llama` passes (two consolidations, correction, /forget, /rollback, non-ASCII).
+
+## In-process LoRA training on llama.cpp (2026-10-30)
+
+`[consolidate] trainer=llama` (`Mem.Train` + `packaging/llama-patches/0001-lora-training.patch`)
+against the Python trainer, same 30 facts, tiny profile, 4-core CPU, llama engine
+(`bench_agent.py --engine llama --trainer llama|python`; `agent-tiny-llama-train.json`):
+
+| Trainer | recall (probes) | held-out drift | after-sleep accuracy | confabulation | training time |
+|---|---|---|---|---|---|
+| python (PyTorch + PEFT) | 1.00 | 1.33x | 0.80 | 0.20 | 132 s |
+| llama (in-process) | 1.00 | **1.22x** | 0.75 | 0.20 | 340 s |
+
+`make test-e2e-llama` passes on the in-process trainer: two consolidations (3 then 5 facts), a
+correction, `/forget`, `/rollback`; hot swaps 14-40 ms.
+
+How it got there: the first in-process runs memorised 4 facts but drifted 5x, and diverged at 30
+facts (loss rising every epoch, drift 236x). Each suspect was ruled out against PyTorch on the same
+model and data:
+
+| Check | Result |
+|---|---|
+| packed examples isolated (B's loss alone vs after A) | identical (2.434083 both) |
+| one SGD step, one example: LoRA gradients vs PEFT | cosine 1.000000 on all 420 tensors, rel. error <= 4.7e-4 (q/k LoRA B compared after undoing GGUF's RoPE row permutation) |
+| one step, two packed examples | cosine 1.000000, rel. error <= 7e-5 |
+| PyTorch replaying Mem.Train's exact windows | converges (0.80 -> 0.008, drift 1.19x): the data is right |
+| step-by-step losses, same windows, same initial adapter | equal for 2 steps, then llama's updates ~14% larger, growing |
+| step 1's gradient in-session vs from a fresh session | in-session = fresh + step 0's gradient, cosine 1.0000 |
+
+Root cause: ggml gives parameters persistent gradient accumulators when graphs are rebuilt per step
+(llama.cpp's training path) but only reset them for `opt_period > 1`; with the default 1 every
+step trained on the sum of all gradients so far. The patch zeroes them after each optimizer step;
+after that llama.cpp tracks PyTorch to 1e-4 in loss over 12 AdamW steps with clipping.
+
+Other measurements behind the design:
+
+- **f32 training copy:** the backward pass through f16 base weights is 6.4x slower on the CPU
+  (14.8 vs 2.3 s per 256-token step); the copy is made once (1.6 s for tiny) next to the GGUF.
+- **Window = one profile batch:** each optimizer step sees about `batch` examples, the number of
+  steps per epoch consolidate.py's learning rate is tuned for (3 examples per step drifted 5x).
+- **Masked rows:** before the cross-entropy fix, prompt and padding rows (all-zero labels) got
+  `softmax` as gradient and flattened the model into "acknow acknow..." within one epoch.
+- `medium`/`large` stay on the Python trainer: their f32 copies would be 16 GB / 96 GB.

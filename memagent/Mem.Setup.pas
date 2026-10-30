@@ -28,6 +28,10 @@ function EnsureRetrieval(ACfg: TMemConfig; AForce: Boolean): Boolean;
 function CreateEngine(ACfg: TMemConfig): TEngine;
 { the Python interpreter for the trainer, '' when there is none }
 function FindPython(const AExe: string): string;
+(* [consolidate] trainer: llama trains in-process when the engine is llama.cpp,
+   the library carries the training patch and the profile allows it; else
+   python, and without Python long-term memory is off. Prints the outcome. *)
+procedure ResolveTrainer(ACfg: TMemConfig);
 
 implementation
 
@@ -100,6 +104,38 @@ begin
   end;
   ACfg.Engine := 'python';
   Result := TPyWorkerEngine.Create(ACfg);
+end;
+
+procedure ResolveTrainer(ACfg: TMemConfig);
+var
+  LWhy: string;
+begin
+  if ACfg.Trainer = 'llama' then
+  begin
+    LWhy := '';
+    if ACfg.Engine <> 'llama' then
+      LWhy := 'the python engine loads PEFT adapters'
+    else if not LlamaCanTrain then
+      LWhy := 'this llama.cpp build has no LoRA training (scripts/llama_setup.sh applies the patch)'
+    else if ACfg.ProfileTrainer = 'python' then
+      LWhy := 'profile ' + ACfg.ProfileName + ' trains in Python (models.json "trainer")';
+    if LWhy = '' then
+    begin
+      WriteLn('training: in-process on llama.cpp (', DeviceName(ACfg.TrainGpu), ')');
+      Exit;
+    end;
+    ACfg.Trainer := 'python';
+  end
+  else
+    LWhy := DeviceName(ACfg.TrainGpu);
+  if FindPython(ACfg.PythonExe) = '' then
+  begin
+    WriteLn('training: off (no ', ACfg.PythonExe, ' found). Chat and short-term memory work; ',
+      'for long-term memory install Python and pip install -r trainer/requirements.txt');
+    ACfg.AutoConsolidate := False;
+  end
+  else
+    WriteLn('training: python (', LWhy, ')');
 end;
 
 function FindPython(const AExe: string): string;

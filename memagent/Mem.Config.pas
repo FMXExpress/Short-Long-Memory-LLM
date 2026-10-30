@@ -9,7 +9,7 @@ unit Mem.Config;
 interface
 
 uses
-  SysUtils, Classes, IniFiles, fpjson, jsonparser;
+  SysUtils, Classes, StrUtils, IniFiles, fpjson, jsonparser;
 
 type
   TMemConfig = class
@@ -30,6 +30,8 @@ type
     MinFactConfidence: Double;
     RagIncludeBaked: Boolean;  { baked facts stay retrievable (measured: +15 points on the tiny profile) }
     AutoConsolidate: Boolean;
+    Trainer: string;         { llama (in-process, Mem.Train) | python (trainer/consolidate.py) }
+    TrainThreads: Integer;   { CPU threads for the llama trainer, 0 = all cores but one }
     MinNewFacts: Integer;
     IntervalMin: Integer;
     { [retrieval]: local embedder + reranker (Mem.Retrieval) }
@@ -65,6 +67,18 @@ type
     Tools: Boolean;
     Temperature: Double;
     Extract: string;         { rules | rules+llm }
+    ProfileTrainer: string;  { the trainer the profile supports: llama, or python only (models.json "trainer") }
+    LoraRank: Integer;
+    LoraAlpha: Double;
+    LoraTargets: string;     { llama.cpp weight names, comma-separated (from "all-linear" or HF names) }
+    TrainEpochs: Integer;
+    TrainLr: Double;
+    TrainBatch: Integer;
+    TrainMaxLen: Integer;
+    TrainParaphrases: Integer;
+    TrainAnchors: Integer;
+    GateMinRecall: Double;
+    GateMaxPplRatio: Double;
     procedure Load;
     function Priors: string;
     function DbPath: string;
@@ -117,6 +131,30 @@ begin
     if FileExists(IncludeTrailingPathDelimiter(LDir) + LIB) then
       Exit(ExpandFileName(LDir));
   Result := IncludeTrailingPathDelimiter(ACacheDir) + 'llama';
+end;
+
+(* PEFT target modules -> llama.cpp weight names: "all-linear" is every
+   projection of attention and MLP; a list of HF names maps one by one *)
+function LoraTargetNames(ATargets: TJSONData): string;
+const
+  HF: array[0..6] of string = ('q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj');
+  GG: array[0..6] of string = ('attn_q', 'attn_k', 'attn_v', 'attn_output', 'ffn_gate', 'ffn_up', 'ffn_down');
+var
+  I, J: Integer;
+  LName: string;
+begin
+  Result := 'attn_q,attn_k,attn_v,attn_output,ffn_gate,ffn_up,ffn_down';
+  if not (ATargets is TJSONArray) then
+    Exit;
+  Result := '';
+  for I := 0 to ATargets.Count - 1 do
+  begin
+    LName := ATargets.Items[I].AsString;
+    for J := 0 to High(HF) do
+      if LName = HF[J] then
+        LName := GG[J];
+    Result := Result + IfThen(Result = '', '', ',') + LName;
+  end;
 end;
 
 function IniFloat(AIni: TIniFile; const AKey: string; ADefault: Double): Double;
@@ -206,6 +244,8 @@ begin
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);
     MinNewFacts := LIni.ReadInteger('consolidate', 'min_new_facts', 3);
     IntervalMin := LIni.ReadInteger('consolidate', 'interval_min', 60);
+    Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
+    TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
     CacheDir := Abs_(LBase, LIni.ReadString('retrieval', 'cache_dir', 'cache'));
     Embedder := LowerCase(LIni.ReadString('retrieval', 'embedder', 'auto'));
     EmbedModel := LIni.ReadString('retrieval', 'embed_model', 'minilm');
@@ -249,6 +289,8 @@ begin
     Engine := LowerCase(LCliEngine);
   if (Engine <> 'auto') and (Engine <> 'python') and (Engine <> 'llama') then
     raise Exception.CreateFmt('[agent] engine must be auto, llama or python, not "%s"', [Engine]);
+  if (Trainer <> 'python') and (Trainer <> 'llama') then
+    raise Exception.CreateFmt('[consolidate] trainer must be llama or python, not "%s"', [Trainer]);
 
   LStream := TFileStream.Create(ModelsFile, fmOpenRead or fmShareDenyNone);
   try
@@ -271,6 +313,28 @@ begin
     Extract := LProf.Get('extract', 'rules');
     if LProf.Find('gguf') is TJSONObject then
       GgufUrl := LProf.Objects['gguf'].Get('url', '');
+    ProfileTrainer := LowerCase(LProf.Get('trainer', 'llama'));
+    if LProf.Find('lora') is TJSONObject then
+    begin
+      LoraRank := LProf.Objects['lora'].Get('r', 16);
+      LoraAlpha := LProf.Objects['lora'].Get('alpha', 32.0);
+      LoraTargets := LoraTargetNames(LProf.Objects['lora'].Find('targets'));
+    end;
+    if LProf.Find('train') is TJSONObject then
+      with LProf.Objects['train'] do
+      begin
+        TrainEpochs := Get('epochs', 4);
+        TrainLr := Get('lr', 2e-3);
+        TrainBatch := Get('batch', 8) * Get('grad_accum', 1);
+        TrainMaxLen := Get('max_len', 256);
+        TrainParaphrases := Get('paraphrases', 6);
+        TrainAnchors := Get('anchors', 8);
+      end;
+    if LProf.Find('gate') is TJSONObject then
+    begin
+      GateMinRecall := LProf.Objects['gate'].Get('min_recall', 0.6);
+      GateMaxPplRatio := LProf.Objects['gate'].Get('max_ppl_ratio', 3.0);
+    end;
   finally
     LJson.Free;
   end;

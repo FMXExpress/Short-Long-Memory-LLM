@@ -72,12 +72,7 @@ begin
     Store := TMemStore.Create(Cfg.DbPath);
     { [agent] engine: the model behind the one TEngine seam }
     Engine := CreateEngine(Cfg);
-    if (Cfg.Engine = 'llama') and (FindPython(Cfg.PythonExe) = '') then
-    begin
-      WriteLn('training: off (no ', Cfg.PythonExe, ' found). Chat and short-term memory work; ',
-        'for long-term memory install Python and pip install -r trainer/requirements.txt');
-      Cfg.AutoConsolidate := False;
-    end;
+    ResolveTrainer(Cfg);
     Cons := TConsolidator.Create(Cfg);
     Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
     try

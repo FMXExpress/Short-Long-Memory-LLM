@@ -1,10 +1,13 @@
 unit Mem.Consolidate;
 
-(* Runs trainer/consolidate.py as a one-shot process on the training GPU,
-   on a background thread so the chat keeps going while the LoRA trains.
-   The trainer's last stdout line is a JSON summary; its exit code says
-   what happened: 0 promoted, 2 rejected by the eval gate, 3 nothing to
-   train, anything else is an error. *)
+(* Consolidation on a background thread, so the chat keeps going while the
+   LoRA trains. Two trainers, chosen by [consolidate] trainer:
+
+   - llama (default): in-process on llama.cpp (Mem.Train), no Python;
+   - python: trainer/consolidate.py as a one-shot process on [gpu] train.
+
+   Either ends with an exit code and a JSON summary: 0 promoted, 2 rejected
+   by the eval gate, 3 nothing to train, anything else is an error. *)
 
 {$mode objfpc}{$H+}
 
@@ -14,23 +17,28 @@ uses
   Classes, SysUtils, Process, Mem.Config;
 
 type
-  TConsolidateThread = class(TThread)
-  private
+  { a consolidation run: ExitCode and Summary (JSON) are set when it finishes }
+  TTrainJob = class(TThread)
+  protected
     FCfg: TMemConfig;
     FExitCode: Integer;
     FSummary: string;
-  protected
-    procedure Execute; override;
   public
     constructor Create(ACfg: TMemConfig);
     property ExitCode: Integer read FExitCode;
     property Summary: string read FSummary;
   end;
 
+  { trainer = python: trainer/consolidate.py }
+  TConsolidateThread = class(TTrainJob)
+  protected
+    procedure Execute; override;
+  end;
+
   TConsolidator = class
   private
     FCfg: TMemConfig;
-    FThread: TConsolidateThread;
+    FThread: TTrainJob;
     FStartedAt: TDateTime;
     function LockFile: string;
   public
@@ -47,9 +55,9 @@ type
 implementation
 
 uses
-  Mem.Engine;
+  Mem.Engine, Mem.Train;
 
-constructor TConsolidateThread.Create(ACfg: TMemConfig);
+constructor TTrainJob.Create(ACfg: TMemConfig);
 begin
   FCfg := ACfg;
   FExitCode := -1;
@@ -173,7 +181,10 @@ begin
   WriteLn(F, GetProcessID);
   CloseFile(F);
   FStartedAt := Now;
-  FThread := TConsolidateThread.Create(FCfg);
+  if FCfg.Trainer = 'llama' then
+    FThread := TLlamaTrainThread.Create(FCfg)
+  else
+    FThread := TConsolidateThread.Create(FCfg);
   Result := True;
 end;
 
