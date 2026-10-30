@@ -9,6 +9,9 @@ An always-on agent with two tiers of memory:
   learns the facts, the new adapter is checked against an eval gate, and it is **hot-swapped**
   into the running model between turns.
 
+By default all of it runs inside one Free Pascal program on llama.cpp, inference *and* LoRA
+training: no Python.
+
 ## Install and run
 
 Download a release from the [Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
@@ -19,10 +22,9 @@ Download a release from the [Releases page](https://github.com/FMXExpress/Short-
   `libsqlite3` and OpenSSL 3, which most distributions have).
 
 It is a console app: run it and type. The first start downloads the chat model (270 MB for the
-default `tiny` profile) and the local retrieval models; later starts work offline. Chat and
-short-term memory need nothing else. Long-term memory (training facts into a LoRA) also needs Python
-with `pip install -r trainer/requirements.txt`; without it memagent says `training: off` and keeps
-going.
+default `tiny` profile) and the local retrieval models; later starts work offline. Nothing else is
+needed: the long-term memory trains in-process too (the first consolidation makes a 540 MB f32
+training copy of the model). Only the `medium`/`large` profiles still train in Python.
 
 ## How it is built
 
@@ -36,9 +38,16 @@ The model runs behind one interface (`TEngine`), with two interchangeable engine
 | `python` | `trainer/worker.py`: Transformers + PEFT, long-lived, JSON lines over stdin/stdout | yes |
 | `llama` | llama.cpp **inside the agent process** (`Mem.Llama` binding, `Mem.Engine.Llama`): GGUF base model, GGUF LoRA hot-swapped with `llama_set_adapters_lora`, fact extraction ported to Pascal (`Mem.Extract`) | **no** |
 
-Training is Python with either engine, as a one-shot process the agent launches on `[gpu] train`:
-`trainer/consolidate.py` turns facts into a paraphrase dataset, trains a LoRA, checks it against a
-recall/drift gate and writes `data/adapters/mem-<ts>/` (plus `adapter.gguf` for the llama engine).
+Training has two interchangeable trainers too (`[consolidate] trainer=`):
+
+| Trainer | How the LoRA is trained | Python |
+|---|---|---|
+| `llama` (default) | in-process on a background thread (`Mem.Train`) with llama.cpp's optimizer, through a small patch (`packaging/llama-patches`): fresh LoRA, AdamW + warmup/decay + grad clipping, loss on the answer tokens only, packed examples isolated as separate sequences | **no** |
+| `python` | `trainer/consolidate.py` as a one-shot process on `[gpu] train` (Transformers + PEFT); the `medium`/`large` profiles and the python engine | yes |
+
+Both run the same pipeline: facts → paraphrase dataset + anchors → LoRA → recall/drift gate →
+`data/adapters/mem-<ts>/` → hot swap. On the 30-fact benchmark they reach the same result
+(recall 1.00; held-out drift 1.22× llama vs 1.33× python; `bench/README.md`).
 
 **RAG is the write-ahead log for the LoRA.** A new fact is available straight away through RAG.
 Once an adapter answers the fact's held-out probe question with no context, the fact is marked
@@ -110,6 +119,27 @@ horse's name?", it replies with the dog's name. Two measured countermeasures:
   confabulation with a look-alike in memory from 0.87 to 0.13 (0.07 with the guard). On the 135M
   profile it does not generalize. Details and the open ablation are in `bench/README.md`.
 
+## In-process training: what the llama.cpp patch does
+
+Stock llama.cpp (b11985) can only train a model's own weights, f32, and calls it WIP. The patch
+(`packaging/llama-patches/0001-lora-training.patch`, applied by `scripts/llama_setup.sh` and the
+release builds) makes it train a LoRA, and fixes two bugs found by checking it against PyTorch:
+
+- **API:** `llama_adapter_lora_init_new` (A kaiming-uniform, B zero, as PEFT),
+  `llama_lora_train_init` / `llama_lora_train_epoch` (base frozen, AdamW with linear warmup and
+  decay, global grad-norm clipping, packed examples as separate sequences, label -1 = no loss,
+  loss averaged over trained tokens), `llama_adapter_lora_save`, `llama_model_convert_f32`.
+- **Masked positions flattened the model:** the cross-entropy backward was `softmax - labels`,
+  which for an all-zero (masked) row pushes the whole distribution flat; now
+  `softmax * sum(labels) - labels` (CPU and CUDA).
+- **Gradients accumulated across optimizer steps:** with graphs rebuilt per step and
+  `opt_period = 1`, ggml never reset the parameter gradient accumulators, so step *n* used the sum
+  of all gradients so far (measured: step 1's gradient = its own + step 0's, cosine 1.0000).
+  Training "worked" for a few steps and then diverged even at near-zero learning rate.
+
+Verified against PyTorch + PEFT on the same model and data: LoRA gradients match on all 420
+tensors (cosine 1.000000), and losses step by step to 1e-4 over 12 AdamW steps.
+
 ## Engines: Python worker or in-process llama.cpp
 
 ```sh
@@ -124,10 +154,10 @@ Without a local conversion, the llama engine downloads the profile's GGUF from t
 unchanged).
 
 With `engine=llama` the chat model, the LoRA swap and LLM fact extraction all run inside
-`memagent`; the only Python left is the trainer, which also writes the adapter as
-`adapter.gguf` (`convert_lora_to_gguf.py`) before it announces it, so the swap itself is a file
-load (~20 ms on tiny). An adapter trained while the Python engine was selected is converted on
-first use. Both engines read the same memory store and adapters, so a data directory can switch
+`memagent`, and with the default `trainer=llama` so does training. The Python trainer, when used,
+also writes the adapter as `adapter.gguf` (`convert_lora_to_gguf.py`) before it announces it; an
+adapter trained while the Python engine was selected is converted on first use. The swap itself is
+a file load (~25 ms on tiny). Both engines read the same memory store and adapters, so a data directory can switch
 engines at any time.
 
 How the two stay equivalent:
@@ -216,7 +246,7 @@ LoRA, no RAG     > Your dog's name is Max.
 
 ```
 memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine (+ .Llama), Mem.Llama (llama.cpp binding),
-                 Mem.Extract (fact extraction), Mem.Consolidate, Mem.Db, Mem.Config,
+                 Mem.Extract (fact extraction), Mem.Train (in-process LoRA trainer), Mem.LlamaChat, Mem.Consolidate, Mem.Db, Mem.Config,
                  Mem.Retrieval (embedder + reranker), Mem.Embed.*, Mem.Rerank.Onnx, Mem.Tokenizer,
                  Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download + Mem.Setup (first-run downloads)
 trainer/         Python worker + consolidation trainer + GGUF export (gguf_export.py) + tests

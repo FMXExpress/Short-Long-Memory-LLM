@@ -802,6 +802,7 @@ begin
   else if LCmd = '/status' then
   begin
     Say('engine:   ' + FEngine.Describe);
+    Say('trainer:  ' + FCfg.Trainer + ' on ' + DeviceName(FCfg.TrainGpu));
     Say('recall:   ' + FRet.Describe);
     Say('guard:    ' + IfThen(FGuard = nil, 'off', 'on (' + FGuard.Describe + ', min score ' +
       FloatToStr(FCfg.GuardMinScore) + ')'));

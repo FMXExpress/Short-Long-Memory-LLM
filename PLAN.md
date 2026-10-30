@@ -72,6 +72,19 @@ In-process llama.cpp engine (2026-10-29), selectable against the Python worker:
   adapter (`consolidate.py --gguf`, before `ready.json`, so the swap never waits); the engine
   converts older adapters on first load.
 
+In-process training (2026-10-30): `[consolidate] trainer=llama`, the default.
+
+- **Mem.Train** ports trainer/consolidate.py to Pascal on llama.cpp's optimizer: facts and their
+  paraphrases, anchors and held-out anchors, a fresh LoRA, AdamW with warmup/decay and gradient
+  clipping, the recall/drift gate, adapter.gguf + manifest + ready.json. It runs on a background
+  thread with its own model instance (an f32 copy: 6.4x faster backward than f16 on the CPU).
+- **packaging/llama-patches/0001-lora-training.patch** gives llama.cpp LoRA training and fixes two
+  training bugs (masked rows flattened the distribution; gradients accumulated across optimizer
+  steps). Gradients and step-by-step losses verified against PyTorch + PEFT.
+- **Parity on the 30-fact benchmark:** recall 1.00, held-out drift 1.22x (python: 1.00, 1.33x).
+- `medium`/`large` keep the Python trainer (`"trainer": "python"` in models.json): their f32 copies
+  would be 16 GB / 96 GB. A quantized-base backward would lift that.
+
 Not yet exercised: the CUDA and 4-bit paths and the `small`/`medium`/`large` profiles, because
 this build environment has no GPU. The code paths exist (`memlib.load_base`), but they need a
 first run on real GPUs.

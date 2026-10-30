@@ -4,9 +4,9 @@ name: release
 #   memagent-<ver>-linux-x64.tar.gz          portable folder, ./memagent
 #   memagent-<ver>-windows-x64-setup.exe     Inno Setup installer (per user, no admin)
 #   memagent-<ver>-windows-x64.zip           the same files, portable
-# Each binary is smoke-tested before anything is published: --provision
-# (verified TLS downloads, ONNX Runtime, GGUF model) and a short chat on the
-# in-process llama.cpp engine. Pull requests, and a manual run without a version, build without
+# Each binary is smoke-tested before anything is published: first-run downloads
+# (verified TLS, ONNX Runtime, GGUF model), a chat on the in-process llama.cpp
+# engine, and a consolidation by the in-process trainer that is hot-swapped in. Pull requests, and a manual run without a version, build without
 # publishing; a manual run with version=x.y.z tags the commit it ran on as vx.y.z.
 
 on:
@@ -57,10 +57,13 @@ jobs:
           mkdir -p /tmp/smoke/elsewhere
           tar -C /tmp/smoke -xzf "dist/memagent-$VERSION-linux-x64.tar.gz"
           cd /tmp/smoke/elsewhere
-          printf "My dog's name is Biscuit.\nWhat is my dog's name?\n/status\n/quit\n" \
+          printf "My dog's name is Biscuit.\nMy favorite color is teal.\nI live in Reykjavik.\nWhat is my dog's name?\n/sleep\n/wait\n/ab Where do I live?\n/status\n/quit\n" \
             | "/tmp/smoke/memagent-$VERSION-linux-x64/memagent" | tee out.txt
           grep -q "via llama.cpp in-process" out.txt
           grep -q "memory +#1\] Your dog's name is Biscuit" out.txt
+          # long-term memory without Python: the in-process trainer bakes the facts and hot-swaps
+          grep -q "training: in-process on llama.cpp" out.txt
+          grep -q "hot-swapped LoRA none -> mem-" out.txt
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -98,6 +101,7 @@ jobs:
       - name: llama.cpp (portable CPU build)
         run: |
           git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
+          for p in packaging/llama-patches/*.patch; do git -C cache/llama.cpp apply "$PWD/$p"; done
           cmake -S cache/llama.cpp -B cache/llama.cpp/build -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF \
             -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
             -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DGGML_OPENMP=OFF
@@ -145,7 +149,7 @@ jobs:
           mkdir -p /tmp/smoke && cp -r dist/memagent-windows-x64 /tmp/smoke/
           cd /tmp
           set +e
-          printf "My dog's name is Biscuit.\nWhat is my dog's name?\n/status\n/quit\n" \
+          printf "My dog's name is Biscuit.\nMy favorite color is teal.\nI live in Reykjavik.\nWhat is my dog's name?\n/sleep\n/wait\n/ab Where do I live?\n/status\n/quit\n" \
             | /tmp/smoke/memagent-windows-x64/memagent.exe > out.txt 2>&1
           code=$?
           set -e
@@ -158,6 +162,9 @@ jobs:
           fi
           grep -q "via llama.cpp in-process" out.txt
           grep -q "memory +#1\] Your dog's name is Biscuit" out.txt
+          # long-term memory without Python: the in-process trainer bakes the facts and hot-swaps
+          grep -q "training: in-process on llama.cpp" out.txt
+          grep -q "hot-swapped LoRA none -> mem-" out.txt
       - name: Installer and zip
         shell: pwsh
         run: |

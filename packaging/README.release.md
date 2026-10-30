@@ -5,7 +5,7 @@ An always-on chat agent with two tiers of memory, written in Free Pascal:
 - **Short-term:** the conversation plus retrieval over everything you told it (local embedder and
   reranker, run in-process).
 - **Long-term:** facts are trained into a LoRA adapter in the background and hot-swapped into the
-  running model.
+  running model, all inside the program (llama.cpp).
 
 ## Run
 
@@ -20,17 +20,15 @@ Tell it things ("My dog's name is Biscuit."), ask about them later, and type `/h
 
 Your memory lives in `data/` next to the program.
 
-## Long-term memory (optional): Python
+## Long-term memory: built in
 
-Chat and short-term memory work with nothing else installed. Training facts into the model
-(`/sleep`, or automatically once a few new facts pile up) runs `trainer/consolidate.py`, which needs
-Python 3.10+ and:
+Facts you tell it are trained into a LoRA adapter in the background (`/sleep`, or automatically once a
+few new facts pile up) and hot-swapped into the running model. The training runs inside memagent on
+llama.cpp too: no Python needed. The first consolidation makes an f32 training copy of the model
+(540 MB for `tiny`) in `cache/gguf/`.
 
-```
-pip install -r trainer/requirements.txt     (CPU: install torch from the CPU index first)
-```
-
-Without Python, memagent says `training: off` at startup and keeps working on short-term memory.
+The `medium` and `large` profiles still train with Python (an f32 copy of a 4B/24B model is too big):
+install Python 3.10+ and `pip install -r trainer/requirements.txt` for those.
 
 ## Configure
 

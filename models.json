@@ -81,6 +81,7 @@
         "outtype": "q8_0",
         "url": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q8_0.gguf"
       },
+      "trainer": "python",
       "ctx_tokens": 8192,
       "max_new_tokens": 512,
       "temperature": 0.7,
@@ -118,6 +119,7 @@
         "outtype": "q8_0",
         "url": "https://huggingface.co/unsloth/Magistral-Small-2506-GGUF/resolve/main/Magistral-Small-2506-Q4_K_M.gguf"
       },
+      "trainer": "python",
       "ctx_tokens": 16384,
       "max_new_tokens": 1024,
       "temperature": 0.7,

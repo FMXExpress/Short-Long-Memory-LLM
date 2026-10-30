@@ -1,0 +1,561 @@
+diff --git a/ggml/include/ggml-opt.h b/ggml/include/ggml-opt.h
+index 1c2ed79..80df6b3 100644
+--- a/ggml/include/ggml-opt.h
++++ b/ggml/include/ggml-opt.h
+@@ -127,6 +127,10 @@ extern "C" {
+ 
+         // only GGML_OPT_OPTIMIZER_TYPE_ADAMW needs m, v momenta per parameter tensor
+         enum ggml_opt_optimizer_type optimizer;
++
++        // memagent: clip the global gradient norm to this before the optimizer step (0 = off),
++        // as torch.nn.utils.clip_grad_norm_
++        float grad_clip;
+     };
+ 
+     // get parameters for an optimization context with defaults set where possible
+diff --git a/ggml/src/ggml-cpu/ops.cpp b/ggml/src/ggml-cpu/ops.cpp
+index 85e1701..4c71340 100644
+--- a/ggml/src/ggml-cpu/ops.cpp
++++ b/ggml/src/ggml-cpu/ops.cpp
+@@ -12129,7 +12129,12 @@ static void ggml_compute_forward_cross_entropy_loss_back_f32(
+         assert(sum > 0.0);
+         ggml_vec_scale_f32(nc, ds0, 1.0/sum);
+ 
+-        // grad(src0f) = (softmax(src0f) - src1f) * grad(cross_entropy_loss(src0f, src1f)) / nr
++        // grad(src0f) = (softmax(src0f)*sum(src1f) - src1f) * grad(cross_entropy_loss(src0f, src1f)) / nr
++        // memagent: the sum(src1f) factor (1 for a one-hot row) makes an all-zero label row a masked
++        // position with no gradient, instead of one that flattens the distribution
++        ggml_float sum1 = 0.0;
++        ggml_vec_sum_f32_ggf(nc, &sum1, s1);
++        ggml_vec_scale_f32(nc, ds0, (float) sum1);
+         ggml_vec_sub_f32(nc, ds0, ds0, s1);
+         ggml_vec_scale_f32(nc, ds0, d_by_nr);
+ 
+diff --git a/ggml/src/ggml-cuda/cross-entropy-loss.cu b/ggml/src/ggml-cuda/cross-entropy-loss.cu
+index 0c8b081..ec1a3c7 100644
+--- a/ggml/src/ggml-cuda/cross-entropy-loss.cu
++++ b/ggml/src/ggml-cuda/cross-entropy-loss.cu
+@@ -84,10 +84,17 @@ static __global__ void cross_entropy_loss_back_f32(
+     sum = warp_reduce_sum(sum);
+     const float sm_scale = 1.0f/sum;
+ 
++    // memagent: softmax*sum(labels) - labels, so an all-zero label row (a masked position) has no gradient
++    float label_sum = 0.0f;
++    for (int i = threadIdx.x; i < nclasses; i += WARP_SIZE) {
++        label_sum += labels[i];
++    }
++    label_sum = warp_reduce_sum(label_sum);
++
+     const float d_by_nrows = *grad/gridDim.x;
+     for (int i = threadIdx.x; i < nclasses; i += WARP_SIZE) {
+         const float val = use_shared ? tmp[i] : dst[i];
+-        dst[i] = (val*sm_scale - labels[i])*d_by_nrows;
++        dst[i] = (val*sm_scale*label_sum - labels[i])*d_by_nrows;
+     }
+ }
+ 
+diff --git a/ggml/src/ggml-opt.cpp b/ggml/src/ggml-opt.cpp
+index 53903de..d1453c3 100644
+--- a/ggml/src/ggml-opt.cpp
++++ b/ggml/src/ggml-opt.cpp
+@@ -69,6 +69,7 @@ struct ggml_opt_context {
+     struct ggml_tensor *          opt_step_params = nullptr; // Stores output of get_opt_pars.
+ 
+     enum ggml_opt_optimizer_type optimizer = GGML_OPT_OPTIMIZER_TYPE_ADAMW;
++    float grad_clip = 0.0f; // memagent: global gradient norm clip, 0 = off
+ };
+ 
+ struct ggml_opt_result {
+@@ -256,6 +257,7 @@ struct ggml_opt_params ggml_opt_default_params(
+         /*get_opt_pars    =*/ ggml_opt_get_default_optimizer_params,
+         /*get_opt_pars_ud =*/ nullptr,
+         /*optimizer       =*/ GGML_OPT_OPTIMIZER_TYPE_ADAMW,
++        /*grad_clip       =*/ 0.0f,
+     };
+ }
+ 
+@@ -508,11 +510,38 @@ static void ggml_opt_build(ggml_opt_context_t opt_ctx) {
+     ggml_set_input(adamw_params);
+     const char * optimizer_name = ggml_opt_optimizer_name(opt_ctx->optimizer);
+     ggml_format_name(adamw_params, "%s_params", optimizer_name);
++    // memagent: clip_grad_norm_: every gradient scaled by clip / max(norm, clip), the norm taken
++    // over all trainable tensors, computed in the graph so it works on every backend
++    ggml_tensor * clip_scale = nullptr;
++    if (opt_ctx->grad_clip > 0.0f) {
++        ggml_tensor * sumsq = nullptr;
++        for (int i = opt_ctx->gf->n_nodes-1; i >= 0; --i) {
++            struct ggml_tensor * node = opt_ctx->gb_opt->nodes[i];
++            struct ggml_tensor * grad = ggml_graph_get_grad(opt_ctx->gb_opt, node);
++            if (grad && (node->flags & GGML_TENSOR_FLAG_PARAM)) {
++                ggml_tensor * s = ggml_sum(opt_ctx->ctx_compute, ggml_sqr(opt_ctx->ctx_compute, grad));
++                sumsq = sumsq ? ggml_add(opt_ctx->ctx_compute, sumsq, s) : s;
++            }
++        }
++        if (sumsq) {
++            ggml_tensor * norm = ggml_clamp(opt_ctx->ctx_compute, ggml_sqrt(opt_ctx->ctx_compute, sumsq),
++                opt_ctx->grad_clip, INFINITY);
++            // clip / max(norm, clip) = clip * exp(-log(max(norm, clip)))
++            clip_scale = ggml_scale(opt_ctx->ctx_compute,
++                ggml_exp(opt_ctx->ctx_compute, ggml_neg(opt_ctx->ctx_compute, ggml_log(opt_ctx->ctx_compute, norm))),
++                opt_ctx->grad_clip);
++            ggml_set_name(clip_scale, "grad clip scale");
++        }
++    }
++
+     for (int i = opt_ctx->gf->n_nodes-1; i >= 0; --i) {
+         struct ggml_tensor * node = opt_ctx->gb_opt->nodes[i];
+         struct ggml_tensor * grad = ggml_graph_get_grad(opt_ctx->gb_opt, node);
+ 
+         if (grad && (node->flags & GGML_TENSOR_FLAG_PARAM)) {
++            if (clip_scale) {
++                grad = ggml_mul(opt_ctx->ctx_compute, grad, clip_scale);
++            }
+             struct ggml_tensor * m = nullptr;
+             struct ggml_tensor * v = nullptr;
+             if (need_momenta) {
+@@ -559,6 +588,7 @@ ggml_opt_context_t ggml_opt_init(struct ggml_opt_params params) {
+     result->get_opt_pars     = params.get_opt_pars;
+     result->get_opt_pars_ud  = params.get_opt_pars_ud;
+     result->optimizer        = params.optimizer;
++    result->grad_clip        = params.grad_clip;
+ 
+     GGML_ASSERT(result->opt_period >= 1);
+ 
+@@ -822,6 +852,19 @@ void ggml_opt_eval(ggml_opt_context_t opt_ctx, ggml_opt_result_t result) {
+     }
+ 
+     ggml_backend_sched_graph_compute(opt_ctx->backend_sched, opt_ctx->allocated_graph_copy);
++
++    // memagent: after an optimizer step the next step's gradients must start from zero. Rebuilt
++    // (non-static) graphs give every parameter a persistent gradient accumulator, but it was only
++    // reset for opt_period > 1, so with opt_period == 1 each step added its gradient to the sum of
++    // all earlier ones (verified against PyTorch: step n's gradient carried step 0's exactly)
++    if (opt_ctx->allocated_graph == opt_ctx->gb_opt && opt_ctx->gf) {
++        for (int i = 0; i < opt_ctx->gf->n_nodes && i < (int) opt_ctx->grad_accs.size(); ++i) {
++            ggml_tensor * acc = opt_ctx->grad_accs[i];
++            if (acc && (opt_ctx->gf->nodes[i]->flags & GGML_TENSOR_FLAG_PARAM) && acc->buffer) {
++                ggml_backend_tensor_memset(acc, 0, 0, ggml_nbytes(acc));
++            }
++        }
++    }
+     opt_ctx->iter += opt_ctx->allocated_graph == opt_ctx->gb_opt;
+     opt_ctx->opt_i = (opt_ctx->opt_i + 1) % opt_ctx->opt_period;
+ 
+diff --git a/include/llama.h b/include/llama.h
+index ae54e66..3efaa3c 100644
+--- a/include/llama.h
++++ b/include/llama.h
+@@ -715,6 +715,29 @@ extern "C" {
+     // Get metadata value as a string by index
+     LLAMA_API int32_t llama_adapter_meta_val_str_by_index(const struct llama_adapter_lora * adapter, int32_t i, char * buf, size_t buf_size);
+ 
++    // memagent: a fresh LoRA for training: rank, alpha, comma-separated weight names to adapt
++    // (e.g. "attn_q,attn_k,attn_v,attn_output,ffn_gate,ffn_up,ffn_down"); A random, B zero
++    LLAMA_API struct llama_adapter_lora * llama_adapter_lora_init_new(
++            struct llama_model * model, int32_t rank, float alpha, const char * targets, uint32_t seed);
++
++    // memagent: write an adapter (e.g. after training) as a LoRA GGUF that llama_adapter_lora_init loads
++    LLAMA_API int32_t llama_adapter_lora_save(const struct llama_adapter_lora * adapter, const char * path);
++
++    // memagent: LoRA training. Attach the adapter with llama_set_adapters_lora first; the context needs
++    // n_batch = n_ubatch = n_ctx, kv_unified, f32 K/V cache, and n_seq_max above the examples per window.
++    // AdamW with linear warmup (warmup_steps) and linear decay to 0 at total_steps; the base stays frozen.
++    LLAMA_API int32_t llama_lora_train_init(struct llama_context * ctx, struct llama_model * model,
++            float lr, float weight_decay, int64_t total_steps, int64_t warmup_steps);
++
++    // One pass over n_windows packed windows of n_ctx tokens. labels[i] is the token to predict at i
++    // (-1: no loss), seqs[i] the example index of token i within its window (-1: padding).
++    // train = false only evaluates. out_loss: mean loss per trained token.
++    LLAMA_API int32_t llama_lora_train_epoch(struct llama_context * ctx, const llama_token * tokens,
++            const llama_token * labels, const int32_t * seqs, int64_t n_windows, bool train, double * out_loss);
++
++    // memagent: an f32 copy of a model (training needs f32 base weights on the CPU)
++    LLAMA_API int32_t llama_model_convert_f32(const char * fname_inp, const char * fname_out, int32_t nthread);
++
+     // Manually free a LoRA adapter
+     // NOTE: loaded adapters that are not manually freed will be freed when the associated model is deleted
+     LLAMA_API void llama_adapter_lora_free(struct llama_adapter_lora * adapter);
+diff --git a/src/llama-adapter.cpp b/src/llama-adapter.cpp
+index 824601e..faef79b 100644
+--- a/src/llama-adapter.cpp
++++ b/src/llama-adapter.cpp
+@@ -5,6 +5,9 @@
+ #include "llama-model.h"
+ 
+ #include <map>
++#include <algorithm>
++#include <cmath>
++#include <random>
+ #include <cassert>
+ #include <cerrno>
+ #include <cstring>
+@@ -525,3 +528,132 @@ const llama_token * llama_adapter_get_alora_invocation_tokens(const llama_adapte
+     GGML_ASSERT(adapter);
+     return adapter->alora_invocation_tokens.data();
+ }
++
++//
++// memagent: LoRA training (create a fresh adapter, save a trained one)
++//
++
++llama_adapter_lora * llama_adapter_lora_init_new(llama_model * model, int32_t rank, float alpha, const char * targets, uint32_t seed) {
++    if (rank <= 0 || targets == nullptr) {
++        LLAMA_LOG_ERROR("%s: invalid rank or targets\n", __func__);
++        return nullptr;
++    }
++    std::vector<std::string> tgt;
++    {
++        std::stringstream ss(targets);
++        std::string item;
++        while (std::getline(ss, item, ',')) {
++            if (!item.empty()) {
++                tgt.push_back("." + item + ".weight");
++            }
++        }
++    }
++
++    auto * adapter = new llama_adapter_lora(model);
++    adapter->alpha = alpha;
++
++    // the base weights a LoRA pair is created for: 2D blk.N.<target>.weight tensors
++    std::vector<std::pair<std::string, const ggml_tensor *>> picked;
++    for (const auto & it : model->tensors_by_name) {
++        const std::string & name = it.first;
++        const ggml_tensor * w = it.second;
++        if (name.rfind("blk.", 0) != 0 || ggml_n_dims(w) != 2) {
++            continue;
++        }
++        for (const auto & t : tgt) {
++            if (name.size() >= t.size() && name.compare(name.size() - t.size(), t.size(), t) == 0) {
++                picked.emplace_back(name, w);
++                break;
++            }
++        }
++    }
++    if (picked.empty()) {
++        LLAMA_LOG_ERROR("%s: no base weights match '%s'\n", __func__, targets);
++        delete adapter;
++        return nullptr;
++    }
++
++    // trainable tensors live in a host buffer (the CPU training path)
++    auto * cpu_dev = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
++    ggml_init_params params = {
++        /*.mem_size   =*/ 2 * picked.size() * ggml_tensor_overhead(),
++        /*.mem_buffer =*/ nullptr,
++        /*.no_alloc   =*/ true,
++    };
++    ggml_context * ctx = ggml_init(params);
++    adapter->ctxs.emplace_back(ctx);
++    for (const auto & p : picked) {
++        ggml_tensor * a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, p.second->ne[0], rank);
++        ggml_tensor * b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, rank, p.second->ne[1]);
++        ggml_set_name(a, (p.first + ".lora_a").c_str());
++        ggml_set_name(b, (p.first + ".lora_b").c_str());
++        adapter->ab_map[p.first] = llama_adapter_lora_weight(a, b);
++    }
++    ggml_backend_buffer_ptr buf { ggml_backend_alloc_ctx_tensors_from_buft(ctx, ggml_backend_dev_buffer_type(cpu_dev)) };
++    if (!buf) {
++        LLAMA_LOG_ERROR("%s: failed to allocate the adapter\n", __func__);
++        delete adapter;
++        return nullptr;
++    }
++    adapter->bufs.emplace_back(std::move(buf));
++
++    // PEFT's initialisation: A ~ U(-1/sqrt(in), 1/sqrt(in)) (kaiming_uniform, a = sqrt(5)), B = 0,
++    // so the fresh adapter changes nothing until it is trained
++    std::mt19937 rng(seed);
++    std::vector<float> data;
++    for (auto & it : adapter->ab_map) {
++        ggml_tensor * a = it.second.a;
++        const float bound = 1.0f / std::sqrt((float) a->ne[0]);
++        std::uniform_real_distribution<float> dist(-bound, bound);
++        data.resize(ggml_nelements(a));
++        for (auto & v : data) {
++            v = dist(rng);
++        }
++        ggml_backend_tensor_set(a, data.data(), 0, ggml_nbytes(a));
++        data.assign(ggml_nelements(it.second.b), 0.0f);
++        ggml_backend_tensor_set(it.second.b, data.data(), 0, ggml_nbytes(it.second.b));
++    }
++    // registered like a loaded adapter: the graph budget counts its nodes, llama_adapter_lora_free unregisters it
++    model->loras.insert(adapter);
++    LLAMA_LOG_INFO("%s: new LoRA, rank %d, alpha %.1f, %zu weights\n", __func__, rank, alpha, picked.size());
++    return adapter;
++}
++
++int32_t llama_adapter_lora_save(const llama_adapter_lora * adapter, const char * path) {
++    gguf_context * gctx = gguf_init_empty();
++    gguf_set_val_str(gctx, "general.architecture", llm_arch_name(adapter->model->arch));
++    gguf_set_val_str(gctx, "general.type", "adapter");
++    gguf_set_val_str(gctx, "adapter.type", "lora");
++    gguf_set_val_f32(gctx, "adapter.lora.alpha", adapter->alpha);
++
++    // host copies of the tensors, in a stable order
++    std::vector<std::string> names;
++    size_t bytes = 0;
++    for (const auto & it : adapter->ab_map) {
++        names.push_back(it.first);
++        bytes += ggml_nbytes(it.second.a) + ggml_nbytes(it.second.b);
++    }
++    std::sort(names.begin(), names.end());
++    ggml_init_params params = {
++        /*.mem_size   =*/ bytes + 2 * names.size() * (ggml_tensor_overhead() + GGML_MEM_ALIGN),
++        /*.mem_buffer =*/ nullptr,
++        /*.no_alloc   =*/ false,
++    };
++    ggml_context * ctx = ggml_init(params);
++    for (const auto & name : names) {
++        const auto & w = adapter->ab_map.at(name);
++        for (ggml_tensor * src : { w.a, w.b }) {
++            ggml_tensor * t = ggml_dup_tensor(ctx, src);
++            ggml_set_name(t, src->name);
++            ggml_backend_tensor_get(src, t->data, 0, ggml_nbytes(src));
++            gguf_add_tensor(gctx, t);
++        }
++    }
++    const bool ok = gguf_write_to_file(gctx, path, false);
++    gguf_free(gctx);
++    ggml_free(ctx);
++    if (!ok) {
++        LLAMA_LOG_ERROR("%s: could not write '%s'\n", __func__, path);
++    }
++    return ok ? 0 : -1;
++}
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 33ad784..bee5114 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -2566,7 +2566,8 @@ uint32_t llama_context::graph_max_nodes(uint32_t n_tokens) const {
+     }
+ 
+     if (cparams.training) {
+-        res *= 4;
++        // memagent: a trained LoRA pair adds its own gradient and accumulation nodes to the backward graph
++        res *= loras->empty() ? 4 : 8;
+     }
+ 
+     return res;
+@@ -3800,6 +3801,7 @@ void llama_context::opt_init(struct llama_model * model, struct llama_opt_params
+     opt_params.get_opt_pars    = lopt_params.get_opt_pars;
+     opt_params.get_opt_pars_ud = lopt_params.get_opt_pars_ud;
+     opt_params.optimizer       = lopt_params.optimizer_type;
++    opt_params.grad_clip       = lora_sched.clip; // memagent: 0 unless llama_lora_train_init set it
+     opt_ctx = ggml_opt_init(opt_params);
+ 
+     llama_opt_param_filter param_filter = lopt_params.param_filter;
+@@ -3826,6 +3828,17 @@ void llama_context::opt_init(struct llama_model * model, struct llama_opt_params
+             llama_set_param(reinterpret_cast<struct ggml_tensor **>(&layer)[i], param_filter, param_filter_ud);
+         }
+     }
++
++    // memagent: the LoRA adapters attached to this context train too (pass a param_filter
++    // that rejects every model tensor to train only the adapter)
++    for (const auto & it : *loras) {
++        for (auto & ab : it.first->ab_map) {
++            if (ab.second.a->type == GGML_TYPE_F32 && ab.second.b->type == GGML_TYPE_F32) {
++                ggml_set_param(ab.second.a);
++                ggml_set_param(ab.second.b);
++            }
++        }
++    }
+ }
+ 
+ void llama_context::opt_epoch_iter(
+@@ -3838,7 +3851,8 @@ void llama_context::opt_epoch_iter(
+         bool                             train,
+         int64_t                          idata_in_loop,
+         int64_t                          ndata_in_loop,
+-        int64_t                          t_loop_start) {
++        int64_t                          t_loop_start,
++        const std::vector<int32_t>     * seqs) {
+     GGML_ASSERT(opt_ctx);
+     const uint32_t n_ctx    = llama_model_n_ctx_train(&model);
+     const uint32_t n_batch  = std::min(this->n_batch(),  n_ctx);
+@@ -3848,12 +3862,25 @@ void llama_context::opt_epoch_iter(
+ 
+     for (uint32_t pos_ctx = 0; pos_ctx < n_ctx; pos_ctx += n_batch) {
+         batch.n_tokens = n_batch;
++        // memagent: with seqs, each packed example is its own sequence (positions from 0, attends
++        // only to itself); -1 marks padding, which gets a sequence of its own
++        std::vector<llama_pos> seq_next;
+         for (uint32_t pos_batch = 0; pos_batch < n_batch; ++pos_batch) {
+             batch.token   [pos_batch]    = tokens[pos_ctx + pos_batch];
+             batch.pos     [pos_batch]    = pos_ctx + pos_batch;
+             batch.n_seq_id[pos_batch]    = 1;
+             batch.seq_id  [pos_batch][0] = 0;
+             batch.logits  [pos_batch]    = true;
++            if (seqs) {
++                int32_t s = (*seqs)[pos_ctx + pos_batch];
++                s = s < 0 ? (int32_t) cparams.n_seq_max - 1 : s;
++                GGML_ASSERT(s < (int32_t) cparams.n_seq_max && "more packed examples than n_seq_max");
++                if ((size_t) s >= seq_next.size()) {
++                    seq_next.resize(s + 1, 0);
++                }
++                batch.seq_id[pos_batch][0] = s;
++                batch.pos   [pos_batch]    = seq_next[s]++;
++            }
+         }
+ 
+         // TODO: use llama_batch_ext here
+@@ -3928,10 +3955,28 @@ void llama_context::opt_epoch_iter(
+                 const float onef = 1.0f;
+                 for (uint32_t pos_ubatch = 0; pos_ubatch < n_ubatch; ++pos_ubatch) {
+                     const uint32_t ilabel = pos_ctx + pos_batch + pos_ubatch;
++                    if (labels_sparse[ilabel] < 0) {
++                        continue; // memagent: masked position (prompt, padding), no loss
++                    }
+                     GGML_ASSERT(labels_sparse[ilabel] < labels->ne[0]);
+                     ggml_backend_tensor_set(labels, &onef, (pos_ubatch*labels->ne[0] + labels_sparse[ilabel])*sizeof(float), sizeof(float));
+                 }
+             }
++            // memagent: with packed examples the loss is a mean over the trained (labelled) tokens, as in
++            // transformers, not over every row of the window: seeding the loss gradient with
++            // n_rows / n_labelled scales the whole backward pass, on any backend, and keeps grad_clip
++            // in the same units as torch's clip_grad_norm_
++            if (seqs && train) {
++                uint32_t n_labelled = 0;
++                for (uint32_t pos_ubatch = 0; pos_ubatch < n_ubatch; ++pos_ubatch) {
++                    n_labelled += labels_sparse[pos_ctx + pos_batch + pos_ubatch] >= 0;
++                }
++                ggml_tensor * loss_grad = ggml_opt_grad_acc(opt_ctx, ggml_opt_loss(opt_ctx));
++                if (loss_grad && n_labelled > 0) {
++                    const float seed = (float) n_ubatch / (float) n_labelled;
++                    ggml_backend_tensor_set(loss_grad, &seed, 0, sizeof(float));
++                }
++            }
+             copy_experts.reset();
+             ggml_opt_eval(opt_ctx, result);
+             if (callback) {
+@@ -3992,6 +4037,104 @@ void llama_context::opt_epoch(
+     llama_batch_free(batch);
+ }
+ 
++// memagent: LoRA training on packed windows
++
++static ggml_opt_optimizer_params lora_train_pars(void * userdata) {
++    auto & s = *(llama_context::lora_train_schedule *) userdata;
++    // linear warmup over the first steps, then linear decay to zero (as trainer/consolidate.py)
++    const double warm  = std::min(1.0, (double) (s.step + 1) / (double) std::max<int64_t>(1, s.warmup));
++    const double decay = std::max(0.0, 1.0 - (double) s.step / (double) std::max<int64_t>(1, s.total));
++    s.step++;
++    ggml_opt_optimizer_params p = ggml_opt_get_default_optimizer_params(nullptr);
++    // ggml asserts alpha > 0; a later epoch can pack into more windows than the step budget counted
++    p.adamw.alpha = (float) std::max(1e-9, s.lr * warm * decay);
++    p.adamw.wd    = s.wd;
++    p.sgd.alpha   = p.adamw.alpha;
++    p.sgd.wd      = s.wd;
++    return p;
++}
++
++static bool lora_train_reject_all(const ggml_tensor *, void *) {
++    return false; // the base model stays frozen; only the attached LoRA trains
++}
++
++int32_t llama_context::lora_train_epoch(const llama_token * tokens, const llama_token * labels, const int32_t * seqs,
++        int64_t n_windows, bool train, double * out_loss) {
++    if (!opt_ctx || n_windows <= 0) {
++        return -1;
++    }
++    const uint32_t n_ctx   = this->n_ctx();
++    const uint32_t n_batch = std::min(cparams.n_batch, n_ctx);
++
++    struct llama_batch batch = llama_batch_init(n_batch, 0, 1);
++    std::vector<llama_token> tok(n_ctx), lab(n_ctx);
++    std::vector<int32_t>     seq(n_ctx);
++    ggml_opt_result_t result = ggml_opt_result_init();
++    int64_t n_trained = 0;
++    const int64_t t_start = ggml_time_us();
++    for (int64_t w = 0; w < n_windows; ++w) {
++        std::copy(tokens + w*n_ctx, tokens + (w + 1)*n_ctx, tok.begin());
++        std::copy(labels + w*n_ctx, labels + (w + 1)*n_ctx, lab.begin());
++        std::copy(seqs   + w*n_ctx, seqs   + (w + 1)*n_ctx, seq.begin());
++        for (llama_token l : lab) {
++            n_trained += l >= 0;
++        }
++        opt_epoch_iter(nullptr, result, tok, lab, batch, nullptr, train, w, n_windows, t_start, &seq);
++    }
++    double loss = 0.0, unc = 0.0;
++    ggml_opt_result_loss(result, &loss, &unc);
++    ggml_opt_result_free(result);
++    llama_batch_free(batch);
++    // the cross-entropy is a mean over every row of a window, masked rows included:
++    // rescale to the mean over the trained tokens
++    if (out_loss) {
++        *out_loss = n_trained > 0 ? loss * (double) n_windows * n_ctx / (double) n_trained : 0.0;
++    }
++    return 0;
++}
++
++int32_t llama_lora_train_init(llama_context * ctx, llama_model * model, float lr, float weight_decay,
++        int64_t total_steps, int64_t warmup_steps) {
++    ctx->lora_sched.lr     = lr;
++    ctx->lora_sched.wd     = weight_decay;
++    ctx->lora_sched.total  = total_steps;
++    ctx->lora_sched.warmup = warmup_steps;
++    ctx->lora_sched.step   = 0;
++    ctx->lora_sched.clip   = 1.0f; // clip_grad_norm_(params, 1.0), as trainer/consolidate.py
++    llama_opt_params p = {
++        /*n_ctx_train     =*/ 0,
++        /*param_filter    =*/ lora_train_reject_all,
++        /*param_filter_ud =*/ nullptr,
++        /*get_opt_pars    =*/ lora_train_pars,
++        /*get_opt_pars_ud =*/ &ctx->lora_sched,
++        /*optimizer_type  =*/ GGML_OPT_OPTIMIZER_TYPE_ADAMW,
++    };
++    try {
++        ctx->opt_init(model, p);
++    } catch (const std::exception & e) {
++        LLAMA_LOG_ERROR("%s: %s\n", __func__, e.what());
++        return -1;
++    }
++    return 0;
++}
++
++int32_t llama_lora_train_epoch(llama_context * ctx, const llama_token * tokens, const llama_token * labels,
++        const int32_t * seqs, int64_t n_windows, bool train, double * out_loss) {
++    try {
++        return ctx->lora_train_epoch(tokens, labels, seqs, n_windows, train, out_loss);
++    } catch (const std::exception & e) {
++        LLAMA_LOG_ERROR("%s: %s\n", __func__, e.what());
++        return -1;
++    }
++}
++
++int32_t llama_model_convert_f32(const char * fname_inp, const char * fname_out, int32_t nthread) {
++    llama_model_quantize_params p = llama_model_quantize_default_params();
++    p.ftype   = LLAMA_FTYPE_ALL_F32;
++    p.nthread = nthread;
++    return (int32_t) llama_model_quantize(fname_inp, fname_out, &p);
++}
++
+ //
+ // interface implementation
+ //
+diff --git a/src/llama-context.h b/src/llama-context.h
+index 6938fb1..6e16b77 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -223,7 +223,21 @@ struct llama_context {
+             bool                             train,
+             int64_t                          idata_in_loop,
+             int64_t                          ndata_in_loop,
+-            int64_t                          t_loop_start);
++            int64_t                          t_loop_start,
++            const std::vector<int32_t>     * seqs = nullptr);
++
++    // memagent: LoRA training on packed windows (see llama_lora_train_*)
++    struct lora_train_schedule {
++        float   lr      = 1e-4f;
++        float   wd      = 0.0f;
++        int64_t total   = 1;
++        int64_t warmup  = 0;
++        int64_t step    = 0;
++        float   clip    = 0.0f;
++    } lora_sched;
++
++    int32_t lora_train_epoch(const llama_token * tokens, const llama_token * labels, const int32_t * seqs,
++            int64_t n_windows, bool train, double * out_loss);
+ 
+ private:
+     //

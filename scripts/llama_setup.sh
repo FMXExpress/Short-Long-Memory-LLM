@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Sets up the in-process llama.cpp engine ([agent] engine=llama):
 #   1. checks out llama.cpp at the tag memagent/Mem.Llama.pas is bound to
-#   2. builds it as shared libraries into cache/llama (RUNPATH $ORIGIN, so the
+#   2. applies packaging/llama-patches (LoRA training in-process, Mem.Train)
+#   3. builds it as shared libraries into cache/llama (RUNPATH $ORIGIN, so the
 #      directory can be moved or shipped next to the binary)
-#   3. installs the GGUF converters' Python deps and converts each profile's
-#      base model to cache/gguf/<profile>.gguf
+#   4. installs the GGUF converters' Python deps and converts each profile's
+#      base model to cache/gguf/<profile>.gguf (the agent can also download one)
 #
 # usage: scripts/llama_setup.sh [profile ...]     (default: tiny)
 #   LLAMA_CUDA=1      build the CUDA backend (inference GPU = [gpu] infer)
@@ -27,6 +28,16 @@ if [ "$have" != "$TAG" ]; then
   echo "llama_setup: $SRC is at $have, Mem.Llama.pas is bound to $TAG" >&2
   exit 1
 fi
+
+# memagent's patches: LoRA training in-process (Mem.Train)
+for p in "$REPO"/packaging/llama-patches/*.patch; do
+  if git -C "$SRC" apply --reverse --check "$p" 2>/dev/null; then
+    echo "llama_setup: $(basename "$p") already applied"
+  else
+    git -C "$SRC" apply "$p"
+    echo "llama_setup: applied $(basename "$p")"
+  fi
+done
 
 cmake -S "$SRC" -B "$SRC/build" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
   -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \

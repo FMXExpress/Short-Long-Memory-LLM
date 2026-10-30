@@ -162,10 +162,26 @@ var
   llama_set_adapters_lora: function(ACtx: PLlamaContext; AAdapters: Pointer; ANAdapters: csize_t;
     AScales: PSingle): Int32; cdecl;
 
+  (* LoRA training: only in a llama.cpp built with packaging/llama-patches
+     (scripts/llama_setup.sh applies them); nil otherwise, see LlamaCanTrain *)
+  llama_adapter_lora_init_new: function(AModel: PLlamaModel; ARank: Int32; AAlpha: Single;
+    ATargets: PAnsiChar; ASeed: UInt32): PLlamaAdapter; cdecl;
+  llama_adapter_lora_save: function(AAdapter: PLlamaAdapter; APath: PAnsiChar): Int32; cdecl;
+  llama_lora_train_init: function(ACtx: PLlamaContext; AModel: PLlamaModel; ALr, AWeightDecay: Single;
+    ATotalSteps, AWarmupSteps: Int64): Int32; cdecl;
+  llama_lora_train_epoch: function(ACtx: PLlamaContext; ATokens, ALabels: PLlamaToken; ASeqs: PInt32;
+    ANWindows: Int64; ATrain: Boolean; AOutLoss: PDouble): Int32; cdecl;
+  llama_model_convert_f32: function(AInp, AOut: PAnsiChar; ANThread: Int32): Int32; cdecl;
+
 { Loads the llama.cpp libraries from ADir ('' = the system search path).
   Raises on failure; safe to call more than once. }
 procedure LlamaLoad(const ADir: string);
 function LlamaLoaded: Boolean;
+{ True when the loaded library carries the LoRA training patch }
+function LlamaCanTrain: Boolean;
+{ ggml needs the C default (masked) floating-point exceptions; FPC unmasks
+  them, per thread, so every thread that calls llama.cpp masks them first }
+procedure LlamaMaskFpu;
 { MEMAGENT_DEBUG=1: one flushed line on stderr per step of loading and running
   the model, so a crash inside a native library still shows where it was }
 procedure LlamaTrace(const AMsg: string);
@@ -277,6 +293,12 @@ begin
   Bind(llama_set_adapters_lora, 'llama_set_adapters_lora');
   if LMissing <> '' then
     raise Exception.Create('llama.cpp library is not ' + LLAMA_TAG + '-compatible, missing:' + LMissing);
+  { optional: the training patch }
+  Pointer(llama_adapter_lora_init_new) := GetProcedureAddress(LLlama, 'llama_adapter_lora_init_new');
+  Pointer(llama_adapter_lora_save) := GetProcedureAddress(LLlama, 'llama_adapter_lora_save');
+  Pointer(llama_lora_train_init) := GetProcedureAddress(LLlama, 'llama_lora_train_init');
+  Pointer(llama_lora_train_epoch) := GetProcedureAddress(LLlama, 'llama_lora_train_epoch');
+  Pointer(llama_model_convert_f32) := GetProcedureAddress(LLlama, 'llama_model_convert_f32');
   GLoaded := True;
   LlamaTrace('bound the ' + LLAMA_TAG + ' API');
 end;
@@ -293,6 +315,17 @@ begin
     WriteLn(StdErr, '[llama] ', AMsg);
     Flush(StdErr);
   end;
+end;
+
+function LlamaCanTrain: Boolean;
+begin
+  Result := GLoaded and Assigned(llama_adapter_lora_init_new) and Assigned(llama_adapter_lora_save) and
+    Assigned(llama_lora_train_init) and Assigned(llama_lora_train_epoch) and Assigned(llama_model_convert_f32);
+end;
+
+procedure LlamaMaskFpu;
+begin
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 end;
 
 function LlamaLoaded: Boolean;

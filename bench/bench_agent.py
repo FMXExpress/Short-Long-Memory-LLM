@@ -54,6 +54,7 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     ap.add_argument("--engine", default="python", choices=["python", "llama"])
+    ap.add_argument("--trainer", default="python", choices=["python", "llama"])
     a = ap.parse_args()
 
     data = json.load(open(a.facts, encoding="utf-8"))
@@ -76,6 +77,7 @@ infer=-1
 train=-1
 [consolidate]
 auto=0
+trainer={a.trainer}
 [retrieval]
 cache_dir={REPO}/cache
 """)
@@ -105,7 +107,7 @@ cache_dir={REPO}/cache
     phase_len = len(questions) + len(unknown)
     phases = {"before_sleep": qa[:phase_len], "after_sleep": qa[phase_len:2 * phase_len]}
     stored = len(re.findall(r"^\[memory [+~]#", p.stdout, re.M))
-    res = {"label": a.label, "profile": a.profile, "engine": a.engine, "n_facts": len(facts), "facts_stored": stored,
+    res = {"label": a.label, "profile": a.profile, "engine": a.engine, "trainer": a.trainer, "n_facts": len(facts), "facts_stored": stored,
            "wall_seconds": round(wall, 1)}
     for name, rows in phases.items():
         known_rows, unk_rows = rows[:len(questions)], rows[len(questions):]
