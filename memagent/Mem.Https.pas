@@ -349,29 +349,51 @@ begin
 end;
 
 procedure HttpsGetToFile(const AUrl, ADest: string; AVerbose: Boolean);
+const
+  ATTEMPTS = 3;
 var
   LDl: TDownloader;
   LPart: string;
   LStream: TFileStream;
+  LTry: Integer;
 begin
   if AVerbose then
     WriteLn(StdErr, '[download] ', AUrl);
   ForceDirectories(ExtractFileDir(ADest));
   LPart := ADest + '.part';
-  LDl := TDownloader.Create;
-  try
-    LStream := TFileStream.Create(LPart, fmCreate);
+  { a network error (DNS, connection reset) is often gone a few seconds later:
+    retry it, after 2 s then 4 s; an HTTP error status is not retried }
+  for LTry := 1 to ATTEMPTS do
+  begin
+    LDl := TDownloader.Create;
     try
-      LDl.Get(AUrl, LStream, AVerbose);
+      try
+        LStream := TFileStream.Create(LPart, fmCreate);
+        try
+          LDl.Get(AUrl, LStream, AVerbose);
+        finally
+          LStream.Free;
+        end;
+        Break;
+      except
+        on E: ESocketError do
+        begin
+          DeleteFile(LPart);
+          if LTry = ATTEMPTS then
+            raise;
+          WriteLn(StdErr, '[download] ', E.Message, '; retrying');
+          Sleep(2000 * LTry);
+        end;
+        on Exception do
+        begin
+          DeleteFile(LPart);
+          raise;
+        end;
+      end;
     finally
-      LStream.Free;
+      LDl.Free;
     end;
-  except
-    DeleteFile(LPart);
-    LDl.Free;
-    raise;
   end;
-  LDl.Free;
   if FileExists(ADest) then
     DeleteFile(ADest);
   if not RenameFile(LPart, ADest) then

@@ -318,6 +318,8 @@ begin
     WriteLn(StdErr, '[provision] unknown embed model ', AEmbedModel, ' (have: ', ModelKeys, ')');
     Exit;
   end;
+  { a download that still fails leaves retrieval on the lexical embedder, not a crash }
+  try
   LDl := TModelDownloader.Create(LSpec, ModelDir(ACacheDir, LSpec.SubDir), True);
   try
     LDl.EnsureFiles;
@@ -340,6 +342,13 @@ begin
       LDl.Free;
     end;
     WriteLn('[provision] reranker: ', LSpec.DisplayName);
+  end;
+  except
+    on E: Exception do
+    begin
+      WriteLn(StdErr, '[provision] download failed: ', E.Message);
+      Exit;
+    end;
   end;
   Result := True;
 end;

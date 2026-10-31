@@ -3,7 +3,8 @@ unit Mem.Agent;
 (* The agent loop. Per user turn:
      1. promote a finished consolidation (hot-swap the new LoRA)
      2. retrieve unbaked facts + older messages (FTS5) for the prompt
-     3. priors + summary + memory + recent turns -> generate (streamed)
+     3. persona + standing instructions (priors) + summary + memory + recent
+        turns -> generate (streamed)
      4. optional tool calls (bigger profiles only)
      5. persist the turn, extract facts from the user message
      6. maybe start a background consolidation on the training GPU
@@ -22,7 +23,7 @@ interface
 
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard;
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors;
 
 type
   TAgent = class
@@ -57,6 +58,13 @@ type
       items joined by '; ', or '' when there were none }
     function ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string = 'auto'): string;
     procedure MaybeSummarize;
+    { standing instructions in the user's message: new, confirmed or contradicted (Mem.Priors) }
+    procedure ObservePriors(const AUser: string; AMsgId: Int64);
+    { the priors that go into the prompt: confident enough, not overridden by a
+      more confident (or, at equal confidence, newer) opposite one, at most max_in_prompt }
+    function PromptPriors: TPriorArray;
+    function PriorsBlock: string;
+    function PriorLine(const P: TPriorRec): string;
     procedure MaybeAutoConsolidate;
     { a background run: deep, or fast on top of the active deep adapter }
     function StartRun(ATier: string; const AWhy: string): Boolean;
@@ -291,6 +299,107 @@ begin
     end;
 end;
 
+function Conf(const P: TPriorRec): Double;
+begin
+  Result := P.Alpha / (P.Alpha + P.Beta);
+end;
+
+function TAgent.PriorLine(const P: TPriorRec): string;
+begin
+  Result := Format('#%d %s (%.2f, %d message%s%s)', [P.Id, P.Belief, Conf(P), P.Evidence,
+    IfThen(P.Evidence = 1, '', 's'), IfThen(P.Kind = 'set', ', set with /prior', '')]);
+end;
+
+function TAgent.PromptPriors: TPriorArray;
+var
+  P, K: TPriorRec;
+  LBeaten: Boolean;
+begin
+  Result := nil;
+  if not FCfg.PriorsEnabled then
+    Exit;
+  { most confident first, newer first at equal confidence: the first of an opposite pair wins }
+  for P in FStore.Priors(True, FCfg.PriorMinConfidence) do
+  begin
+    if Length(Result) >= FCfg.PriorsInPrompt then
+      Break;
+    LBeaten := False;
+    for K in Result do
+      if MatchPrior(P.Key, P.Polarity, K.Key, K.Polarity) = pmOpposite then
+        LBeaten := True;
+    if not LBeaten then
+      Result := Concat(Result, [P]);
+  end;
+end;
+
+function TAgent.PriorsBlock: string;
+var
+  LPriors: TPriorArray;
+  I: Integer;
+begin
+  Result := '';
+  LPriors := PromptPriors;
+  if Length(LPriors) = 0 then
+    Exit;
+  Result := LineEnding + LineEnding + 'The user''s standing instructions (follow them unless the user says ' +
+    'otherwise):';
+  for I := 0 to High(LPriors) do
+    Result := Result + LineEnding + '- ' + LPriors[I].Belief;
+end;
+
+procedure TAgent.ObservePriors(const AUser: string; AMsgId: Int64);
+var
+  LCands: TPriorCandidates;
+  LAll: TPriorArray;
+  I, J: Integer;
+  LSame: Boolean;
+  LId: Int64;
+
+  procedure Report(APriorId: Int64; const AWhat: string);
+  var
+    P: TPriorRec;
+  begin
+    for P in FStore.Priors(False) do
+      if P.Id = APriorId then
+        Say('[prior ' + AWhat[1] + PriorLine(P) + '] ' + Copy(AWhat, 2, MaxInt) +
+          IfThen(P.Deprecated, ', deprecated', ''));
+  end;
+
+begin
+  if not FCfg.PriorsEnabled then
+    Exit;
+  LCands := DetectPriors(AUser);
+  if Length(LCands) = 0 then
+    Exit;
+  LAll := FStore.Priors(False);
+  for I := 0 to High(LCands) do
+  begin
+    LSame := False;
+    for J := 0 to High(LAll) do
+      case MatchPrior(LCands[I].Key, LCands[I].Polarity, LAll[J].Key, LAll[J].Polarity) of
+        pmSame:
+          begin
+            LSame := True;
+            if FStore.AddPriorEvidence(LAll[J].Id, AMsgId, 1, 'restated: ' + LCands[I].Belief,
+              FCfg.PriorMinConfidence, FCfg.PriorDeprecateUnder) then
+              Report(LAll[J].Id, '~confirmed');
+          end;
+        pmOpposite:
+          if FStore.AddPriorEvidence(LAll[J].Id, AMsgId, -1, 'contradicted by: ' + LCands[I].Belief,
+            FCfg.PriorMinConfidence, FCfg.PriorDeprecateUnder) then
+            Report(LAll[J].Id, '-contradicted');
+      end;
+    if not LSame then
+    begin
+      { a remark starts at 1:1, and this message is its first evidence }
+      LId := FStore.AddPrior(LCands[I].Belief, LCands[I].Key, 'learned', '', LCands[I].Polarity, 1, 1);
+      FStore.AddPriorEvidence(LId, AMsgId, 1, 'said: ' + LCands[I].Belief, FCfg.PriorMinConfidence,
+        FCfg.PriorDeprecateUnder);
+      Say(Format('[prior +#%d] %s', [LId, LCands[I].Belief]));
+    end;
+  end;
+end;
+
 function TAgent.BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
 var
   LSys, LSummary, LMem: string;
@@ -298,7 +407,7 @@ var
   LRecent: TMsgArray;
   LBudget, LUsed, I, LStart: Integer;
 begin
-  LSys := FCfg.Priors;
+  LSys := FCfg.Priors + PriorsBlock;
   if FCfg.Tools then
     LSys := LSys + LineEnding + LineEnding + ToolsBlock;
   LRecent := FStore.RecentMessages(FSession, FCfg.RecentTurns * 2);
@@ -556,6 +665,7 @@ begin
     LUserId := FStore.AddMessage(FSession, 'user', AUser);
     EmbedMessage(LUserId, AUser);
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
+    ObservePriors(AUser, LUserId);
     Mark(LT, LMs[1]);
     if (FGuard <> nil) and (QuestionSubject(AUser) <> '') then
     begin
@@ -810,6 +920,11 @@ var
   LHist: TStringList;
   LMessages: TJSONArray;
   LId: Int64;
+  LPriors, LInPrompt: TPriorArray;
+  P2: TPriorRec;
+  LIn: Boolean;
+  LSub: string;
+  LCand: TPriorCandidate;
 begin
   Result := True;
   P := Pos(' ', ALine);
@@ -828,7 +943,7 @@ begin
     Exit(False)
   else if LCmd = '/help' then
     Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
-      '  /adapter  /rollback  /status  /quit')
+      '  /adapter  /rollback  /priors  /prior <text>|drop <id>|restore <id>  /prompt <text>  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -837,6 +952,54 @@ begin
         IfThen(LFacts[I].BakedIn = '', '[in RAG]', '[baked: ' + LFacts[I].BakedIn + ']')]));
     if Length(LFacts) = 0 then
       Say('  (no facts yet)');
+  end
+  else if LCmd = '/prompt' then
+  begin
+    { the system prompt a message would get: persona, standing instructions, summary, memory }
+    LMessages := BuildMessages(LArg, True);
+    try
+      Say(LMessages.Objects[0].Get('content', ''));
+    finally
+      LMessages.Free;
+    end;
+  end
+  else if LCmd = '/priors' then
+  begin
+    LPriors := FStore.Priors(False);
+    LInPrompt := PromptPriors;
+    for I := 0 to High(LPriors) do
+    begin
+      LIn := False;
+      for P2 in LInPrompt do
+        if P2.Id = LPriors[I].Id then
+          LIn := True;
+      Say('  ' + PriorLine(LPriors[I]) + IfThen(LPriors[I].Deprecated, '  [deprecated: ' + LPriors[I].Reason + ']',
+        IfThen(LIn, '', '  [not in the prompt]')));
+    end;
+    if Length(LPriors) = 0 then
+      Say('  (no priors yet: say "from now on ...", "never ...", or /prior <text>)');
+  end
+  else if LCmd = '/prior' then
+  begin
+    P := Pos(' ', LArg);
+    LSub := LowerCase(IfThen(P > 0, Copy(LArg, 1, P - 1), LArg));
+    if ((LSub = 'drop') or (LSub = 'restore')) and (P > 0) then
+    begin
+      LId := StrToInt64Def(Trim(Copy(LArg, P + 1, MaxInt)), 0);
+      if FStore.SetPriorDeprecated(LId, LSub = 'drop', IfThen(LSub = 'drop', 'dropped with /prior drop', '')) then
+        Say(Format('[prior #%d] %s', [LId, IfThen(LSub = 'drop', 'deprecated', 'restored')]))
+      else
+        Say('no such prior');
+    end
+    else if LArg = '' then
+      Say('/prior <instruction>  |  /prior drop <id>  |  /prior restore <id>   (/priors lists them)')
+    else
+    begin
+      { set on purpose: starts at 3:1, so one stray remark does not undo it }
+      LCand := PriorFromText(LArg);
+      LId := FStore.AddPrior(LCand.Belief, LCand.Key, 'set', '', LCand.Polarity, 3, 1);
+      Say(Format('[prior +#%d] %s', [LId, LCand.Belief]));
+    end;
   end
   else if LCmd = '/remember' then
     ExtractFacts(LArg, 0)
@@ -963,6 +1126,9 @@ begin
       FloatToStr(FCfg.GuardMinScore) + ')'));
     Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter) +
       IfThen(FEngine.FastAdapter = '', '', ' + fast ' + FEngine.FastAdapter));
+    if FCfg.PriorsEnabled then
+      Say(Format('priors:   %d in the prompt, %d in all (/priors)', [Length(PromptPriors),
+        Length(FStore.Priors(False))]));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     if FCfg.Tiers then
       Say(Format('tiers:    fast LoRA holds %d facts; deep sleep at %d', [
