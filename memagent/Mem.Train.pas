@@ -233,7 +233,7 @@ var
   LSL: TStringList;
   LSteps: Int64;
   LWindow, LTotal, LLongest: Integer;
-  LPerFact: Integer;
+  LPerFact, LBatch: Integer;
   LPhases: TJSONObject;     { seconds per phase: where a run's time goes }
   LMark: TDateTime;
 
@@ -589,7 +589,13 @@ begin
       Inc(LTotal, Length(LTrain[I].Tokens));
       LLongest := Max(LLongest, Length(LTrain[I].Tokens));
     end;
-    LWindow := Max(LLongest, Round(FCfg.TrainBatch * LTotal / Max(1, Length(LTrain))));
+    (* max_windows: the optimizer steps per epoch stop growing with the facts;
+       more examples share each step instead (memory loop 4: drift tracks the
+       number of steps, and steps grew with every fact) *)
+    LBatch := FCfg.TrainBatch;
+    if FCfg.TrainMaxWindows > 0 then
+      LBatch := Max(LBatch, (Length(LTrain) + FCfg.TrainMaxWindows - 1) div FCfg.TrainMaxWindows);
+    LWindow := Max(LLongest, Round(LBatch * LTotal / Max(1, Length(LTrain))));
     LWindow := Min(WINDOW_MAX, Max(WINDOW_UNIT, ((LWindow + WINDOW_UNIT - 1) div WINDOW_UNIT) * WINDOW_UNIT));
 
     Phase('examples');

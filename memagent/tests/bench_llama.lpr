@@ -43,6 +43,7 @@ begin
   else if K = 'alpha' then Cfg.LoraAlpha := StrToFloat(V, LFmt)
   else if K = 'targets' then Cfg.LoraTargets := V
   else if K = 'anchors' then Cfg.TrainAnchors := StrToInt(V)
+  else if K = 'max_windows' then Cfg.TrainMaxWindows := StrToInt(V)
   else
     raise Exception.Create('unknown --set key: ' + K);
 end;
