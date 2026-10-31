@@ -521,3 +521,43 @@ ways to bring it down, both on the 30-fact dev set (`memory-tiny-llama-G*`, `-H*
 
 Drift goes down steadily with more anchors, to almost none at 24. Accuracy and interference move
 by one question at most, and the run takes about 6% longer. **Tiny now trains with 24 anchors.**
+
+Held-out facts (`memory-tiny-llama-heldout-anchors{8,24}.json`), never used for tuning:
+
+| anchors | accuracy LoRA / +RAG | interference | confab. (weights) | drift | train s |
+|---|---|---|---|---|---|
+| 8 | 0.925 / 1.000 | 0.075 | 0.80 | 1.25 | 733 |
+| 24 | 0.925 / 0.975 | 0.025 | 0.80 | **0.96** | 819 |
+
+Same picture: drift goes from 1.25 to 0.96 with the same accuracy, LoRA alone.
+
+## Memory loop, iteration 5: confabulation that gets past the guard (2026-10-31)
+
+In the stream baseline (`stream-tiny-loop3`), the full agent still answered 4 of 6 never-stated
+questions with a stored value after session 3. The guard only checks questions about "my X", and
+4 of those 5 leaks had no "my": "Which school did I go to?" got Teo, "What motorbike do I own?" got
+Rocket. The fifth was "When is my partner's birthday?" getting March 3rd, which was licensed
+because "birthday" matched the user's own birthday.
+
+**Owner rule (applied).** When the question names an owner ("my partner's birthday"), a word
+match only licenses facts about the same owner. Offline on six recorded answer sets (dev and
+held-out, `bench_guard`): no correct answer blocked on any set, and LoRA confabulation after the
+guard 0.20 to 0.15 on the newest dev set. The other sets are unchanged.
+
+**Guarding every question: rejected.** The guard was widened to any question, using its content
+words as the subject ("What do I drive?" gives "drive"). That cut confabulation after the guard
+from 0.20 to 0.10, but blocked 12 of 60 correct dev answers. A paraphrase shares no word with its
+fact ("Who am I dating?" against "my partner's name"), and licensing has to come from a model:
+
+- bge-reranker scores those real paraphrases 0.000 to 0.027 and the look-alikes 0.0006 to 0.004.
+  No threshold separates them.
+- Licensing a fact only when retrieval ranks it first for the question (minilm cosine) keeps
+  100 of 107 correct uses, but stops just 3 of 13 confabulations. The rest are true nearest
+  neighbours: motorbike gets the bike, high school gets the university, garage code gets the
+  office door code. The closest stored fact is the wrong one, and nothing lexical or rank-based
+  sees that.
+
+What is left is a model's knowledge boundary, which SFT negatives and DPO did not teach at 135M
+(above). The candidates are the larger profiles, or answering such near-miss questions with the
+stored fact named ("You told me your bike is Rocket; you haven't mentioned a motorbike"). The
+second one changes the answer style and needs its own benchmark.

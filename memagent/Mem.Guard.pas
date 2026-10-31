@@ -139,16 +139,32 @@ function SameThing(ARet: TRetrieval; const AQuestion, AQSubject: string; const A
 var
   QW, FW: TStringList;
   I, J: Integer;
+  Owner: string;
+  OwnerOk: Boolean;
 begin
   { shared content word: "dog" in "my dog's name", "aunt" vs "aunt" }
   QW := Words(AQSubject);
   FW := Words(AFact.Subject);
   try
-    for I := 0 to QW.Count - 1 do
-      if not InList(Stem(QW[I]), Weak) and (Length(Stem(QW[I])) >= 3) then
-        for J := 0 to FW.Count - 1 do
-          if (Stem(QW[I]) = Stem(FW[J])) or SameGroup(Stem(QW[I]), Stem(FW[J])) then
-            Exit(True);
+    (* an owner in the question must be the fact's too: "my partner's
+       birthday" is not answered by "my birthday" (memory loop 5) *)
+    Owner := '';
+    for I := 0 to QW.Count - 2 do
+      if (Stem(QW[I]) <> QW[I]) and not InList(Stem(QW[I]), Weak) then
+      begin
+        Owner := Stem(QW[I]);
+        Break;
+      end;
+    OwnerOk := Owner = '';
+    for J := 0 to FW.Count - 1 do
+      if (Owner <> '') and ((Stem(FW[J]) = Owner) or SameGroup(Owner, Stem(FW[J]))) then
+        OwnerOk := True;
+    if OwnerOk then
+      for I := 0 to QW.Count - 1 do
+        if not InList(Stem(QW[I]), Weak) and (Length(Stem(QW[I])) >= 3) then
+          for J := 0 to FW.Count - 1 do
+            if (Stem(QW[I]) = Stem(FW[J])) or SameGroup(Stem(QW[I]), Stem(FW[J])) then
+              Exit(True);
   finally
     QW.Free;
     FW.Free;
