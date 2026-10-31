@@ -26,6 +26,10 @@ $(BUILD)/priors_test: memagent/*.pas memagent/tests/priors_test.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/priors_test memagent/tests/priors_test.lpr
 
+$(BUILD)/bench_extract: memagent/*.pas memagent/tests/bench_extract.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_extract memagent/tests/bench_extract.lpr
+
 $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_retrieval memagent/tests/bench_retrieval.lpr

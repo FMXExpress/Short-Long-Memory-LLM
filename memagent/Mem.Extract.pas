@@ -38,6 +38,18 @@ function Sentences(const AText: string): TStringArray;
 
 implementation
 
+type
+  TExtraRule = record
+    Pattern: string;
+    Caseless: Boolean;
+    ValueGroup: Integer;
+    Text, Subject: string;
+    Proper: Boolean;    { the value must look like a name: a capital or non-ASCII first letter }
+    Questions: array[0..5] of string;
+  end;
+
+{$I Mem.ExtractRules.inc}
+
 const
   WS = [' ', #9, #10, #11, #12, #13];
   StopValues: array[0..7] of string = ('it', 'this', 'that', 'there', 'here', 'a', 'an', 'the');
@@ -237,9 +249,88 @@ begin
     Result.Add(S);
 end;
 
+{ memlib._fill: {v} the cleaned value, {p} the value as said, {1}.. the groups }
+function Fill(const ATemplate, AValue, APhrase: string; R: TRegExpr; ALower: Boolean): string;
+var
+  I: Integer;
+  G: string;
+begin
+  Result := StringReplace(ATemplate, '{v}', AValue, [rfReplaceAll]);
+  Result := StringReplace(Result, '{p}', APhrase, [rfReplaceAll]);
+  for I := 1 to R.SubExprMatchCount do
+  begin
+    G := Trim(R.Match[I]);
+    if ALower then
+      G := LowerCase(G);
+    Result := StringReplace(Result, '{' + IntToStr(I) + '}', G, [rfReplaceAll]);
+  end;
+end;
+
+const
+  { memlib._FILLER_START: a value starting with one of these is chat, not a fact }
+  FillerStart: array[0..32] of string = ('it', 'that', 'this', 'these', 'those', 'you', 'me', 'him', 'her', 'them',
+    'us', 'lot', 'lots', 'bit', 'little', 'something', 'anything', 'everything', 'nothing', 'so', 'too', 'how',
+    'when', 'what', 'why', 'there', 'here', 'more', 'much', 'some', 'fan', 'later', 'now');
+
+{ memlib._plausible }
+function Plausible(const AValue: string; AProper: Boolean; const ASubject: string): Boolean;
+var
+  LWords: TStringArray;
+  W: string;
+begin
+  LWords := SplitString(Trim(AValue), ' ');
+  if Length(LWords) = 0 then
+    Exit(False);
+  W := LowerCase(LWords[0]);
+  while (W <> '') and (W[Length(W)] = ',') do
+    SetLength(W, Length(W) - 1);
+  if InList(W, FillerStart) then
+    Exit(False);
+  if AProper and not ((AValue[1] in ['A'..'Z']) or (Ord(AValue[1]) > 127)) then
+    Exit(False);
+  if (ASubject = 'being a {v}') and ((Length(LWords) > 3) or (Pos(' of ', ' ' + LowerCase(AValue) + ' ') > 0)) then
+    Exit(False);
+  Result := True;
+end;
+
+{ memlib._extra_facts: the first EXTRA_RULES pattern that matches, as a fact; nil if none }
+function ExtraFact(const ASentence: string; ABoost: Double): TJSONObject;
+var
+  S, V, P: string;
+  I, K: Integer;
+  R: TRegExpr;
+  LQs: TJSONArray;
+begin
+  Result := nil;
+  S := Trim(ASentence);
+  while (S <> '') and (S[Length(S)] in [' ', '.', '!']) do
+    SetLength(S, Length(S) - 1);
+  for I := 0 to High(EXTRA_RULES) do
+  begin
+    R := Rx(EXTRA_RULES[I].Pattern, EXTRA_RULES[I].Caseless);
+    try
+      if not R.Exec(S) then
+        Continue;
+      P := CleanPhrase(R.Match[EXTRA_RULES[I].ValueGroup]);
+      V := CleanValue(R.Match[EXTRA_RULES[I].ValueGroup]);
+      if (V = '') or InList(LowerCase(V), StopValues) or
+        not Plausible(V, EXTRA_RULES[I].Proper, EXTRA_RULES[I].Subject) then
+        Continue;
+      LQs := TJSONArray.Create;
+      for K := 0 to High(EXTRA_RULES[I].Questions) do
+        LQs.Add(Fill(EXTRA_RULES[I].Questions[K], V, P, R, False));
+      Exit(MakeFact(Fill(EXTRA_RULES[I].Text, V, P, R, False),
+        Fill(EXTRA_RULES[I].Subject, LowerCase(V), LowerCase(P), R, True), V, LQs, Min(1.0, 0.7 + ABoost)));
+    finally
+      R.Free;
+    end;
+  end;
+end;
+
 function ExtractFactsRules(const AText: string): TJSONArray;
 var
-  RRemember, RName, RMy, RLive, RWork, RThe: TRegExpr;
+  RRemember, RName, RMy, RLive, RWork, RThe, RRelation, RIs: TRegExpr;
+  LExtra: TJSONObject;
   LPiece, LSent, LWhat, LVerb, LPhrase, V: string;
   LBoost: Double;
   LQs: TJSONArray;
@@ -249,7 +340,10 @@ begin
   RName := Rx('\bmy name is ([A-Z][\w''-]*(?:\s+[A-Z][\w''-]*)?)', False);
   RMy := Rx('\bmy ([a-z][\w'' -]{1,40}?) (is|are|was) (.+)$', True);
   RLive := Rx('\bi live in (.+)$', True);
-  RWork := Rx('\bi work (?:at|for) (.+)$', True);
+  RWork := Rx('\bi(?: work|''ve been working| have been working) (?:at|for) (.+?)(?:\s+(?:for|since)\s+.*)?$', True);
+  RRelation := Rx('\b[Mm]y (son|daughter|wife|husband|partner|sister|brother|mom|mum|mother|dad|father|friend|' +
+    'boss|manager|dog|cat|baby|grandma|grandpa|aunt|uncle|cousin|niece|nephew) ([A-Z][\w''-]*)', False);
+  RIs := Rx('(\w)''s (on|in|at)\b', False);
   RThe := Rx('^(?:the|our) ([a-z][\w'' -]{1,40}?) is (.+)$', True);
   try
     for LPiece in Sentences(AText) do
@@ -264,12 +358,23 @@ begin
         LBoost := 0.1;
       end;
 
+      { "my birthday's on May 3" = "my birthday is on May 3" (the possessive "my dog's name" stays) }
+      LSent := RIs.Replace(LSent, '$1 is $2', True);
       if RName.Exec(LSent) then
       begin
         V := CleanValue(RName.Match[1]);
         LQs := SubjectQuestions('my name');
         LQs.Add('Who am I?');
         Result.Add(MakeFact('Your name is ' + V + '.', 'my name', V, LQs, 0.9));
+        Continue;
+      end;
+      { "my son Leo just turned seven": a relation and the name right after it }
+      if RRelation.Exec(LSent) then
+      begin
+        LWhat := LowerCase(RRelation.Match[1]);
+        V := RRelation.Match[2];
+        Result.Add(MakeFact('Your ' + LWhat + '''s name is ' + V + '.', 'my ' + LWhat + '''s name', V,
+          SubjectQuestions('my ' + LWhat + '''s name'), Min(1.0, 0.8 + LBoost)));
         Continue;
       end;
       if RMy.Exec(LSent) then
@@ -308,7 +413,11 @@ begin
         if (V <> '') and not InList(LowerCase(V), StopValues) then
           Result.Add(MakeFact('The ' + LWhat + ' is ' + V + '.', 'the ' + LWhat, V,
             SubjectQuestions('the ' + LWhat), Min(1.0, 0.6 + LBoost), 'world'));
+        Continue;
       end;
+      LExtra := ExtraFact(LSent, LBoost);
+      if LExtra <> nil then
+        Result.Add(LExtra);
     end;
   finally
     RRemember.Free;
@@ -317,6 +426,8 @@ begin
     RLive.Free;
     RWork.Free;
     RThe.Free;
+    RRelation.Free;
+    RIs.Free;
   end;
 end;
 

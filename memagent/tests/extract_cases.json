@@ -277,7 +277,25 @@
   },
   {
    "text": "My sister Ana just moved to Lisbon.",
-   "facts": [],
+   "facts": [
+    {
+     "text": "Your sister's name is Ana.",
+     "subject": "my sister's name",
+     "value": "Ana",
+     "questions": [
+      "What is my sister's name?",
+      "What's my sister's name?",
+      "Do you remember my sister's name?",
+      "Tell me my sister's name.",
+      "Remind me, what is my sister's name?",
+      "Can you recall my sister's name?",
+      "I forgot my sister's name. What is it?",
+      "Do you know what my sister's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
    "has_statement": true
   },
   {
@@ -621,6 +639,1706 @@
      "kind": "user"
     }
    ],
+   "has_statement": true
+  },
+  {
+   "text": "I have a golden retriever called Biscuit.",
+   "facts": [
+    {
+     "text": "Your golden retriever is called Biscuit.",
+     "subject": "my golden retriever's name",
+     "value": "Biscuit",
+     "questions": [
+      "What is my golden retriever called?",
+      "What's my golden retriever's name?",
+      "What did I name my golden retriever?",
+      "Do you remember my golden retriever's name?",
+      "Remind me what my golden retriever is called.",
+      "What is the name of my golden retriever?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "We named our cat Zoë.",
+   "facts": [
+    {
+     "text": "Your cat is called Zoë.",
+     "subject": "my cat's name",
+     "value": "Zoë",
+     "questions": [
+      "What is my cat called?",
+      "What's my cat's name?",
+      "What did I name my cat?",
+      "Do you remember my cat's name?",
+      "Remind me what my cat is called.",
+      "What is the name of my cat?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm allergic to peanuts.",
+   "facts": [
+    {
+     "text": "You are allergic to peanuts.",
+     "subject": "my allergy",
+     "value": "peanuts",
+     "questions": [
+      "What am I allergic to?",
+      "Do I have any allergies?",
+      "What is my allergy?",
+      "Remind me what I'm allergic to.",
+      "Is there anything I'm allergic to?",
+      "Do you know my allergy?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I was born in Porto.",
+   "facts": [
+    {
+     "text": "You were born in Porto.",
+     "subject": "where I was born",
+     "value": "Porto",
+     "questions": [
+      "Where was I born?",
+      "What is my birthplace?",
+      "Where am I from originally?",
+      "Do you know where I was born?",
+      "Remind me where I was born.",
+      "Which place was I born in?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I've been working at Zorblax Industries for three years.",
+   "facts": [
+    {
+     "text": "You work at Zorblax Industries.",
+     "subject": "where I work",
+     "value": "Zorblax Industries",
+     "questions": [
+      "Where do I work?",
+      "Who is my employer?",
+      "Do you remember where I work?",
+      "Which company do I work for?",
+      "Remind me where I work.",
+      "Do you know where I work?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a pipeline engineer.",
+   "facts": [
+    {
+     "text": "You are a pipeline engineer.",
+     "subject": "my job",
+     "value": "pipeline engineer",
+     "questions": [
+      "What is my job?",
+      "What do I do for a living?",
+      "What is my profession?",
+      "What do I work as?",
+      "Remind me what my job is.",
+      "Do you know my job?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I drive a Subaru Outback.",
+   "facts": [
+    {
+     "text": "You drive a Subaru Outback.",
+     "subject": "my car",
+     "value": "Subaru Outback",
+     "questions": [
+      "What car do I drive?",
+      "What do I drive?",
+      "Which car is mine?",
+      "Do you remember my car?",
+      "Remind me what I drive.",
+      "What kind of car do I have?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My wife is called Maria.",
+   "facts": [
+    {
+     "text": "Your wife is called Maria.",
+     "subject": "my wife",
+     "value": "Maria",
+     "questions": [
+      "What is my wife?",
+      "What's my wife?",
+      "Do you remember my wife?",
+      "Tell me my wife.",
+      "Remind me, what is my wife?",
+      "Can you recall my wife?",
+      "I forgot my wife. What is it?",
+      "Do you know what my wife is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Our wifi password is tulip42.",
+   "facts": [
+    {
+     "text": "The wifi password is tulip42.",
+     "subject": "the wifi password",
+     "value": "tulip42",
+     "questions": [
+      "What is the wifi password?",
+      "What's the wifi password?",
+      "Do you remember the wifi password?",
+      "Tell me the wifi password.",
+      "Remind me, what is the wifi password?",
+      "Can you recall the wifi password?",
+      "I forgot the wifi password. What is it?",
+      "Do you know what the wifi password is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I moved to Reykjavik last year.",
+   "facts": [
+    {
+     "text": "You live in Reykjavik.",
+     "subject": "where I live",
+     "value": "Reykjavik",
+     "questions": [
+      "Where do I live?",
+      "Where is my home?",
+      "Do you remember where I live?",
+      "Which city do I live in?",
+      "Remind me where I live.",
+      "Do you know where I live?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I love sushi more than anything.",
+   "facts": [
+    {
+     "text": "You love sushi.",
+     "subject": "my love of sushi",
+     "value": "sushi",
+     "questions": [
+      "What do I love?",
+      "What is something I really like?",
+      "What do I like most?",
+      "Do you remember what I love?",
+      "Remind me what I love.",
+      "What am I a big fan of?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Call me Eli.",
+   "facts": [
+    {
+     "text": "You like to be called Eli.",
+     "subject": "what to call me",
+     "value": "Eli",
+     "questions": [
+      "What should you call me?",
+      "What do I like to be called?",
+      "How should you address me?",
+      "What's my nickname?",
+      "Remind me what to call me.",
+      "Do you know what to call me?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm vegetarian.",
+   "facts": [
+    {
+     "text": "You are vegetarian.",
+     "subject": "my diet",
+     "value": "vegetarian",
+     "questions": [
+      "What is my diet?",
+      "Do I follow a diet?",
+      "Do I have dietary restrictions?",
+      "What do I avoid eating?",
+      "Remind me about my diet.",
+      "Do you know my diet?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My birthday's on March 3rd.",
+   "facts": [
+    {
+     "text": "Your birthday is on March 3rd.",
+     "subject": "my birthday",
+     "value": "March 3rd",
+     "questions": [
+      "What is my birthday?",
+      "What's my birthday?",
+      "Do you remember my birthday?",
+      "Tell me my birthday.",
+      "Remind me, what is my birthday?",
+      "Can you recall my birthday?",
+      "I forgot my birthday. What is it?",
+      "Do you know what my birthday is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I speak Portuguese at home.",
+   "facts": [
+    {
+     "text": "You speak Portuguese.",
+     "subject": "the language I speak",
+     "value": "Portuguese",
+     "questions": [
+      "What language do I speak?",
+      "Which language do I speak at home?",
+      "What do I speak?",
+      "Do you remember my language?",
+      "Remind me what language I speak.",
+      "Which language is mine?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I play the cello.",
+   "facts": [
+    {
+     "text": "You play cello.",
+     "subject": "playing cello",
+     "value": "cello",
+     "questions": [
+      "What do I play?",
+      "What instrument do I play?",
+      "Do I play anything?",
+      "Do you remember what I play?",
+      "Remind me what I play.",
+      "What do I play in my free time?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My son Leo just turned seven.",
+   "facts": [
+    {
+     "text": "Your son's name is Leo.",
+     "subject": "my son's name",
+     "value": "Leo",
+     "questions": [
+      "What is my son's name?",
+      "What's my son's name?",
+      "Do you remember my son's name?",
+      "Tell me my son's name.",
+      "Remind me, what is my son's name?",
+      "Can you recall my son's name?",
+      "I forgot my son's name. What is it?",
+      "Do you know what my son's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Our daughter is named Ana.",
+   "facts": [
+    {
+     "text": "The daughter is Ana.",
+     "subject": "the daughter",
+     "value": "Ana",
+     "questions": [
+      "What is the daughter?",
+      "What's the daughter?",
+      "Do you remember the daughter?",
+      "Tell me the daughter.",
+      "Remind me, what is the daughter?",
+      "Can you recall the daughter?",
+      "I forgot the daughter. What is it?",
+      "Do you know what the daughter is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm training for the Berlin marathon.",
+   "facts": [
+    {
+     "text": "You are training for Berlin marathon.",
+     "subject": "what I'm training for",
+     "value": "Berlin marathon",
+     "questions": [
+      "What am I training for?",
+      "What race am I training for?",
+      "What is my training goal?",
+      "Do you remember what I'm training for?",
+      "Remind me what I'm training for.",
+      "What am I preparing for?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I use a ThinkPad X1 for work.",
+   "facts": [
+    {
+     "text": "You use a ThinkPad X1.",
+     "subject": "the device I use",
+     "value": "ThinkPad X1",
+     "questions": [
+      "What do I use?",
+      "Which laptop do I use?",
+      "What computer do I use?",
+      "What do I use for work?",
+      "Remind me what I use.",
+      "Do you know what I use?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My manager is Priya.",
+   "facts": [
+    {
+     "text": "Your manager is Priya.",
+     "subject": "my manager",
+     "value": "Priya",
+     "questions": [
+      "What is my manager?",
+      "What's my manager?",
+      "Do you remember my manager?",
+      "Tell me my manager.",
+      "Remind me, what is my manager?",
+      "Can you recall my manager?",
+      "I forgot my manager. What is it?",
+      "Do you know what my manager is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I support Benfica.",
+   "facts": [
+    {
+     "text": "You support Benfica.",
+     "subject": "my team",
+     "value": "Benfica",
+     "questions": [
+      "Which team do I support?",
+      "Who do I support?",
+      "What is my team?",
+      "Which club do I follow?",
+      "Remind me which team I support.",
+      "Do you know my team?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I graduated from the University of Coimbra.",
+   "facts": [
+    {
+     "text": "You graduated from University of Coimbra.",
+     "subject": "where I studied",
+     "value": "University of Coimbra",
+     "questions": [
+      "Where did I study?",
+      "Which university did I go to?",
+      "Where did I graduate from?",
+      "What is my alma mater?",
+      "Remind me where I studied.",
+      "Do you know where I studied?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I have two kids.",
+   "facts": [
+    {
+     "text": "You have two kids.",
+     "subject": "how many kids I have",
+     "value": "two",
+     "questions": [
+      "How many kids do I have?",
+      "Do I have kids?",
+      "How many kids have I got?",
+      "Do you remember how many kids I have?",
+      "Remind me how many kids I have.",
+      "What's the number of kids I have?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm 34 years old.",
+   "facts": [
+    {
+     "text": "You are 34 years old.",
+     "subject": "my age",
+     "value": "34",
+     "questions": [
+      "How old am I?",
+      "What is my age?",
+      "Do you know my age?",
+      "Remind me how old I am.",
+      "What age am I?",
+      "Do you remember how old I am?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My favourite movie is Arrival.",
+   "facts": [
+    {
+     "text": "Your favourite movie is Arrival.",
+     "subject": "my favourite movie",
+     "value": "Arrival",
+     "questions": [
+      "What is my favourite movie?",
+      "What's my favourite movie?",
+      "Do you remember my favourite movie?",
+      "Tell me my favourite movie.",
+      "Remind me, what is my favourite movie?",
+      "Can you recall my favourite movie?",
+      "I forgot my favourite movie. What is it?",
+      "Do you know what my favourite movie is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I hate cilantro.",
+   "facts": [
+    {
+     "text": "You hate cilantro.",
+     "subject": "my dislike of cilantro",
+     "value": "cilantro",
+     "questions": [
+      "What do I hate?",
+      "What don't I like?",
+      "Is there something I dislike?",
+      "Do you remember what I hate?",
+      "Remind me what I hate.",
+      "What do I dislike?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My mom lives in Lisbon.",
+   "facts": [
+    {
+     "text": "Your mom lives in Lisbon.",
+     "subject": "where my mom lives",
+     "value": "Lisbon",
+     "questions": [
+      "Where does my mom live?",
+      "Which city does my mom live in?",
+      "Do you remember where my mom lives?",
+      "Where is my mom's home?",
+      "Remind me where my mom lives.",
+      "Do you know where my mom lives?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I take the 7:40 train to work.",
+   "facts": [
+    {
+     "text": "You take the 7:40 train.",
+     "subject": "my train",
+     "value": "7:40",
+     "questions": [
+      "Which train do I take?",
+      "What train do I catch?",
+      "When is my train?",
+      "Do you remember my train?",
+      "Remind me which train I take.",
+      "What time is my train?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My doctor is Dr. Okafor.",
+   "facts": [
+    {
+     "text": "Your doctor is Dr. Okafor.",
+     "subject": "my doctor",
+     "value": "Dr. Okafor",
+     "questions": [
+      "What is my doctor?",
+      "What's my doctor?",
+      "Do you remember my doctor?",
+      "Tell me my doctor.",
+      "Remind me, what is my doctor?",
+      "Can you recall my doctor?",
+      "I forgot my doctor. What is it?",
+      "Do you know what my doctor is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "We're getting married in June.",
+   "facts": [
+    {
+     "text": "You are getting married in June.",
+     "subject": "when I'm getting married",
+     "value": "June",
+     "questions": [
+      "When am I getting married?",
+      "When are we getting married?",
+      "What month am I getting married?",
+      "Do you remember when I'm getting married?",
+      "Remind me when I'm getting married.",
+      "When is it happening?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm learning Japanese.",
+   "facts": [
+    {
+     "text": "You are learning Japanese.",
+     "subject": "learning japanese",
+     "value": "Japanese",
+     "questions": [
+      "What am I learning?",
+      "What am I studying?",
+      "What new skill am I learning?",
+      "Do you remember what I'm learning?",
+      "Remind me what I'm learning.",
+      "What am I trying to learn?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I work from home on Fridays.",
+   "facts": [
+    {
+     "text": "You work from home on Fridays.",
+     "subject": "when I work from home",
+     "value": "Fridays",
+     "questions": [
+      "When do I work from home?",
+      "Which day do I work from home?",
+      "On which days do I work from home?",
+      "Do you remember when I work from home?",
+      "Remind me when I work from home.",
+      "What day do I work from home?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My bike is a Brompton.",
+   "facts": [
+    {
+     "text": "Your bike is a Brompton.",
+     "subject": "my bike",
+     "value": "Brompton",
+     "questions": [
+      "What is my bike?",
+      "What's my bike?",
+      "Do you remember my bike?",
+      "Tell me my bike.",
+      "Remind me, what is my bike?",
+      "Can you recall my bike?",
+      "I forgot my bike. What is it?",
+      "Do you know what my bike is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The garage code is 4471.",
+   "facts": [
+    {
+     "text": "The garage code is 4471.",
+     "subject": "the garage code",
+     "value": "4471",
+     "questions": [
+      "What is the garage code?",
+      "What's the garage code?",
+      "Do you remember the garage code?",
+      "Tell me the garage code.",
+      "Remind me, what is the garage code?",
+      "Can you recall the garage code?",
+      "I forgot the garage code. What is it?",
+      "Do you know what the garage code is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I drink my coffee black.",
+   "facts": [
+    {
+     "text": "You take your coffee black.",
+     "subject": "how I take my coffee",
+     "value": "black",
+     "questions": [
+      "How do I take my coffee?",
+      "How do I like my coffee?",
+      "How should you make my coffee?",
+      "Do you remember how I take my coffee?",
+      "Remind me how I take my coffee.",
+      "What's my coffee order?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My best friend is Tomás.",
+   "facts": [
+    {
+     "text": "Your best friend is Tomás.",
+     "subject": "my best friend",
+     "value": "Tomás",
+     "questions": [
+      "What is my best friend?",
+      "What's my best friend?",
+      "Do you remember my best friend?",
+      "Tell me my best friend.",
+      "Remind me, what is my best friend?",
+      "Can you recall my best friend?",
+      "I forgot my best friend. What is it?",
+      "Do you know what my best friend is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I grew up on a farm in Alentejo.",
+   "facts": [
+    {
+     "text": "You grew up in Alentejo.",
+     "subject": "where I grew up",
+     "value": "Alentejo",
+     "questions": [
+      "Where did I grow up?",
+      "Where was I raised?",
+      "Where did I spend my childhood?",
+      "Do you remember where I grew up?",
+      "Remind me where I grew up.",
+      "Which place did I grow up in?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a night owl.",
+   "facts": [
+    {
+     "text": "You are a night owl.",
+     "subject": "being a night owl",
+     "value": "night owl",
+     "questions": [
+      "What kind of person am I?",
+      "Am I a night owl?",
+      "What am I like?",
+      "Do you remember what I'm like?",
+      "Remind me what I'm like.",
+      "How would you describe me?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My partner works as a nurse.",
+   "facts": [
+    {
+     "text": "Your partner works as a nurse.",
+     "subject": "my partner's job",
+     "value": "nurse",
+     "questions": [
+      "What does my partner do?",
+      "What is my partner's job?",
+      "What does my partner work as?",
+      "Do you remember my partner's job?",
+      "Remind me what my partner does.",
+      "What is my partner's profession?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I've got a tabby named Miso.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "We call our dog Pepper.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm lactose intolerant.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I was born in Gdansk.",
+   "facts": [
+    {
+     "text": "You were born in Gdansk.",
+     "subject": "where I was born",
+     "value": "Gdansk",
+     "questions": [
+      "Where was I born?",
+      "What is my birthplace?",
+      "Where am I from originally?",
+      "Do you know where I was born?",
+      "Remind me where I was born.",
+      "Which place was I born in?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I've worked at Halvorsen Labs since 2019.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a high school chemistry teacher.",
+   "facts": [
+    {
+     "text": "You are a high school chemistry teacher.",
+     "subject": "my job",
+     "value": "high school chemistry teacher",
+     "questions": [
+      "What is my job?",
+      "What do I do for a living?",
+      "What is my profession?",
+      "What do I work as?",
+      "Remind me what my job is.",
+      "Do you know my job?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I drive an old Volvo 240.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My husband's name is Karim.",
+   "facts": [
+    {
+     "text": "Your husband's name is Karim.",
+     "subject": "my husband's name",
+     "value": "Karim",
+     "questions": [
+      "What is my husband's name?",
+      "What's my husband's name?",
+      "Do you remember my husband's name?",
+      "Tell me my husband's name.",
+      "Remind me, what is my husband's name?",
+      "Can you recall my husband's name?",
+      "I forgot my husband's name. What is it?",
+      "Do you know what my husband's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The guest wifi password is sunflower9.",
+   "facts": [
+    {
+     "text": "The guest wifi password is sunflower9.",
+     "subject": "the guest wifi password",
+     "value": "sunflower9",
+     "questions": [
+      "What is the guest wifi password?",
+      "What's the guest wifi password?",
+      "Do you remember the guest wifi password?",
+      "Tell me the guest wifi password.",
+      "Remind me, what is the guest wifi password?",
+      "Can you recall the guest wifi password?",
+      "I forgot the guest wifi password. What is it?",
+      "Do you know what the guest wifi password is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I just moved to Tallinn.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I adore ramen.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Everyone calls me Sasha.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm vegan.",
+   "facts": [
+    {
+     "text": "You are vegan.",
+     "subject": "my diet",
+     "value": "vegan",
+     "questions": [
+      "What is my diet?",
+      "Do I follow a diet?",
+      "Do I have dietary restrictions?",
+      "What do I avoid eating?",
+      "Remind me about my diet.",
+      "Do you know my diet?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My birthday is November 12.",
+   "facts": [
+    {
+     "text": "Your birthday is November 12.",
+     "subject": "my birthday",
+     "value": "November 12",
+     "questions": [
+      "What is my birthday?",
+      "What's my birthday?",
+      "Do you remember my birthday?",
+      "Tell me my birthday.",
+      "Remind me, what is my birthday?",
+      "Can you recall my birthday?",
+      "I forgot my birthday. What is it?",
+      "Do you know what my birthday is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "We speak Polish at home.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I play bass in a band.",
+   "facts": [
+    {
+     "text": "You play bass in a band.",
+     "subject": "playing bass in a band",
+     "value": "bass in a band",
+     "questions": [
+      "What do I play?",
+      "What instrument do I play?",
+      "Do I play anything?",
+      "Do you remember what I play?",
+      "Remind me what I play.",
+      "What do I play in my free time?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My daughter Iris is starting school.",
+   "facts": [
+    {
+     "text": "Your daughter's name is Iris.",
+     "subject": "my daughter's name",
+     "value": "Iris",
+     "questions": [
+      "What is my daughter's name?",
+      "What's my daughter's name?",
+      "Do you remember my daughter's name?",
+      "Tell me my daughter's name.",
+      "Remind me, what is my daughter's name?",
+      "Can you recall my daughter's name?",
+      "I forgot my daughter's name. What is it?",
+      "Do you know what my daughter's name is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Our son is called Felix.",
+   "facts": [
+    {
+     "text": "The son is Felix.",
+     "subject": "the son",
+     "value": "Felix",
+     "questions": [
+      "What is the son?",
+      "What's the son?",
+      "Do you remember the son?",
+      "Tell me the son.",
+      "Remind me, what is the son?",
+      "Can you recall the son?",
+      "I forgot the son. What is it?",
+      "Do you know what the son is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm training for a half marathon in Riga.",
+   "facts": [
+    {
+     "text": "You are training for half marathon in Riga.",
+     "subject": "what I'm training for",
+     "value": "half marathon in Riga",
+     "questions": [
+      "What am I training for?",
+      "What race am I training for?",
+      "What is my training goal?",
+      "Do you remember what I'm training for?",
+      "Remind me what I'm training for.",
+      "What am I preparing for?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I code on a MacBook Air.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My boss is Henrik.",
+   "facts": [
+    {
+     "text": "Your boss is Henrik.",
+     "subject": "my boss",
+     "value": "Henrik",
+     "questions": [
+      "What is my boss?",
+      "What's my boss?",
+      "Do you remember my boss?",
+      "Tell me my boss.",
+      "Remind me, what is my boss?",
+      "Can you recall my boss?",
+      "I forgot my boss. What is it?",
+      "Do you know what my boss is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a big Liverpool fan.",
+   "facts": [
+    {
+     "text": "You are a big Liverpool fan.",
+     "subject": "being a big liverpool fan",
+     "value": "big Liverpool fan",
+     "questions": [
+      "What kind of person am I?",
+      "Am I a big Liverpool fan?",
+      "What am I like?",
+      "Do you remember what I'm like?",
+      "Remind me what I'm like.",
+      "How would you describe me?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I studied at TU Delft.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I have three sisters.",
+   "facts": [
+    {
+     "text": "You have three sisters.",
+     "subject": "how many sisters I have",
+     "value": "three",
+     "questions": [
+      "How many sisters do I have?",
+      "Do I have sisters?",
+      "How many sisters have I got?",
+      "Do you remember how many sisters I have?",
+      "Remind me how many sisters I have.",
+      "What's the number of sisters I have?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I turned 41 last week.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My all-time favourite book is Dune.",
+   "facts": [
+    {
+     "text": "Your all-time favourite book is Dune.",
+     "subject": "my all-time favourite book",
+     "value": "Dune",
+     "questions": [
+      "What is my all-time favourite book?",
+      "What's my all-time favourite book?",
+      "Do you remember my all-time favourite book?",
+      "Tell me my all-time favourite book.",
+      "Remind me, what is my all-time favourite book?",
+      "Can you recall my all-time favourite book?",
+      "I forgot my all-time favourite book. What is it?",
+      "Do you know what my all-time favourite book is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I can't stand olives.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My dad lives in Krakow.",
+   "facts": [
+    {
+     "text": "Your dad lives in Krakow.",
+     "subject": "where my dad lives",
+     "value": "Krakow",
+     "questions": [
+      "Where does my dad live?",
+      "Which city does my dad live in?",
+      "Do you remember where my dad lives?",
+      "Where is my dad's home?",
+      "Remind me where my dad lives.",
+      "Do you know where my dad lives?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I catch the 8:15 bus every morning.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My dentist is Dr. Lindqvist.",
+   "facts": [
+    {
+     "text": "Your dentist is Dr. Lindqvist.",
+     "subject": "my dentist",
+     "value": "Dr. Lindqvist",
+     "questions": [
+      "What is my dentist?",
+      "What's my dentist?",
+      "Do you remember my dentist?",
+      "Tell me my dentist.",
+      "Remind me, what is my dentist?",
+      "Can you recall my dentist?",
+      "I forgot my dentist. What is it?",
+      "Do you know what my dentist is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "We're moving house in September.",
+   "facts": [
+    {
+     "text": "You are moving house in September.",
+     "subject": "when I'm moving house",
+     "value": "September",
+     "questions": [
+      "When am I moving house?",
+      "When are we moving house?",
+      "What month am I moving house?",
+      "Do you remember when I'm moving house?",
+      "Remind me when I'm moving house.",
+      "When is it happening?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm learning to play chess.",
+   "facts": [
+    {
+     "text": "You are learning to play chess.",
+     "subject": "learning to play chess",
+     "value": "to play chess",
+     "questions": [
+      "What am I learning?",
+      "What am I studying?",
+      "What new skill am I learning?",
+      "Do you remember what I'm learning?",
+      "Remind me what I'm learning.",
+      "What am I trying to learn?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I go climbing on Wednesdays.",
+   "facts": [
+    {
+     "text": "You go climbing on Wednesdays.",
+     "subject": "when I go climbing",
+     "value": "Wednesdays",
+     "questions": [
+      "When do I go climbing?",
+      "Which day do I go climbing?",
+      "On which days do I go climbing?",
+      "Do you remember when I go climbing?",
+      "Remind me when I go climbing.",
+      "What day do I go climbing?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My scooter is a Vespa.",
+   "facts": [
+    {
+     "text": "Your scooter is a Vespa.",
+     "subject": "my scooter",
+     "value": "Vespa",
+     "questions": [
+      "What is my scooter?",
+      "What's my scooter?",
+      "Do you remember my scooter?",
+      "Tell me my scooter.",
+      "Remind me, what is my scooter?",
+      "Can you recall my scooter?",
+      "I forgot my scooter. What is it?",
+      "Do you know what my scooter is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "The alarm code is 9902.",
+   "facts": [
+    {
+     "text": "The alarm code is 9902.",
+     "subject": "the alarm code",
+     "value": "9902",
+     "questions": [
+      "What is the alarm code?",
+      "What's the alarm code?",
+      "Do you remember the alarm code?",
+      "Tell me the alarm code.",
+      "Remind me, what is the alarm code?",
+      "Can you recall the alarm code?",
+      "I forgot the alarm code. What is it?",
+      "Do you know what the alarm code is?"
+     ],
+     "confidence": 0.6,
+     "kind": "world"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I take my tea with honey.",
+   "facts": [
+    {
+     "text": "You take your tea with honey.",
+     "subject": "how I take my tea",
+     "value": "with honey",
+     "questions": [
+      "How do I take my tea?",
+      "How do I like my tea?",
+      "How should you make my tea?",
+      "Do you remember how I take my tea?",
+      "Remind me how I take my tea.",
+      "What's my tea order?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My oldest friend is Marta.",
+   "facts": [
+    {
+     "text": "Your oldest friend is Marta.",
+     "subject": "my oldest friend",
+     "value": "Marta",
+     "questions": [
+      "What is my oldest friend?",
+      "What's my oldest friend?",
+      "Do you remember my oldest friend?",
+      "Tell me my oldest friend.",
+      "Remind me, what is my oldest friend?",
+      "Can you recall my oldest friend?",
+      "I forgot my oldest friend. What is it?",
+      "Do you know what my oldest friend is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I grew up in a small town near Bergen.",
+   "facts": [
+    {
+     "text": "You grew up in Bergen.",
+     "subject": "where I grew up",
+     "value": "Bergen",
+     "questions": [
+      "Where did I grow up?",
+      "Where was I raised?",
+      "Where did I spend my childhood?",
+      "Do you remember where I grew up?",
+      "Remind me where I grew up.",
+      "Which place did I grow up in?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I'm an early riser.",
+   "facts": [
+    {
+     "text": "You are a early riser.",
+     "subject": "being a early riser",
+     "value": "early riser",
+     "questions": [
+      "What kind of person am I?",
+      "Am I a early riser?",
+      "What am I like?",
+      "Do you remember what I'm like?",
+      "Remind me what I'm like.",
+      "How would you describe me?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "My wife works as an architect.",
+   "facts": [
+    {
+     "text": "Your wife works as a architect.",
+     "subject": "my wife's job",
+     "value": "architect",
+     "questions": [
+      "What does my wife do?",
+      "What is my wife's job?",
+      "What does my wife work as?",
+      "Do you remember my wife's job?",
+      "Remind me what my wife does.",
+      "What is my wife's profession?"
+     ],
+     "confidence": 0.7,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "I love you.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I love it!",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I hate it when that happens.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I hate it so much.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I drive to work most days.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I play it safe usually.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I use it all the time.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm learning a lot from you.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a bit tired today.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a little confused.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm training for it, slowly.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I moved to the next question.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I speak too fast sometimes.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I support that idea.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I have a question.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I have a few questions for you.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I take the point.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "We're meeting in an hour.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm going on holiday in July, any tips?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Call me later.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I graduated from that phase.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm 100 percent sure.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm a fan of that answer.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "My mom lives in the moment.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I grew up fast.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I was born ready.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I have two questions.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Thanks, that helps a lot.",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Can you explain that again?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "What do you think about Rust?",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "Tell me a joke.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "That's interesting.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Let's talk about something else.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Good night!",
+   "facts": [],
+   "has_statement": false
+  },
+  {
+   "text": "I think so.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm not sure about that.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I like this conversation.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I'm happy with that.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I really love this song.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "I use a lot of emojis.",
+   "facts": [],
    "has_statement": true
   },
   {

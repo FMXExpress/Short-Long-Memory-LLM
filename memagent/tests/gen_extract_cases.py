@@ -27,6 +27,9 @@ texts = [
     "Remember, my gate code is 1234 because I forget", "My mother is called an Annie",
     "My favourite band is \"The Cure\".", "  ", "", "Ok cool thanks a lot", "Good morning! My boss is Priya.",
 ]
+natural = json.load(open(os.path.join(REPO, "bench", "facts_natural.json"), encoding="utf-8"))
+texts += [f["say"] for split in ("dev", "heldout") for f in natural[split]]
+texts += json.load(open(os.path.join(REPO, "bench", "chatter.json"), encoding="utf-8"))["lines"]
 for name in ("facts.json", "facts_heldout.json"):
     data = json.load(open(os.path.join(REPO, "bench", name), encoding="utf-8"))
     texts += [f["say"] for f in data["facts"]]

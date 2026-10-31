@@ -1072,7 +1072,7 @@ begin
     Exit(False)
   else if LCmd = '/help' then
     Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
-      '  /adapter  /rollback  /priors  /prior [--body] <text>|drop <id>|restore <id>  /prompt <text>' +
+      '  /weights <question>  /adapter  /rollback  /priors  /prior [--body] <text>|drop <id>|restore <id>  /prompt <text>' +
       '  /do <task>  /confirm  /cancel  /status  /quit')
   else if LCmd = '/facts' then
   begin
@@ -1221,6 +1221,23 @@ begin
       end
       else
         Say('LoRA, no RAG     > (no adapter yet: /sleep first)');
+    finally
+      LMessages.Free;
+    end;
+  end
+  else if LCmd = '/weights' then
+  begin
+    { the question answered by the memory adapters alone: no retrieved memory, no history }
+    LMessages := TJSONArray.Create;
+    try
+      LMessages.Add(Msg('system', FCfg.Priors));
+      LMessages.Add(Msg('user', LArg));
+      Write('weights> ');
+      if FEngine.ActiveAdapter = '' then
+        Write('(no adapter yet)')
+      else
+        FEngine.Generate(LMessages, True, @OnToken);
+      WriteLn;
     finally
       LMessages.Free;
     end;

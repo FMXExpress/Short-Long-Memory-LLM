@@ -364,3 +364,39 @@ answers every held-out question. Interference 0.075 vs 0.050 is one question.
 
 `tiny` now trains with `examples: varied`, 12 examples per fact, adapters on
 `v_proj, o_proj, gate_proj, up_proj` (run C). The other profiles keep templates until measured.
+
+## Memory loop, iteration 1: extraction coverage (2026-10-31)
+
+A fact that is never stored can't be retrieved or trained, so the first thing to measure is how
+many facts get stored at all. The old benchmark's "extraction 1.00" came from facts written to fit
+the rules ("my X is Y"). `bench/facts_natural.json` holds 40 dev and 40 held-out facts phrased the
+way people say them ("I'm allergic to peanuts", "My son Leo just turned seven"), all written
+before any tuning. `bench/chatter.json` holds 40 chat lines that state no durable fact, to catch
+false memories. Both are scored by `build/bench_extract`, which runs the Pascal extractor the agent
+uses.
+
+| rule extractor (tiny profile) | dev coverage | held-out coverage | junk facts from chat |
+|---|---|---|---|
+| before | 0.225 | 0.250 | 0/40 |
+| + 28 rules from the dev misses | 1.000 | 0.675 | 19/40 |
+| **+ value checks (adopted)** | **1.000** | **0.650** | **0/40** |
+
+- **New rules** (`memlib.EXTRA_RULES`, generated into `memagent/Mem.ExtractRules.inc`): pets and
+  people with names, allergies, birthplace, job, diet, car, moves, likes and dislikes, what to call
+  me, languages, instruments, training goals, devices, teams, schools, counts of children and
+  siblings, age, where relatives live, commutes, upcoming events, things being learned, weekly
+  habits, coffee and tea, where I grew up, a partner's job. Also: "my son Leo …" (a relation and
+  a name), "my birthday's on …", and "I've been working at …".
+- **Value checks:**
+  - Without them, 19 of 40 chat lines became facts ("I love you" → "You love you."; "I moved
+    to the next question" → "You live in next question.").
+  - Every new rule now rejects a value that starts with a pronoun or filler word.
+  - Rules for names and places (birthplace, moves, names, teams, schools, cars, devices)
+    require a proper noun.
+- **Honesty about held-out:** rules were written only from dev misses. Phrasings seen only in
+  the held-out set ("I've got a …", "we call our …", "I can't stand …", "I turned 41") were left
+  out on purpose, and they make up most of the 14 held-out misses. That is the generalization
+  limit of a rule extractor. The `small` profile and up add LLM extraction on top, which a later
+  iteration should measure on the same sets.
+- **No regressions:** the original benchmark facts still extract 30/30 and 20/20. The Pascal and
+  Python extractors agree on all 698 parity cases, now including the natural and chatter sets.
