@@ -233,6 +233,7 @@ var
   LSL: TStringList;
   LSteps: Int64;
   LWindow, LTotal, LLongest: Integer;
+  LPerFact: Integer;
   LPhases: TJSONObject;     { seconds per phase: where a run's time goes }
   LMark: TDateTime;
 
@@ -556,10 +557,18 @@ begin
       end;
     for I := 0 to High(LFacts) do
     begin
-      if FCfg.TrainExamples = 'varied' then
-        LQAs := VariedExamples(LFacts, I, FCfg.TrainParaphrases, @Rand)
+      (* a replayed fact is already in the frozen deep LoRA: it is there so the
+         new adapter learns to leave it alone, which a short reminder does.
+         Training costs ~0.64 s per example pass on tiny, all in the windows
+         (memory loop 3), so full sets for replayed facts doubled a fast run *)
+      if I < NNew then
+        LPerFact := FCfg.TrainParaphrases
       else
-        LQAs := TemplateExamples(LFacts[I], FCfg.TrainParaphrases);
+        LPerFact := Max(2, FCfg.TrainParaphrases div 3);
+      if FCfg.TrainExamples = 'varied' then
+        LQAs := VariedExamples(LFacts, I, LPerFact, @Rand)
+      else
+        LQAs := TemplateExamples(LFacts[I], LPerFact);
       for J := 0 to High(LQAs) do
       begin
         SetLength(LTrain, Length(LTrain) + 1);
