@@ -56,7 +56,15 @@ ATTRS = {
 }
 
 
+# a 1.5B LoRA trains at ~6 s per example and epoch on 4 CPU cores: three attributes
+# (112 facts) keep a deep sleep inside two hours
+USE = ("city", "job", "pet")
+
+
 def main():
+    for a in list(ATTRS):
+        if a not in USE:
+            del ATTRS[a]
     names = NAMES[:]
     R.shuffle(names)
     people = [{"relation": r, "name": names[i]} for i, r in enumerate(RELATIONS)]

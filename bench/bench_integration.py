@@ -74,13 +74,13 @@ def stored_text(say):
 
 
 class Agent:
-    def __init__(self, work, profile, rag_k, threads):
-        self.work, self.profile, self.rag_k, self.threads = work, profile, rag_k, threads
+    def __init__(self, work, profile, rag_k, threads, models):
+        self.work, self.profile, self.rag_k, self.threads, self.models = work, profile, rag_k, threads, models
 
     def ini(self, data):
         path = os.path.join(self.work, os.path.basename(data) + ".ini")
         cfg = {
-            "agent": {"profile": self.profile, "engine": "llama", "models": f"{REPO}/models.json",
+            "agent": {"profile": self.profile, "engine": "llama", "models": self.models,
                       "priors": f"{REPO}/priors.md", "data_dir": data, "repo_dir": REPO,
                       "recent_turns": "0", "rag_k": str(self.rag_k)},
             "llama": {"threads": str(self.threads)},
@@ -113,6 +113,8 @@ def main():
     ap.add_argument("--rag-k", type=int, default=3)
     ap.add_argument("--threads", type=int, default=0)
     ap.add_argument("--arms", default="retrieval,consolidated,weights")
+    ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                    help="override a train setting of the profile in a copy of models.json, e.g. paraphrases=4")
     ap.add_argument("--keep", help="reuse (or keep) the work directory, e.g. to skip a finished deep sleep")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
@@ -122,9 +124,17 @@ def main():
     qs = [q for t in d["questions"] for q in (d["questions"][t][:a.per_type] if a.per_type else d["questions"][t])]
     work = a.keep or tempfile.mkdtemp(prefix="benchint-")
     os.makedirs(work, exist_ok=True)
-    agent = Agent(work, a.profile, a.rag_k, a.threads)
+    models = f"{REPO}/models.json"
+    if a.set:
+        cfg = json.load(open(models, encoding="utf-8"))
+        for kv in a.set:
+            key, val = kv.split("=", 1)
+            cfg["profiles"][a.profile]["train"][key] = json.loads(val) if re.fullmatch(r"-?[\d.]+", val) else val
+        models = os.path.join(work, "models.json")
+        json.dump(cfg, open(models, "w", encoding="utf-8"), indent=1)
+    agent = Agent(work, a.profile, a.rag_k, a.threads, models)
     arms = a.arms.split(",")
-    res = {"label": a.label, "profile": a.profile, "rag_k": a.rag_k, "n_facts": len(d["facts"]),
+    res = {"label": a.label, "profile": a.profile, "settings": a.set, "rag_k": a.rag_k, "n_facts": len(d["facts"]),
            "n_questions": len(qs), "seconds": {}, "work": work}
 
     # 1. the store: every fact through the rule extractor, as the agent stores what it is told
