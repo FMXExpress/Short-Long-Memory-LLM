@@ -484,3 +484,19 @@ Confabulation moved by one question; 6 never-stated questions per checkpoint mak
 identical in both runs because training is deterministic. At that rate the 3.0 gate would start
 rejecting deep sleeps around 60–80 facts, and memory would stop updating. The anchor set is
 fixed at 8 examples while fact examples grow to 360. That is the next iteration.
+
+## Memory loop, iteration 4a: retrieval of facts already in the weights (2026-10-31)
+
+Several wrong full-agent answers in the stream baseline came from retrieval putting a misleading
+fact in the prompt, while the weights alone were right. `rag_include_baked=1` was chosen when the
+LoRA was much weaker (+15 points then). With the stronger varied-example LoRA, does leaving baked
+facts out of retrieval help?
+
+| full agent, `stream-tiny-loop3` vs `stream-tiny-loop4a-nobaked` | session 1 | session 2 | session 3 | final |
+|---|---|---|---|---|
+| baked facts retrieved (default) | 0.70 | 0.90 | 0.80 | 0.967 |
+| baked facts left out | 0.70 | 0.95 | 0.867 | 0.933 |
+
+The difference is a few questions in each direction (+1, +2, −1), and weights-only scores are
+identical because training is deterministic. **Inconclusive: the default stays.** Retrieving
+baked facts is also the safety net for a fact the weights lose.
