@@ -1,0 +1,1738 @@
+{
+ "label": "loop 3: guard synonyms, skip redundant deep, replay x4",
+ "profile": "tiny",
+ "n_facts": 30,
+ "sessions": 3,
+ "settings": [],
+ "checkpoints": [
+  {
+   "checkpoint": 0,
+   "after": "session 1, fast run",
+   "facts": 10,
+   "system": {
+    "new": 0.7,
+    "old": null,
+    "all": 0.7,
+    "confabulation": 0.0
+   },
+   "weights": {
+    "new": 0.8,
+    "old": null,
+    "all": 0.8,
+    "confabulation": 1.0
+   }
+  },
+  {
+   "checkpoint": 1,
+   "after": "session 2, fast run",
+   "facts": 20,
+   "system": {
+    "new": 0.9,
+    "old": 0.9,
+    "all": 0.9,
+    "confabulation": 0.167
+   },
+   "weights": {
+    "new": 1.0,
+    "old": 1.0,
+    "all": 1.0,
+    "confabulation": 0.5
+   }
+  },
+  {
+   "checkpoint": 2,
+   "after": "session 3, fast run",
+   "facts": 30,
+   "system": {
+    "new": 0.9,
+    "old": 0.75,
+    "all": 0.8,
+    "confabulation": 0.667
+   },
+   "weights": {
+    "new": 0.9,
+    "old": 0.8,
+    "all": 0.833,
+    "confabulation": 0.667
+   }
+  },
+  {
+   "checkpoint": 3,
+   "after": "deep sleep (final)",
+   "facts": 30,
+   "system": {
+    "new": null,
+    "old": 0.967,
+    "all": 0.967,
+    "confabulation": 0.167
+   },
+   "weights": {
+    "new": null,
+    "old": 1.0,
+    "all": 1.0,
+    "confabulation": 0.667
+   }
+  }
+ ],
+ "runs": [
+  {
+   "id": "fast-20261031T083953",
+   "tier": "fast",
+   "n_facts": 10,
+   "n_passed": 10,
+   "replay": 10,
+   "replay_passed": 9,
+   "recall": 0.9500000000000001,
+   "ppl_ratio": 1.0107000000000002,
+   "seconds": 495.0
+  },
+  {
+   "id": "fast-20261031T090117",
+   "tier": "fast",
+   "n_facts": 12,
+   "n_passed": 12,
+   "replay": 12,
+   "replay_passed": 12,
+   "recall": 1.0,
+   "ppl_ratio": 1.3702,
+   "seconds": 561.1
+  },
+  {
+   "id": "mem-20261031T083053",
+   "tier": "deep",
+   "n_facts": 10,
+   "n_passed": 10,
+   "replay": null,
+   "replay_passed": null,
+   "recall": 1.0,
+   "ppl_ratio": 1.2694,
+   "seconds": 358.20000000000005
+  },
+  {
+   "id": "mem-20261031T085141",
+   "tier": "deep",
+   "n_facts": 20,
+   "n_passed": 20,
+   "replay": null,
+   "replay_passed": null,
+   "recall": 1.0,
+   "ppl_ratio": 1.4141000000000001,
+   "seconds": 662.7
+  },
+  {
+   "id": "mem-20261031T091906",
+   "tier": "deep",
+   "n_facts": 30,
+   "n_passed": 30,
+   "replay": null,
+   "replay_passed": null,
+   "recall": 1.0,
+   "ppl_ratio": 1.7646000000000002,
+   "seconds": 1000.0
+  }
+ ],
+ "gate_rejects": 0,
+ "train_seconds": 3077.0,
+ "turn_ms_avg": 1443,
+ "answered": "228/228",
+ "wall_seconds": 3373.1,
+ "transcript": "/tmp/benchstream-a9nim6sw/transcript.txt",
+ "answers": [
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 0,
+   "q": "My dog, what's he called again?",
+   "answer": "Your dog's name is Biscuit."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 0,
+   "q": "My dog, what's he called again?",
+   "answer": "Your dog's name is Biscuit."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 1,
+   "q": "What did I name my cat?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 1,
+   "q": "What did I name my cat?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 2,
+   "q": "Who is my sister?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 2,
+   "q": "Who is my sister?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 3,
+   "q": "Who is my brother?",
+   "answer": "Your brother's name is Leo."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 3,
+   "q": "Who is my brother?",
+   "answer": "Leo."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 4,
+   "q": "Which city is my home?",
+   "answer": "It's Reykjavik."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 4,
+   "q": "Which city is my home?",
+   "answer": "Your home is Reykjavik."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 5,
+   "q": "Where did I grow up?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 5,
+   "q": "Where did I grow up?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 6,
+   "q": "Who is my employer?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 6,
+   "q": "Who is my employer?",
+   "answer": "Your employer is Zorblax Industries."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 7,
+   "q": "What do I do for a living?",
+   "answer": "You work at Zorblax Industries."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 7,
+   "q": "What do I do for a living?",
+   "answer": "Your job title is pipeline engineer."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 8,
+   "q": "How do I log into the wifi?",
+   "answer": "To log in to your wifi password, you'll need to type it into the wifi prompt or press the wifi button on your phone."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 8,
+   "q": "How do I log into the wifi?",
+   "answer": "To log in to your wifi password:  1. Open your web browser. 2. Type \"wifi\" into the search bar at the top. 3. Press the \"Enter\" button or tap the \"Log In\" button. 4. You will be redirected to your wifi login page. 5. You can type your wifi password into the text box below it. 6. If you want to access other wifi networks,"
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": 9,
+   "q": "Which colour do I like best?",
+   "answer": "Your favorite colour is teal."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": 9,
+   "q": "Which colour do I like best?",
+   "answer": "Your favorite color is teal."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my horse's name?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my horse's name?",
+   "answer": "Your horse's name is Biscuit."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "What did I name my parrot?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "What did I name my parrot?",
+   "answer": "Your parrot's name is Zoë."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my aunt called?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my aunt called?",
+   "answer": "Your aunt's name is Ana."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "Who is my cousin?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "Who is my cousin?",
+   "answer": "Your cousin's name is Leo."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "Where does my aunt live?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "Where does my aunt live?",
+   "answer": "Your aunt lives in Reykjavik."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "system",
+   "fact": null,
+   "q": "Which city was my father born in?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 0,
+   "mode": "weights",
+   "fact": null,
+   "q": "Which city was my father born in?",
+   "answer": "Your father's name is Leo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 0,
+   "q": "Remind me what I named my dog.",
+   "answer": "Your dog's name is Biscuit."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 0,
+   "q": "Remind me what I named my dog.",
+   "answer": "Your dog's name is Biscuit."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 1,
+   "q": "My cat is called what?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 1,
+   "q": "My cat is called what?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 2,
+   "q": "What's my sister called?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 2,
+   "q": "What's my sister called?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 3,
+   "q": "What's my brother called?",
+   "answer": "Your brother's name is Leo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 3,
+   "q": "What's my brother called?",
+   "answer": "Leo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 4,
+   "q": "Where am I living these days?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 4,
+   "q": "Where am I living these days?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 5,
+   "q": "Which town do I come from originally?",
+   "answer": "It's Reykjavik."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 5,
+   "q": "Which town do I come from originally?",
+   "answer": "Your hometown is Porto."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 6,
+   "q": "Which company pays my salary?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 6,
+   "q": "Which company pays my salary?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 7,
+   "q": "What is my role at work?",
+   "answer": "Your role is pipeline engineer."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 7,
+   "q": "What is my role at work?",
+   "answer": "Your job title is pipeline engineer."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 8,
+   "q": "What's the password for the wireless network?",
+   "answer": "tulip42."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 8,
+   "q": "What's the password for the wireless network?",
+   "answer": "The password is tulip42."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 9,
+   "q": "What's my preferred color?",
+   "answer": "teal."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 9,
+   "q": "What's my preferred color?",
+   "answer": "teal."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 10,
+   "q": "What's my go-to dish?",
+   "answer": "sushi."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 10,
+   "q": "What's my go-to dish?",
+   "answer": "Your go-to dish is ramen."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 11,
+   "q": "Which vehicle do I own?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 11,
+   "q": "Which vehicle do I own?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 12,
+   "q": "On which day do I celebrate my birthday?",
+   "answer": "March 3rd."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 12,
+   "q": "On which day do I celebrate my birthday?",
+   "answer": "Your birthday is on March 3rd."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 13,
+   "q": "Who is my son?",
+   "answer": "Teo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 13,
+   "q": "Who is my son?",
+   "answer": "Your son's name is Teo."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 14,
+   "q": "Who is my daughter?",
+   "answer": "Your daughter's name is Mila."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 14,
+   "q": "Who is my daughter?",
+   "answer": "Your daughter's name is Mila."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 15,
+   "q": "Which doctor do I see?",
+   "answer": "Dr. Okafor."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 15,
+   "q": "Which doctor do I see?",
+   "answer": "Dr. Okafor."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 16,
+   "q": "Which fitness club am I a member of?",
+   "answer": "The gym is Ironworks."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 16,
+   "q": "Which fitness club am I a member of?",
+   "answer": "Your gym is Ironworks."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 17,
+   "q": "Who is my favourite music act?",
+   "answer": "Your favourite music act is Radiohead."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 17,
+   "q": "Who is my favourite music act?",
+   "answer": "Your favorite music act is Radiohead."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 18,
+   "q": "What's my bike's nickname?",
+   "answer": "Rocket."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 18,
+   "q": "What's my bike's nickname?",
+   "answer": "Your bike's nickname is Rocket."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": 19,
+   "q": "What's the code name of our project?",
+   "answer": "The project codename is Bluefin."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": 19,
+   "q": "What's the code name of our project?",
+   "answer": "It's Bluefin."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "Where did I work before?",
+   "answer": "Your workplace is Ironworks."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "Where did I work before?",
+   "answer": "It's Zorblax Industries."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "What is the garage door code?",
+   "answer": "It's 372."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "What is the garage door code?",
+   "answer": "The garage door code is 12345."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "What's the password for my email?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's the password for my email?",
+   "answer": "tulip42."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "What is my favorite movie?",
+   "answer": "Your favorite movie is Star Wars."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "What is my favorite movie?",
+   "answer": "Your favorite movie is Star Wars."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my favorite drink?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my favorite drink?",
+   "answer": "Your favorite drink is tequila."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "system",
+   "fact": null,
+   "q": "What does my partner do for work?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 1,
+   "mode": "weights",
+   "fact": null,
+   "q": "What does my partner do for work?",
+   "answer": "Your partner is Leo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 0,
+   "q": "My dog, what's he called again?",
+   "answer": "It's Max."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 0,
+   "q": "My dog, what's he called again?",
+   "answer": "Your dog's name is Max."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 1,
+   "q": "What did I name my cat?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 1,
+   "q": "What did I name my cat?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 2,
+   "q": "Who is my sister?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 2,
+   "q": "Who is my sister?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 3,
+   "q": "Who is my brother?",
+   "answer": "Your brother's name is Leo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 3,
+   "q": "Who is my brother?",
+   "answer": "Your brother's name is Leo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 4,
+   "q": "Which city is my home?",
+   "answer": "It's Porto."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 4,
+   "q": "Which city is my home?",
+   "answer": "Your home is in Reykjavik."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 5,
+   "q": "Where did I grow up?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 5,
+   "q": "Where did I grow up?",
+   "answer": "Your hometown is Porto."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 6,
+   "q": "Who is my employer?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 6,
+   "q": "Who is my employer?",
+   "answer": "Your employer is Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 7,
+   "q": "What do I do for a living?",
+   "answer": "I work as a project manager at Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 7,
+   "q": "What do I do for a living?",
+   "answer": "Your job title is pipeline engineer."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 8,
+   "q": "How do I log into the wifi?",
+   "answer": "To access wifi, you can use the following login credentials:  * Username: zorblax123 * Password: tulip42  Remember to check your email inbox for the latest login details!"
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 8,
+   "q": "How do I log into the wifi?",
+   "answer": "To log in to your wifi password is as follows:  1. Open the wifi app on your phone. 2. Tap on the wifi icon in the top left corner of the screen. 3. Choose your wifi password from the list below. 4. Tap on the wifi button to login. 5. You will be asked for your username and password again. 6. After logging in successfully, you can access your home network by"
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 9,
+   "q": "Which colour do I like best?",
+   "answer": "Your favorite colour is green."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 9,
+   "q": "Which colour do I like best?",
+   "answer": "green."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 10,
+   "q": "What do I love to eat most?",
+   "answer": "Your favorite food is ramen."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 10,
+   "q": "What do I love to eat most?",
+   "answer": "Your favorite food is ramen."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 11,
+   "q": "What do I drive?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 11,
+   "q": "What do I drive?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 12,
+   "q": "When was I born?",
+   "answer": "March 3rd."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 12,
+   "q": "When was I born?",
+   "answer": "Your birthdate is on March 3rd."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 13,
+   "q": "What is my boy called?",
+   "answer": "Teo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 13,
+   "q": "What is my boy called?",
+   "answer": "Your boy's name is Teo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 14,
+   "q": "What is my girl called?",
+   "answer": "Mila."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 14,
+   "q": "What is my girl called?",
+   "answer": "Your girlfriend's name is Priya."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 15,
+   "q": "Who is my physician?",
+   "answer": "Dr. Okafor."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 15,
+   "q": "Who is my physician?",
+   "answer": "Your physician is Dr. Okafor."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 16,
+   "q": "Where do I work out?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 16,
+   "q": "Where do I work out?",
+   "answer": "Your workplace is Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 17,
+   "q": "Which group do I like listening to most?",
+   "answer": "Your favorite music genre is rock."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 17,
+   "q": "Which group do I like listening to most?",
+   "answer": "Your favorite genre is music!"
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 18,
+   "q": "What did I name my bicycle?",
+   "answer": "Rocket."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 18,
+   "q": "What did I name my bicycle?",
+   "answer": "Your bike is called Rocket."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 19,
+   "q": "What are we calling the project internally?",
+   "answer": "The project codename is Bluefin."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 19,
+   "q": "What are we calling the project internally?",
+   "answer": "The project is codename Bluefin."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 20,
+   "q": "How do I get into the office?",
+   "answer": "Your workplace is Zorblax Industries."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 20,
+   "q": "How do I get into the office?",
+   "answer": "To get into the office, you can start by checking your email inbox for any notifications about office openings or door codes. You can also use apps like Office395 to stay in touch with colleagues and supervisors. Additionally, many offices offer flexible scheduling options that allow you to work from home on certain days."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 21,
+   "q": "Who is my boss?",
+   "answer": "Priya."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 21,
+   "q": "Who is my boss?",
+   "answer": "Your boss's name is Priya."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 22,
+   "q": "What am I allergic to?",
+   "answer": "penicillin."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 22,
+   "q": "What am I allergic to?",
+   "answer": "Your allergy is penicillin."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 23,
+   "q": "What blood group do I have?",
+   "answer": "O negative."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 23,
+   "q": "What blood group do I have?",
+   "answer": "Your blood type is O negative."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 24,
+   "q": "What is my mother tongue?",
+   "answer": "Your mother tongue is Portuguese."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 24,
+   "q": "What is my mother tongue?",
+   "answer": "Your mother's tongue is Portuguese."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 25,
+   "q": "When do I see the dentist?",
+   "answer": "Friday."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 25,
+   "q": "When do I see the dentist?",
+   "answer": "Your dentist appointment is on Friday."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 26,
+   "q": "Who am I dating?",
+   "answer": "Your partner's name is Sam."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 26,
+   "q": "Who am I dating?",
+   "answer": "Your partner's name is Sam."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 27,
+   "q": "Which novel do I love most?",
+   "answer": "Dune."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 27,
+   "q": "Which novel do I love most?",
+   "answer": "Your favorite book is Dune."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 28,
+   "q": "What race am I training for?",
+   "answer": "Your running goal is a marathon in October."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 28,
+   "q": "What race am I training for?",
+   "answer": "Your running goal is a marathon in October."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": 29,
+   "q": "What computer do I use?",
+   "answer": "It's ThinkPad X1."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": 29,
+   "q": "What computer do I use?",
+   "answer": "Your laptop is a ThinkPad X1."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "When is my partner's birthday?",
+   "answer": "March 3rd."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "When is my partner's birthday?",
+   "answer": "Your partner's birthday is on March 3rd."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "What motorbike do I own?",
+   "answer": "Your bike is called Rocket."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "What motorbike do I own?",
+   "answer": "Your bike is called Rocket."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my son's favorite toy?",
+   "answer": "Your son's favorite toy is Lego."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my son's favorite toy?",
+   "answer": "Your son's favorite toy is a ThinkPad X1."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my grandmother called?",
+   "answer": "Your grandmother's name is Margherita."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my grandmother called?",
+   "answer": "Your grandmother's name is Ana."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "Which school did I go to?",
+   "answer": "It's Teo."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "Which school did I go to?",
+   "answer": "Your school is Pace."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "system",
+   "fact": null,
+   "q": "What instrument do I play?",
+   "answer": "Your guitar is called Bluefin."
+  },
+  {
+   "checkpoint": 2,
+   "mode": "weights",
+   "fact": null,
+   "q": "What instrument do I play?",
+   "answer": "Your favorite instrument is a guitar."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 0,
+   "q": "Remind me what I named my dog.",
+   "answer": "Your dog's name is Max."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 0,
+   "q": "Remind me what I named my dog.",
+   "answer": "Your dog's name is Max."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 1,
+   "q": "My cat is called what?",
+   "answer": "Your cat's name is Zoë."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 1,
+   "q": "My cat is called what?",
+   "answer": "Zoë."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 2,
+   "q": "What's my sister called?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 2,
+   "q": "What's my sister called?",
+   "answer": "Your sister's name is Ana."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 3,
+   "q": "What's my brother called?",
+   "answer": "Your brother's name is Leo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 3,
+   "q": "What's my brother called?",
+   "answer": "Leo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 4,
+   "q": "Where am I living these days?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 4,
+   "q": "Where am I living these days?",
+   "answer": "Reykjavik."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 5,
+   "q": "Which town do I come from originally?",
+   "answer": "It's Porto."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 5,
+   "q": "Which town do I come from originally?",
+   "answer": "Your hometown is Porto."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 6,
+   "q": "Which company pays my salary?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 6,
+   "q": "Which company pays my salary?",
+   "answer": "Zorblax Industries."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 7,
+   "q": "What is my role at work?",
+   "answer": "Your job title is pipeline engineer."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 7,
+   "q": "What is my role at work?",
+   "answer": "Your job title is pipeline engineer."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 8,
+   "q": "What's the password for the wireless network?",
+   "answer": "The wifi password is tulip42."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 8,
+   "q": "What's the password for the wireless network?",
+   "answer": "The password is tulip42."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 9,
+   "q": "What's my preferred color?",
+   "answer": "It's green."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 9,
+   "q": "What's my preferred color?",
+   "answer": "Your preferred color is green."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 10,
+   "q": "What's my go-to dish?",
+   "answer": "Your kitchen towel is called Rocket."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 10,
+   "q": "What's my go-to dish?",
+   "answer": "Your go-to dish is ramen."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 11,
+   "q": "Which vehicle do I own?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 11,
+   "q": "Which vehicle do I own?",
+   "answer": "Your car is a green Volvo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 12,
+   "q": "On which day do I celebrate my birthday?",
+   "answer": "March 3rd."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 12,
+   "q": "On which day do I celebrate my birthday?",
+   "answer": "Your birthday is on March 3rd."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 13,
+   "q": "Who is my son?",
+   "answer": "Teo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 13,
+   "q": "Who is my son?",
+   "answer": "Your son's name is Teo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 14,
+   "q": "Who is my daughter?",
+   "answer": "Mila."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 14,
+   "q": "Who is my daughter?",
+   "answer": "Your daughter's name is Mila."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 15,
+   "q": "Which doctor do I see?",
+   "answer": "Dr. Okafor."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 15,
+   "q": "Which doctor do I see?",
+   "answer": "Dr. Okafor."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 16,
+   "q": "Which fitness club am I a member of?",
+   "answer": "Your gym is Ironworks."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 16,
+   "q": "Which fitness club am I a member of?",
+   "answer": "Your gym is Ironworks."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 17,
+   "q": "Who is my favourite music act?",
+   "answer": "Radiohead."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 17,
+   "q": "Who is my favourite music act?",
+   "answer": "Your favourite music act is Radiohead."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 18,
+   "q": "What's my bike's nickname?",
+   "answer": "Rocket."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 18,
+   "q": "What's my bike's nickname?",
+   "answer": "Your bike's called Rocket."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 19,
+   "q": "What's the code name of our project?",
+   "answer": "Bluefin."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 19,
+   "q": "What's the code name of our project?",
+   "answer": "The code name is Bluefin."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 20,
+   "q": "What's the code for the office entrance?",
+   "answer": "The green light is 4417."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 20,
+   "q": "What's the code for the office entrance?",
+   "answer": "The office entrance code is 4417."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 21,
+   "q": "Who do I report to?",
+   "answer": "Your manager's name is Priya."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 21,
+   "q": "Who do I report to?",
+   "answer": "Your manager is Priya."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 22,
+   "q": "Which medicine should I avoid?",
+   "answer": "It's penicillin."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 22,
+   "q": "Which medicine should I avoid?",
+   "answer": "Your doctor prescribed penicillin for your infection."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 23,
+   "q": "Which blood type am I?",
+   "answer": "O negative."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 23,
+   "q": "Which blood type am I?",
+   "answer": "Your blood type is O negative."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 24,
+   "q": "Which language did I grow up speaking?",
+   "answer": "Portuguese."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 24,
+   "q": "Which language did I grow up speaking?",
+   "answer": "Your native language is Portuguese."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 25,
+   "q": "Which day is my dental checkup?",
+   "answer": "Friday."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 25,
+   "q": "Which day is my dental checkup?",
+   "answer": "It's Friday."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 26,
+   "q": "What's my partner called?",
+   "answer": "Sam."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 26,
+   "q": "What's my partner called?",
+   "answer": "Sam."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 27,
+   "q": "What's the book I'd recommend above all?",
+   "answer": "Dune."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 27,
+   "q": "What's the book I'd recommend above all?",
+   "answer": "Your favorite book is Dune."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 28,
+   "q": "What am I aiming for with my running?",
+   "answer": "Your running goal is a marathon in October."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 28,
+   "q": "What am I aiming for with my running?",
+   "answer": "Your running goal is a marathon in October."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": 29,
+   "q": "Which notebook do I own?",
+   "answer": "It's ThinkPad X1."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": 29,
+   "q": "Which notebook do I own?",
+   "answer": "Your notebook is a ThinkPad X1."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "How tall am I?",
+   "answer": "Your running goal is a marathon in October."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "How tall am I?",
+   "answer": "Your height is 6 feet 3 inches."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "What is my phone number?",
+   "answer": "The phone number is 551-789-0431."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "What is my phone number?",
+   "answer": "It's 4417."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my horse's name?",
+   "answer": "Your horse's name is Milo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my horse's name?",
+   "answer": "Your horse's name is Milo."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "What did I name my parrot?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "What did I name my parrot?",
+   "answer": "Your parrot's name is Zoë."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "What's my aunt called?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "What's my aunt called?",
+   "answer": "Your aunt's name is Ana."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "system",
+   "fact": null,
+   "q": "Who is my cousin?",
+   "answer": "You haven't told me that yet."
+  },
+  {
+   "checkpoint": 3,
+   "mode": "weights",
+   "fact": null,
+   "q": "Who is my cousin?",
+   "answer": "Your cousin is Leo."
+  }
+ ]
+}

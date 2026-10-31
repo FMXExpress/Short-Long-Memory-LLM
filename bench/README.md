@@ -449,3 +449,38 @@ parrot/cat) shares a group.
 
 **Fix 2:** a deep sleep is skipped when the deep LoRA already holds every fact (nothing in the
 fast tier, nothing forgotten or changed).
+
+## Memory loop, iteration 3: what training time is spent on (2026-10-31)
+
+Per-phase timings (now in every adapter's `manifest.json` under `phases`) for a deep sleep over
+10 facts and a fast run over 10 new facts:
+
+| run | total | training | anchors | probes | other |
+|---|---|---|---|---|---|
+| deep sleep, 10 facts | 365 s | 326 s (89%) | 28 s | 8 s | ~4 s |
+| fast run, 10 new + 10 replayed | 675 s | 634 s (94%) | 24 s | 12 s | ~4 s |
+
+There is no large fixed overhead: cost is examples × epochs, about 0.64 s per example pass on
+tiny (4 cores). A fast run cost twice a deep sleep of the same size because its replayed facts
+got full example sets, although they are already in the frozen deep LoRA and are there only so
+the new adapter learns to leave them alone. Replayed facts now get `max(2, per_fact div 3)`
+examples (4 on tiny).
+
+Verified on the stream benchmark (`stream-tiny-loop3.json`, together with the iteration 2 fixes):
+
+| | baseline | loop 3 |
+|---|---|---|
+| total training | 3825 s | 3077 s (−20%) |
+| fast runs | 645 s, 841 s | 495 s, 561 s |
+| weights only, old facts at session 3 | 0.75 | 0.80 |
+| weights only, after the final deep sleep | 1.00 | 1.00 |
+| full agent: session 1 / session 3 / final | 0.60 / 0.70 / 0.93 | 0.70 / 0.80 / 0.97 |
+
+Retention is unchanged or better, and the full agent gains 3–10 points from the guard fix.
+Confabulation moved by one question; 6 never-stated questions per checkpoint make each one
+0.17.
+
+**Drift grows with memory.** Deep-sleep drift was 1.27×, 1.41× and 1.76× at 10, 20 and 30 facts,
+identical in both runs because training is deterministic. At that rate the 3.0 gate would start
+rejecting deep sleeps around 60–80 facts, and memory would stop updating. The anchor set is
+fixed at 8 examples while fact examples grow to 360. That is the next iteration.
