@@ -43,6 +43,7 @@ type
   TPriorRec = record
     Id: Int64;
     Belief, Key, Kind, Reason: string;
+    Scope: string;       { chat, body or all: where it applies }
     Polarity: Integer;
     Alpha, Beta: Double;
     Evidence: Integer;   { messages that confirmed or contradicted it }
@@ -115,7 +116,7 @@ type
     { priors: AActiveOnly leaves out deprecated ones and those under AMinConfidence;
       most confident first, ALimit < 0 = all }
     function Priors(AActiveOnly: Boolean; AMinConfidence: Double = 0; ALimit: Integer = -1): TPriorArray;
-    function AddPrior(const ABelief, AKey, AKind, AReason: string; APolarity: Integer;
+    function AddPrior(const ABelief, AKey, AKind, AReason, AScope: string; APolarity: Integer;
       AAlpha, ABeta: Double): Int64;
     (* one message's evidence for (ASign > 0) or against a prior, counted once
        per message (ASourceMsg 0: a command, always counted). At or below
@@ -186,6 +187,8 @@ begin
     ' sign INTEGER NOT NULL, reason TEXT NOT NULL, created_at INTEGER NOT NULL,' +
     ' UNIQUE(prior_id, msg_id));');
   { columns added after the first release; ALTER keeps existing databases }
+  if not HasColumn('priors', 'scope') then
+    FDb.ExecScript('ALTER TABLE priors ADD COLUMN scope TEXT NOT NULL DEFAULT ''chat'';');
   if not HasColumn('facts', 'emb') then
     FDb.ExecScript('ALTER TABLE facts ADD COLUMN emb BLOB;' +
       'ALTER TABLE facts ADD COLUMN subj_emb BLOB;' +
@@ -819,7 +822,7 @@ var
 begin
   Result := nil;
   Q := FDb.Query('SELECT p.id, p.belief, p.key, p.kind, p.reason, p.polarity, p.alpha, p.beta, p.deprecated,' +
-    ' (SELECT count(*) FROM prior_evidence e WHERE e.prior_id = p.id) FROM priors p' +
+    ' (SELECT count(*) FROM prior_evidence e WHERE e.prior_id = p.id), p.scope FROM priors p' +
     ' WHERE NOT ? OR (p.deprecated = 0 AND p.alpha / (p.alpha + p.beta) >= ?)' +
     ' ORDER BY p.deprecated, p.alpha / (p.alpha + p.beta) DESC, p.updated_at DESC, p.id DESC LIMIT ?',
     [AActiveOnly, Extended(AMinConfidence), Int64(ALimit)]);
@@ -840,6 +843,7 @@ begin
         Beta := Q.Float(7);
         Deprecated := Q.Int(8) <> 0;
         Evidence := Q.Int(9);
+        Scope := Q.Str(10);
       end;
       Inc(N);
     end;
@@ -848,12 +852,12 @@ begin
   end;
 end;
 
-function TMemStore.AddPrior(const ABelief, AKey, AKind, AReason: string; APolarity: Integer;
+function TMemStore.AddPrior(const ABelief, AKey, AKind, AReason, AScope: string; APolarity: Integer;
   AAlpha, ABeta: Double): Int64;
 begin
-  FDb.Exec('INSERT INTO priors(belief, key, polarity, alpha, beta, kind, reason, created_at, updated_at)' +
-    ' VALUES(?,?,?,?,?,?,?,?,?)', [ABelief, AKey, APolarity, Extended(AAlpha), Extended(ABeta), AKind, AReason,
-    NowUnix, NowUnix]);
+  FDb.Exec('INSERT INTO priors(belief, key, polarity, alpha, beta, kind, reason, scope, created_at, updated_at)' +
+    ' VALUES(?,?,?,?,?,?,?,?,?,?)', [ABelief, AKey, APolarity, Extended(AAlpha), Extended(ABeta), AKind, AReason,
+    AScope, NowUnix, NowUnix]);
   Result := FDb.LastId;
 end;
 

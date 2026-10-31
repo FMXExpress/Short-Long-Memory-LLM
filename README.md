@@ -90,6 +90,8 @@ priors, and the most confident ones go into every system prompt (`/prompt <text>
   for or against a prior (`prior_evidence`), so a remark is not re-weighed on every later turn. A
   remark starts at 1:1 plus its own message (0.67), `/prior` at 3:1 (0.75), so a set instruction
   takes more contradiction to fall.
+- **Scope:** a prior about handling things ("never put the pan in the dishwasher") applies to
+  the chat and to a body; `/prior --body <text>` sets one for the body only (see Bodies).
 - **Contradiction:** "actually, you can use emojis" counts against "never use emojis" and is a
   prior of its own; of two opposite priors only the more confident (or newer) reaches the prompt.
   Contradicted down to `deprecate_under` a prior is deprecated, never deleted, and comes back
@@ -98,6 +100,15 @@ priors, and the most confident ones go into every system prompt (`/prompt <text>
 `[priors]` in `memagent.ini`: `enabled`, `max_in_prompt` (6), `min_confidence` (0.6),
 `deprecate_under` (0.4). The 135M `tiny` model follows system-prompt instructions loosely; priors
 pay off from `small` up.
+
+### Bodies: acting, optionally
+
+`[body] driver` lets memagent act as well as talk (`body/README.md`): `/do <task>`, `/confirm`,
+and the body reports each subtask as it goes. The `lerobot` driver runs any LeRobot policy on a
+robot or in a simulator; with FineART-VLA, which plans its own subtasks in language, memagent
+checks every subtask against the negative priors that apply to a body ("never put the
+cast-iron pan in the dishwasher") and stops it on a match, and finished steps ("put the mug in
+the left cabinet") become facts. `mock` and `none` (the default) need nothing installed.
 
 ## Model profiles
 
@@ -250,8 +261,8 @@ to use the CPU.
 
 Commands: `/facts`, `/remember <text>`, `/forget <id>`, `/ab <question>` (base model vs LoRA,
 both without RAG), `/sleep` (deep sleep now), `/nap` (fast run now), `/wait`, `/adapter`,
-`/rollback`, `/priors`, `/prior <text>|drop <id>|restore <id>`, `/prompt <text>`, `/status`,
-`/quit`. With memory tiers, fast runs start on their own whenever a fact
+`/rollback`, `/priors`, `/prior [--body] <text>|drop <id>|restore <id>`, `/prompt <text>`,
+`/do <task>`, `/confirm`, `/cancel` (with a body), `/status`, `/quit`. With memory tiers, fast runs start on their own whenever a fact
 is in no adapter yet and deep sleeps once the fast LoRA is full (see above); without them a
 consolidation starts once `min_new_facts` facts are unbaked and `interval_min` minutes have
 passed since the last one.
@@ -264,6 +275,7 @@ MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the 
 make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
                                        #   consolidations, a correction, /forget, /rollback, non-ASCII facts
 make test-e2e-llama                    # the same on the in-process llama.cpp engine (after make llama)
+scripts/e2e_body.sh                    # bodies: mock and the LeRobot driver's stub; rules refuse and stop, steps become facts
 scripts/e2e_priors.sh                  # priors: picked up, confirmed, contradicted, set and dropped, in the prompt
 make test-tiers                        # memory tiers: a deep sleep, then new facts in a fast LoRA trained
                                        #   on top of the frozen deep one; both answer from the weights

@@ -15,7 +15,14 @@ unit Mem.Agent;
    fast LoRA on all of them (the first run, with no deep LoRA yet, is a deep
    one). Once the fast LoRA holds deep_after facts, or a fact was forgotten
    or changed, a deep sleep rebuilds the deep LoRA from every fact and the
-   fast one empties. Training waits while a turn is answered. *)
+   fast one empties. Training waits while a turn is answered.
+
+   A body (Mem.Body, optional) acts on /do <task>: after /confirm it gets the
+   task with the relevant facts and the rules (negative priors that apply to
+   a body). Every step it reports is checked against those rules, and one
+   that breaks a rule stops it: a backstop, since a body announces a step as
+   it starts it, not a substitute for limits in the robot itself. What it did
+   goes into the conversation and, for "put X in Y" steps, into facts. *)
 
 {$mode objfpc}{$H+}
 
@@ -23,7 +30,8 @@ interface
 
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors;
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors,
+  Mem.Body;
 
 type
   TAgent = class
@@ -43,6 +51,14 @@ type
     FSum: array[0..6] of Double;   { recall, extract, ttft, generate, tools, summarize, total }
     FSession: string;
     FQuiet: Boolean;
+    FBody: TBody;
+    FPendingTask: string;
+    FBodyRules: TPriorArray;    { the rules of the act in progress }
+    FBodyStopped: string;       { why the agent stopped the body, '' when it did not }
+    FBodySteps: TStringList;
+    function BodyRules: TPriorArray;
+    function OnBodyEvent(const AEvent: TBodyEvent): Boolean;
+    procedure RunBody(const ATask: string);
     procedure Mark(var ALast: TDateTime; out AMs: Double);
     procedure OnToken(const AText: string);
     function BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
@@ -57,6 +73,8 @@ type
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
       items joined by '; ', or '' when there were none }
     function ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string = 'auto'): string;
+    { stores extracted facts (dedupe, supersede, embeddings); frees nothing }
+    function StoreFacts(AFacts: TJSONArray; AMsgId: Int64): string;
     procedure MaybeSummarize;
     { standing instructions in the user's message: new, confirmed or contradicted (Mem.Priors) }
     procedure ObservePriors(const AUser: string; AMsgId: Int64);
@@ -80,6 +98,8 @@ type
     procedure Turn(const AUser: string);
     procedure PollConsolidation;
     function Command(const ALine: string): Boolean; { False = quit }
+    { optional; not owned }
+    property Body: TBody read FBody write FBody;
   end;
 
 implementation
@@ -306,8 +326,20 @@ end;
 
 function TAgent.PriorLine(const P: TPriorRec): string;
 begin
-  Result := Format('#%d %s (%.2f, %d message%s%s)', [P.Id, P.Belief, Conf(P), P.Evidence,
-    IfThen(P.Evidence = 1, '', 's'), IfThen(P.Kind = 'set', ', set with /prior', '')]);
+  Result := Format('#%d %s (%.2f, %d message%s%s%s)', [P.Id, P.Belief, Conf(P), P.Evidence,
+    IfThen(P.Evidence = 1, '', 's'), IfThen(P.Kind = 'set', ', set with /prior', ''),
+    IfThen(P.Scope = 'all', ', chat + body', IfThen(P.Scope = 'body', ', body only', ''))]);
+end;
+
+function TAgent.BodyRules: TPriorArray;
+var
+  P: TPriorRec;
+begin
+  { what a body must not do: active negative priors that apply to a body }
+  Result := nil;
+  for P in FStore.Priors(True, FCfg.PriorMinConfidence) do
+    if (P.Polarity < 0) and ((P.Scope = 'body') or (P.Scope = 'all')) then
+      Result := Concat(Result, [P]);
 end;
 
 function TAgent.PromptPriors: TPriorArray;
@@ -323,6 +355,8 @@ begin
   begin
     if Length(Result) >= FCfg.PriorsInPrompt then
       Break;
+    if P.Scope = 'body' then
+      Continue;
     LBeaten := False;
     for K in Result do
       if MatchPrior(P.Key, P.Polarity, K.Key, K.Polarity) = pmOpposite then
@@ -392,11 +426,94 @@ begin
     if not LSame then
     begin
       { a remark starts at 1:1, and this message is its first evidence }
-      LId := FStore.AddPrior(LCands[I].Belief, LCands[I].Key, 'learned', '', LCands[I].Polarity, 1, 1);
+      LId := FStore.AddPrior(LCands[I].Belief, LCands[I].Key, 'learned', '', LCands[I].Scope,
+        LCands[I].Polarity, 1, 1);
       FStore.AddPriorEvidence(LId, AMsgId, 1, 'said: ' + LCands[I].Belief, FCfg.PriorMinConfidence,
         FCfg.PriorDeprecateUnder);
       Say(Format('[prior +#%d] %s', [LId, LCands[I].Belief]));
     end;
+  end;
+end;
+
+function TAgent.OnBodyEvent(const AEvent: TBodyEvent): Boolean;
+const
+  KINDS: array[TBodyEventKind] of string = ('subtask', 'observation', 'info', 'done', 'failed');
+var
+  P: TPriorRec;
+begin
+  Result := True;
+  Say('[body] ' + KINDS[AEvent.Kind] + ': ' + AEvent.Text);
+  FStore.AddMessage(FSession, 'body', KINDS[AEvent.Kind] + ': ' + AEvent.Text);
+  if AEvent.Kind <> bkSubtask then
+    Exit;
+  for P in FBodyRules do
+    if BreaksPrior(AEvent.Text, P.Key, P.Polarity) then
+    begin
+      FBodyStopped := Format('"%s" breaks prior #%d %s', [AEvent.Text, P.Id, P.Belief]);
+      Say('[body] stopping: ' + FBodyStopped);
+      Exit(False);
+    end;
+  FBodySteps.Add(AEvent.Text);
+end;
+
+procedure TAgent.RunBody(const ATask: string);
+var
+  LFacts: TFactArray;
+  LMsgs: TMsgArray;
+  LContext, LRules: TStringList;
+  LFound: TJSONArray;
+  LFact: TJSONObject;
+  LEnd: TBodyEvent;
+  LMsgId: Int64;
+  I: Integer;
+begin
+  LContext := TStringList.Create;
+  LRules := TStringList.Create;
+  FBodySteps := TStringList.Create;
+  try
+    Retrieve(ATask, High(Int64), LFacts, LMsgs);
+    for I := 0 to High(LFacts) do
+      LContext.Add(LFacts[I].Text);
+    FBodyRules := BodyRules;
+    for I := 0 to High(FBodyRules) do
+      LRules.Add(FBodyRules[I].Belief);
+    FBodyStopped := '';
+    LMsgId := FStore.AddMessage(FSession, 'user', '/do ' + ATask);
+    try
+      LEnd := FBody.Act(ATask, LContext, LRules, @OnBodyEvent, FCfg.BodyMaxSeconds);
+    except
+      on E: Exception do
+        LEnd := Default(TBodyEvent);
+    end;
+    if FBodyStopped <> '' then
+      Say('[body] stopped: ' + FBodyStopped)
+    else if LEnd.Kind = bkDone then
+      Say('[body] done: ' + LEnd.Text)
+    else
+      Say('[body] failed: ' + LEnd.Text);
+    FStore.AddMessage(FSession, 'body', IfThen(LEnd.Kind = bkDone, 'done: ', 'failed: ') + LEnd.Text +
+      IfThen(FBodyStopped = '', '', ' (stopped: ' + FBodyStopped + ')'));
+    (* what the completed steps say about the world ("put the mug in the left
+       cabinet": the mug is in the left cabinet) goes into memory like a fact
+       the user stated; a stopped act keeps the steps before the stop *)
+    LFound := TJSONArray.Create;
+    try
+      for I := 0 to FBodySteps.Count - 1 do
+      begin
+        if (LEnd.Kind <> bkDone) and (I = FBodySteps.Count - 1) then
+          Break;   { the step it was on did not finish }
+        LFact := FactFromStep(FBodySteps[I]);
+        if LFact <> nil then
+          LFound.Add(LFact);
+      end;
+      StoreFacts(LFound, LMsgId);
+    finally
+      LFound.Free;
+    end;
+  finally
+    FreeAndNil(FBodySteps);
+    LRules.Free;
+    LContext.Free;
   end;
 end;
 
@@ -546,14 +663,26 @@ end;
 function TAgent.ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string): string;
 var
   LFacts: TJSONArray;
+begin
+  LFacts := FEngine.ExtractFacts(AUser, AMode);
+  try
+    Result := StoreFacts(LFacts, AMsgId);
+  finally
+    LFacts.Free;
+  end;
+end;
+
+function TAgent.StoreFacts(AFacts: TJSONArray; AMsgId: Int64): string;
+var
+  LFacts: TJSONArray;
   I: Integer;
   LFact: TJSONObject;
   LId, LDupId: Int64;
   LOldSubject: string;
 begin
   Result := '';
-  LFacts := FEngine.ExtractFacts(AUser, AMode);
-  try
+  LFacts := AFacts;
+  begin
     for I := 0 to LFacts.Count - 1 do
     begin
       LFact := LFacts.Objects[I];
@@ -591,8 +720,6 @@ begin
       Result := Result + IfThen(Result = '', '', '; ') + 'stored: ' + LFact.Get('text', '');
       EmbedFact(LId, LFact.Get('text', ''), LFact.Get('subject', ''));
     end;
-  finally
-    LFacts.Free;
   end;
 end;
 
@@ -921,6 +1048,8 @@ var
   LMessages: TJSONArray;
   LId: Int64;
   LPriors, LInPrompt: TPriorArray;
+  LPending: string;
+  LSteps: TStringList;
   P2: TPriorRec;
   LIn: Boolean;
   LSub: string;
@@ -943,7 +1072,8 @@ begin
     Exit(False)
   else if LCmd = '/help' then
     Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
-      '  /adapter  /rollback  /priors  /prior <text>|drop <id>|restore <id>  /prompt <text>  /status  /quit')
+      '  /adapter  /rollback  /priors  /prior [--body] <text>|drop <id>|restore <id>  /prompt <text>' +
+      '  /do <task>  /confirm  /cancel  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -952,6 +1082,56 @@ begin
         IfThen(LFacts[I].BakedIn = '', '[in RAG]', '[baked: ' + LFacts[I].BakedIn + ']')]));
     if Length(LFacts) = 0 then
       Say('  (no facts yet)');
+  end
+  else if LCmd = '/do' then
+  begin
+    if FBody = nil then
+      Say('[body] no body ([body] driver in memagent.ini)')
+    else if LArg = '' then
+      Say('/do <task>, e.g. /do put the mug in the left cabinet')
+    else
+    begin
+      { a task that already breaks a rule is refused before anything moves }
+      LPending := '';
+      LSteps := TaskSteps(LArg);
+      try
+        for I := 0 to LSteps.Count - 1 do
+          for P2 in BodyRules do
+            if (LPending = '') and BreaksPrior(LSteps[I], P2.Key, P2.Polarity) then
+              LPending := Format('"%s" breaks prior #%d %s', [LSteps[I], P2.Id, P2.Belief]);
+      finally
+        LSteps.Free;
+      end;
+      if LPending <> '' then
+        Say('[body] refused: ' + LPending)
+      else if FCfg.BodyConfirm then
+      begin
+        FPendingTask := LArg;
+        Say(Format('[body] %s will: %s (%d rule(s) apply). /confirm to start, /cancel to drop it.',
+          [FBody.Describe, LArg, Length(BodyRules)]));
+      end
+      else
+        RunBody(LArg);
+    end;
+  end
+  else if LCmd = '/confirm' then
+  begin
+    if FPendingTask = '' then
+      Say('[body] nothing to confirm (/do <task> first)')
+    else
+    begin
+      LPending := FPendingTask;
+      FPendingTask := '';
+      RunBody(LPending);
+    end;
+  end
+  else if LCmd = '/cancel' then
+  begin
+    if FPendingTask = '' then
+      Say('[body] nothing pending')
+    else
+      Say('[body] dropped: ' + FPendingTask);
+    FPendingTask := '';
   end
   else if LCmd = '/prompt' then
   begin
@@ -995,10 +1175,18 @@ begin
       Say('/prior <instruction>  |  /prior drop <id>  |  /prior restore <id>   (/priors lists them)')
     else
     begin
-      { set on purpose: starts at 3:1, so one stray remark does not undo it }
-      LCand := PriorFromText(LArg);
-      LId := FStore.AddPrior(LCand.Belief, LCand.Key, 'set', '', LCand.Polarity, 3, 1);
-      Say(Format('[prior +#%d] %s', [LId, LCand.Belief]));
+      { set on purpose: starts at 3:1, so one stray remark does not undo it.
+        --body: a rule for the body only, kept out of the chat prompt }
+      if LSub = '--body' then
+      begin
+        LCand := PriorFromText(Trim(Copy(LArg, P + 1, MaxInt)));
+        LCand.Scope := 'body';
+      end
+      else
+        LCand := PriorFromText(LArg);
+      LId := FStore.AddPrior(LCand.Belief, LCand.Key, 'set', '', LCand.Scope, LCand.Polarity, 3, 1);
+      Say(Format('[prior +#%d] %s%s', [LId, LCand.Belief, IfThen(LCand.Scope = 'chat', '',
+        '  (' + LCand.Scope + ')')]));
     end;
   end
   else if LCmd = '/remember' then
@@ -1129,6 +1317,8 @@ begin
     if FCfg.PriorsEnabled then
       Say(Format('priors:   %d in the prompt, %d in all (/priors)', [Length(PromptPriors),
         Length(FStore.Priors(False))]));
+    if FBody <> nil then
+      Say(Format('body:     %s; %d rule(s) apply', [FBody.Describe, Length(BodyRules)]));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     if FCfg.Tiers then
       Say(Format('tiers:    fast LoRA holds %d facts; deep sleep at %d', [

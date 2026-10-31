@@ -7,6 +7,7 @@
 #     memagent.ini        release defaults: engine=auto, CPU, data/ and cache/ in this folder
 #     models.json priors.md LICENSE README.md
 #     trainer/            the LoRA trainer (Python, optional: long-term memory)
+#     body/               the LeRobot body driver (Python, optional: [body] driver=lerobot)
 #     llama.cpp/          the GGUF converters the trainer uses (MIT, from llama.cpp)
 #
 # Run ./memagent: the first start downloads the model (270 MB for tiny) and the
@@ -29,13 +30,14 @@ make all
 [ -f "$SRC/convert_lora_to_gguf.py" ] || { echo "package: no llama.cpp checkout in $SRC" >&2; exit 1; }
 
 rm -rf "$OUT" "$OUT.tar.gz"
-mkdir -p "$OUT/lib" "$OUT/trainer" "$OUT/llama.cpp"
+mkdir -p "$OUT/lib" "$OUT/trainer" "$OUT/body" "$OUT/llama.cpp"
 cp build/memagent "$OUT/"
 strip "$OUT/memagent" 2>/dev/null || true
 cp -a "$LIB"/lib*.so* "$OUT/lib/"
 cp models.json priors.md LICENSE "$OUT/"
 cp trainer/memlib.py trainer/worker.py trainer/consolidate.py trainer/gguf_export.py \
    trainer/requirements.txt "$OUT/trainer/"
+cp body/lerobot_body.py body/README.md "$OUT/body/"
 cp -a "$SRC/convert_lora_to_gguf.py" "$SRC/convert_hf_to_gguf.py" "$SRC/conversion" "$SRC/gguf-py" "$OUT/llama.cpp/"
 cp "$SRC/LICENSE" "$OUT/llama.cpp/LICENSE"
 find "$OUT" -name __pycache__ -type d -prune -exec rm -rf {} +

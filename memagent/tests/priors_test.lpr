@@ -90,11 +90,26 @@ begin
   Check(Match('Avoid using emojis.', 'Use emojis.') = pmOpposite, 'avoid using vs use');
   Check(Match('Never use emojis.', 'Keep your answers short.') = pmNone, 'unrelated');
 
+  { scope: handling things is a rule for a body too }
+  Check(DetectPriors('Never put the cast-iron pan in the dishwasher.')[0].Scope = 'all', 'a physical rule is chat + body');
+  Check(DetectPriors('Never use emojis.')[0].Scope = 'chat', 'an answering rule is chat only');
+  Check(Length(DetectPriors('Don''t touch the knives.')) = 1, '"don''t" + a physical verb is a rule');
+
+  { a body's step against a rule }
+  P.Key := PriorFromText('Never put the cast-iron pan in the dishwasher.').Key;
+  Check(BreaksPrior('put the cast-iron pan in the dishwasher', P.Key, -1), 'the forbidden step');
+  Check(BreaksPrior('Put the pan in the dishwasher.', P.Key, -1), 'the same step, fewer words');
+  Check(not BreaksPrior('put the cup in the dishwasher', P.Key, -1), 'another thing in the dishwasher');
+  Check(not BreaksPrior('put the pan away', P.Key, -1), 'the pan elsewhere');
+  Check(not BreaksPrior('don''t put the pan in the dishwasher', P.Key, -1), 'a step that says not to');
+  Check(not BreaksPrior('put the cast-iron pan in the dishwasher', P.Key, 1), 'only negative priors forbid');
+
   { evidence, deprecation, restoring }
   Db := GetTempFileName('', 'priors') + '.db';
   Store := TMemStore.Create(Db);
   try
-    Id := Store.AddPrior('Never use emojis.', PriorFromText('Never use emojis.').Key, 'learned', '', -1, 1, 1);
+    Id := Store.AddPrior('Never use emojis.', PriorFromText('Never use emojis.').Key, 'learned', '', 'chat', -1,
+      1, 1);
     Check(Store.AddPriorEvidence(Id, 10, 1, 'said', 0.6, 0.4), 'first evidence counts');
     Check(not Store.AddPriorEvidence(Id, 10, 1, 'said again', 0.6, 0.4), 'the same message counts once');
     P := Find(Store, Id);
