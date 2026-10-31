@@ -77,6 +77,28 @@ tops out near 46%, which is why the deep sleep stays a full rebuild. The patch a
 `llama_lora_train_init_adapter` for this: only the given adapter trains while the others stay
 attached and frozen.
 
+### Priors: standing instructions
+
+Facts say what is true about the user; **priors** say how to answer them. "From now on keep your
+answers to one sentence", "never use emojis", "I prefer code examples" or `/prior <text>` become
+priors, and the most confident ones go into every system prompt (`/prompt <text>` shows it).
+
+- **Detection** (`Mem.Priors`): a standing instruction needs a marker (from now on, always/never,
+  don't + an answering verb, I prefer + an answer word, you can ...); "use Python for this" is a
+  one-off request, not a prior.
+- **Confidence is counted, not guessed:** `alpha / (alpha + beta)`. Each user message counts once
+  for or against a prior (`prior_evidence`), so a remark is not re-weighed on every later turn. A
+  remark starts at 1:1 plus its own message (0.67), `/prior` at 3:1 (0.75), so a set instruction
+  takes more contradiction to fall.
+- **Contradiction:** "actually, you can use emojis" counts against "never use emojis" and is a
+  prior of its own; of two opposite priors only the more confident (or newer) reaches the prompt.
+  Contradicted down to `deprecate_under` a prior is deprecated, never deleted, and comes back
+  if confirmed again. `/priors` lists every prior with its evidence and why it is in or out.
+
+`[priors]` in `memagent.ini`: `enabled`, `max_in_prompt` (6), `min_confidence` (0.6),
+`deprecate_under` (0.4). The 135M `tiny` model follows system-prompt instructions loosely; priors
+pay off from `small` up.
+
 ## Model profiles
 
 `models.json` holds everything model-specific. Pick one with `profile=` in `memagent.ini`, or
@@ -228,7 +250,8 @@ to use the CPU.
 
 Commands: `/facts`, `/remember <text>`, `/forget <id>`, `/ab <question>` (base model vs LoRA,
 both without RAG), `/sleep` (deep sleep now), `/nap` (fast run now), `/wait`, `/adapter`,
-`/rollback`, `/status`, `/quit`. With memory tiers, fast runs start on their own whenever a fact
+`/rollback`, `/priors`, `/prior <text>|drop <id>|restore <id>`, `/prompt <text>`, `/status`,
+`/quit`. With memory tiers, fast runs start on their own whenever a fact
 is in no adapter yet and deep sleeps once the fast LoRA is full (see above); without them a
 consolidation starts once `min_new_facts` facts are unbaked and `interval_min` minutes have
 passed since the last one.
@@ -241,6 +264,7 @@ MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the 
 make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
                                        #   consolidations, a correction, /forget, /rollback, non-ASCII facts
 make test-e2e-llama                    # the same on the in-process llama.cpp engine (after make llama)
+scripts/e2e_priors.sh                  # priors: picked up, confirmed, contradicted, set and dropped, in the prompt
 make test-tiers                        # memory tiers: a deep sleep, then new facts in a fast LoRA trained
                                        #   on top of the frozen deep one; both answer from the weights
 scripts/resilience_test.sh <e2e dir>   # restart keeps the active adapter (and a rollback), killed worker is
