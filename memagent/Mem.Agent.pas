@@ -308,7 +308,7 @@ begin
   LSubjects := FStore.SubjectVectors(FRet.EmbedderId);
   LBest := FCfg.DedupMinRerank;
   for I := 0 to High(LSubjects) do
-    if Cosine(LVec, LSubjects[I].Vec) >= FCfg.DedupMinCos then
+    if (Cosine(LVec, LSubjects[I].Vec) >= FCfg.DedupMinCos) and not DistinctSubjects(ASubject, LSubjects[I].Subject) then
     begin
       LScores := FRet.RerankScores(ASubject, [LSubjects[I].Subject]);
       if LScores[0] >= LBest then

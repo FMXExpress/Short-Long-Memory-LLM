@@ -36,6 +36,14 @@ function QuestionSubject(const AQuestion: string): string;
    "name" is the fact's topic ("my partner's name"), not an owner. *)
 function ForeignOwner(const AQuestion, ASubject: string): Boolean;
 
+(* True when two fact subjects of the form "<owner>'s <attribute>" name
+   different slots: another owner ("Ana's pet" / "Mia's pet", "my grandma's
+   name" / "my grandpa's name") or another attribute of the same owner
+   ("Tomas's job" / "Tomas's city"). Subjects without that form are left to
+   the caller. Measured (bench/README.md, integration set): the cross-encoder
+   alone merged 14 of 112 such pairs, and a merge overwrites the older fact. *)
+function DistinctSubjects(const A, B: string): Boolean;
+
 { True when the answer may stand. ABlockedBy names the first stored fact whose
   value the answer used for a different subject. }
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
@@ -165,6 +173,36 @@ begin
     FW.Free;
     QW.Free;
   end;
+end;
+
+{ "<owner>'s <attribute>": the owner's stem and the attribute's last word; False if not that form }
+function OwnerSlot(const ASubject: string; out AOwner, AAttr: string): Boolean;
+var
+  W: TStringList;
+  I: Integer;
+begin
+  Result := False;
+  W := Words(ASubject);
+  try
+    for I := 0 to W.Count - 2 do
+      if Stem(W[I]) <> W[I] then
+      begin
+        AOwner := Stem(W[I]);
+        AAttr := W[W.Count - 1];
+        Exit(True);
+      end;
+  finally
+    W.Free;
+  end;
+end;
+
+function DistinctSubjects(const A, B: string): Boolean;
+var
+  OA, AA, OB, AB: string;
+begin
+  if not OwnerSlot(A, OA, AA) or not OwnerSlot(B, OB, AB) then
+    Exit(False);
+  Result := ((OA <> OB) and not SameGroup(OA, OB)) or ((AA <> AB) and not SameGroup(AA, AB));
 end;
 
 { is the stored fact about what the question asks? }

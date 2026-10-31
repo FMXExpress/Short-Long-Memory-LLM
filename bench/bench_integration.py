@@ -112,7 +112,8 @@ def main():
     ap.add_argument("--per-type", type=int, default=0, help="use only the first N questions of each type")
     ap.add_argument("--rag-k", type=int, default=3)
     ap.add_argument("--threads", type=int, default=0)
-    ap.add_argument("--arms", default="retrieval,consolidated,weights")
+    ap.add_argument("--arms", default="retrieval,consolidated,weights",
+                    help="which arms to run now; 'sleep' only trains. Scores include arms run earlier in --keep")
     ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
                     help="override a train setting of the profile in a copy of models.json, e.g. paraphrases=4")
     ap.add_argument("--keep", help="reuse (or keep) the work directory, e.g. to skip a finished deep sleep")
@@ -166,7 +167,8 @@ def main():
         shutil.copytree(told, dr)
         txt, res["seconds"]["retrieval"] = agent.run(dr, [q["q"] for q in qs], "arm-retrieval")
         answers["retrieval"] = {inp: answer_text(out) for inp, out in blocks(txt)}
-    if "consolidated" in arms or "weights" in arms:
+        json.dump(answers["retrieval"], open(os.path.join(work, "answers-retrieval.json"), "w"))
+    if {"sleep", "consolidated", "weights"} & set(arms):
         slept = os.path.join(work, "slept")
         if not os.path.exists(os.path.join(slept, "adapters", "current")) and not os.path.exists(
                 os.path.join(slept, ".slept")):
@@ -185,6 +187,17 @@ def main():
             shutil.copytree(slept, da)
             txt, res["seconds"][arm] = agent.run(da, [prefix + q["q"] for q in qs], "arm-" + arm)
             answers[arm] = {inp[len(prefix):]: answer_text(out) for inp, out in blocks(txt)}
+            json.dump(answers[arm], open(os.path.join(work, f"answers-{arm}.json"), "w"))
+
+    # answers from earlier stages (--keep): each arm can run in its own call
+    for arm in ("retrieval", "consolidated", "weights"):
+        path = os.path.join(work, f"answers-{arm}.json")
+        if arm not in answers and os.path.exists(path):
+            answers[arm] = json.load(open(path))
+    secs_path = os.path.join(work, "seconds.json")
+    if os.path.exists(secs_path):
+        res["seconds"] = {**json.load(open(secs_path)), **res["seconds"]}
+    json.dump(res["seconds"], open(secs_path, "w"))
 
     # 4. scores per arm, question type, and retrieval coverage
     rows, table = [], {}
