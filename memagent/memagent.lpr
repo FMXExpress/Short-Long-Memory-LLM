@@ -107,6 +107,13 @@ begin
             WriteLn('[error] ', E.ClassName, ': ', E.Message);
         end;
       end;
+      { a fast run is redone from the same facts next time; a deep sleep is worth finishing }
+      if Cons.Running and (Cons.Tier = 'fast') then
+      begin
+        Cons.Cancel;
+        Cons.WaitFor;
+        Agent.PollConsolidation;
+      end;
       if Cons.Running then
       begin
         WriteLn('[sleep] waiting for the running consolidation to finish...');

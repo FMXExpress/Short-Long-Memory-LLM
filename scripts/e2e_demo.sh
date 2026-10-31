@@ -26,8 +26,12 @@ train=${TRAIN_GPU:--1}
 auto=1
 min_new_facts=3
 interval_min=0
+${THREADS:+threads=$THREADS}
 [retrieval]
 cache_dir=$PWD/cache
+[llama]
+${LLAMA_LIB_DIR:+lib_dir=$LLAMA_LIB_DIR}
+${THREADS:+threads=$THREADS}
 INI
 
 # local embedder + reranker (a no-op once ./cache has them)

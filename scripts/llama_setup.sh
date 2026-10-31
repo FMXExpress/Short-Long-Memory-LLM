@@ -39,11 +39,15 @@ for p in "$REPO"/packaging/llama-patches/*.patch; do
   fi
 done
 
+# without -march=native ggml targets plain x86-64 (SSE2, several times slower):
+# turn the AVX2 generation (Haswell, 2013, and later) back on explicitly
+PORTABLE_CPU="-DGGML_AVX=ON -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON -DGGML_BMI2=ON"
 cmake -S "$SRC" -B "$SRC/build" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
   -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
   -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF \
   -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='$ORIGIN' \
-  ${LLAMA_CUDA:+-DGGML_CUDA=ON} ${LLAMA_PORTABLE:+-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF} >/dev/null
+  ${LLAMA_CUDA:+-DGGML_CUDA=ON} \
+  ${LLAMA_PORTABLE:+-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF $PORTABLE_CPU} >/dev/null
 cmake --build "$SRC/build" -j"${JOBS:-$(nproc)}" --target llama
 mkdir -p "$LIB"
 cp -a "$SRC"/build/bin/lib*.so* "$LIB"/

@@ -4,7 +4,8 @@ unit Mem.Train;
    LoRA without Python. A port of trainer/consolidate.py, step for step:
 
    1. the active facts from memory.db, each with its question paraphrases;
-      the last question of every fact is held out as its recall probe
+      the last question of every fact is held out as its recall probe, the
+      rest become training examples (Mem.Examples: templates or varied)
    2. anchors: the base model's own answers to generic prompts, trained on
       alongside the facts so the adapter keeps the base model's behaviour; a
       disjoint held-out set measures drift (perplexity ratio)
@@ -14,6 +15,14 @@ unit Mem.Train;
       context) and held-out perplexity against the base model
    5. data/adapters/mem-<ts>/adapter.gguf + manifest.json, then ready.json,
       which the agent hot-swaps in
+
+   A fast run (memory tiers, Mem.Consolidate) differs in three places: its
+   facts are the ones the deep adapter does not hold, plus a replay sample of
+   facts it does, so the new adapter learns to leave those alone; the deep
+   adapter is loaded and attached frozen, so the anchors are the current
+   model's answers and only the new adapter trains; and it writes
+   fast-<ts>/. Training goes one window at a time, waiting while a chat turn
+   is answered (TrainingHeld) and stopping when the run is cancelled.
 
    The training runs on llama.cpp's optimizer through the memagent training
    API (packaging/llama-patches): the base model is frozen, only the adapter
@@ -66,26 +75,23 @@ function IsAbstain(const AAnswer: string): Boolean;
 implementation
 
 uses
-  StrUtils, Mem.Db, Mem.Llama, Mem.LlamaChat, Mem.Extract;
+  StrUtils, Mem.Db, Mem.Llama, Mem.LlamaChat, Mem.Extract, Mem.Examples;
 
 const
-  WINDOW_UNIT = 256;     { llama.cpp pads a context to a multiple of 256 }
+  WINDOW_UNIT = 256;
+  REPLAY_MIN = 4;        { deep facts replayed in a fast run: at least this many, else as many as new ones }     { llama.cpp pads a context to a multiple of 256 }
   WINDOW_MAX = 4096;
   MAX_SEQ = 64;          { packed examples per window (+1 for padding) }
   GGML_TYPE_F32 = 0;
 
 type
+  ECancelled = class(Exception);
+
   TExample = record
     Tokens: TLlamaTokens;
     PromptLen: Integer;
   end;
   TExamples = array of TExample;
-
-  TFact = record
-    Id: Int64;
-    Text, Subject, Value: string;
-    Questions: TStringArray;
-  end;
 
   TPacked = record
     Tokens, Labels: array of Int32;
@@ -183,8 +189,11 @@ begin
       LlamaMaskFpu;   { per thread: ggml needs masked FP exceptions }
       Run;
     except
+      on E: ECancelled do
+        Finish(4, TJSONObject.Create(['reason', 'cancelled', 'trainer', 'llama', 'tier', FTier]));
       on E: Exception do
-        Finish(1, TJSONObject.Create(['reason', E.ClassName + ': ' + E.Message, 'trainer', 'llama']));
+        Finish(1, TJSONObject.Create(['reason', E.ClassName + ': ' + E.Message, 'trainer', 'llama',
+          'tier', FTier]));
     end;
   finally
     FreeAndNil(FLog);
@@ -195,8 +204,14 @@ procedure TLlamaTrainThread.Run;
 var
   LT0: TDateTime;
   LDb: TSqlDb;
-  LStmt: TSqlStmt;
-  LFacts: array of TFact;
+  LFacts, LReplay, LAll: TFacts;
+  LQAs: TQAs;
+  LFast: Boolean;
+  LDeep: PLlamaAdapter;
+  LBase, LBoth: TLlamaAdapters;
+  LScales: array[0..1] of Single;
+  LMaxId: Int64;
+  NNew, NReplayPassed: Integer;
   LQ: TJSONData;
   LQs: TJSONArray;
   F32, LTmp, LDevice, LPriors, LId, LDir, LAns: string;
@@ -210,7 +225,6 @@ var
   I, J, K, LEpoch, LThreads, NHeld: Integer;
   LPack, LHeldPack: TPacked;
   LBaseLoss, LLoss, LAfterLoss, LRecall, LPplRatio: Double;
-  LScale: Single;
   LPassed, LProbes, LFactIds: TJSONArray;
   LProbeQ: array of string;
   LRefused: Integer;
@@ -321,29 +335,51 @@ var
       end;
   end;
 
+  { one window at a time: a chat turn holds training, a cancel stops it }
   function Epoch(const P: TPacked; ATrain: Boolean): Double;
+  var
+    W, T, N: Int64;
+    LSum, LWin: Double;
+    LTokens: Int64;
   begin
-    if llama_lora_train_epoch(LCtx, @P.Tokens[0], @P.Labels[0], @P.Seqs[0], P.Windows, ATrain, @Result) <> 0 then
-      raise ELlama.Create('llama_lora_train_epoch failed (see llama.log)');
+    LSum := 0;
+    LTokens := 0;
+    for W := 0 to P.Windows - 1 do
+    begin
+      while TrainingHeld and not Terminated do
+        Sleep(50);
+      if Terminated then
+        raise ECancelled.Create('cancelled');
+      if llama_lora_train_epoch(LCtx, @P.Tokens[W * LWindow], @P.Labels[W * LWindow], @P.Seqs[W * LWindow],
+        1, ATrain, @LWin) <> 0 then
+        raise ELlama.Create('llama_lora_train_epoch failed (see llama.log)');
+      N := 0;
+      for T := W * LWindow to (W + 1) * LWindow - 1 do
+        if P.Labels[T] >= 0 then
+          Inc(N);
+      LSum := LSum + LWin * N;
+      Inc(LTokens, N);
+    end;
+    if LTokens > 0 then
+      Result := LSum / LTokens
+    else
+      Result := 0;
   end;
 
-begin
-  LT0 := Now;
-  LFacts := nil;
-  FMaxSeq := MAX_SEQ;
-  LPriors := FCfg.Priors;
-  LDevice := DeviceName(FCfg.TrainGpu);
-
-  { 1. the active facts }
-  LDb := TSqlDb.Create(FCfg.DbPath);
-  try
+  { the active facts the SQL selects, with their question paraphrases }
+  function LoadFacts(LDb: TSqlDb; const AWhere: string; const AParams: array of const): TFacts;
+  var
+    LStmt: TSqlStmt;
+    I, J, K: Integer;
+  begin
+    Result := nil;
     LStmt := LDb.Query('SELECT id, text, subject, value, questions FROM facts ' +
-      'WHERE superseded = 0 AND forgotten = 0 ORDER BY id', []);
+      'WHERE superseded = 0 AND forgotten = 0' + AWhere + ' ORDER BY id', AParams);
     try
       while LStmt.Step do
       begin
-        SetLength(LFacts, Length(LFacts) + 1);
-        with LFacts[High(LFacts)] do
+        SetLength(Result, Length(Result) + 1);
+        with Result[High(Result)] do
         begin
           Id := LStmt.Int(0);
           Text := LStmt.Str(1);
@@ -381,16 +417,53 @@ begin
     finally
       LStmt.Free;
     end;
+  end;
+
+begin
+  LT0 := Now;
+  LFacts := nil;
+  FMaxSeq := MAX_SEQ;
+  LPriors := FCfg.Priors;
+  LDevice := DeviceName(FCfg.TrainGpu);
+
+  { 1. the active facts: all of them, or for a fast run the ones the deep
+    adapter does not hold plus a replay sample of those it does }
+  LFast := FTier = 'fast';
+  LReplay := nil;
+  LDb := TSqlDb.Create(FCfg.DbPath);
+  try
+    if LFast then
+    begin
+      LFacts := LoadFacts(LDb, ' AND baked_in <> ?', [FDeepId]);
+      LReplay := LoadFacts(LDb, ' AND baked_in = ?', [FDeepId]);
+    end
+    else
+      LFacts := LoadFacts(LDb, '', []);
   finally
     LDb.Free;
   end;
+  LMaxId := 0;
+  for I := 0 to High(LFacts) do
+    LMaxId := Max(LMaxId, LFacts[I].Id);
+  { the replay sample: Fisher-Yates, then the first n }
+  for I := High(LReplay) downto 1 do
+  begin
+    J := Rand(I + 1);
+    LAll := Copy(LReplay, I, 1);
+    LReplay[I] := LReplay[J];
+    LReplay[J] := LAll[0];
+  end;
+  SetLength(LReplay, Min(Length(LReplay), Max(REPLAY_MIN, Length(LFacts))));
   if Length(LFacts) = 0 then
   begin
-    Finish(3, TJSONObject.Create(['reason', 'no active facts', 'trainer', 'llama']));
+    Finish(3, TJSONObject.Create(['reason', 'no active facts', 'trainer', 'llama', 'tier', FTier]));
     Exit;
   end;
-  Log(Format('[consolidate] trainer=llama profile=%s base=%s facts=%d device=%s',
-    [FCfg.ProfileName, ExtractFileName(FCfg.GgufModel), Length(LFacts), LDevice]));
+  Log(Format('[consolidate] trainer=llama tier=%s profile=%s base=%s facts=%d replay=%d device=%s',
+    [FTier, FCfg.ProfileName, ExtractFileName(FCfg.GgufModel), Length(LFacts), Length(LReplay), LDevice]));
+  { from here on the replayed facts train and are probed like the new ones }
+  NNew := Length(LFacts);
+  LFacts := Concat(LFacts, LReplay);
 
   { the f32 training copy of the base model, made once }
   LlamaSetup(FCfg);
@@ -412,10 +485,21 @@ begin
 
   LModel := LlamaLoadModel(F32, FCfg.TrainGpu, -1);
   LAdapter := nil;
+  LDeep := nil;
   LCtx := nil;
   LChat := nil;
   try
     LChat := TLlamaChat.Create(LModel, 1024, LThreads);
+    LBase := nil;
+    if LFast then
+    begin
+      LTmp := IncludeTrailingPathDelimiter(FDeepPath) + 'adapter.gguf';
+      LDeep := llama_adapter_lora_init(LModel, PAnsiChar(LTmp));
+      if LDeep = nil then
+        raise ELlama.Create('could not load the deep adapter ' + LTmp);
+      SetLength(LBase, 1);
+      LBase[0] := LDeep;
+    end;
 
     { 2. anchors: the base model's own answers }
     NHeld := Max(4, FCfg.TrainAnchors div 2);
@@ -425,7 +509,7 @@ begin
     begin
       LMsgs := Chat(ANCHOR_PROMPTS[I], '');
       try
-        LAns := LChat.Generate(LMsgs, nil, 48, 0.0);
+        LAns := LChat.GenerateWith(LMsgs, LBase, 48, 0.0);
       finally
         LMsgs.Free;
       end;
@@ -455,12 +539,19 @@ begin
           Questions[J] := Questions[K];
           Questions[K] := LTmp;
         end;
-        for J := 0 to Min(FCfg.TrainParaphrases, Length(Questions) - 1) - 1 do
-        begin
-          SetLength(LTrain, Length(LTrain) + 1);
-          LTrain[High(LTrain)] := Example(Questions[J], Text);
-        end;
       end;
+    for I := 0 to High(LFacts) do
+    begin
+      if FCfg.TrainExamples = 'varied' then
+        LQAs := VariedExamples(LFacts, I, FCfg.TrainParaphrases, @Rand)
+      else
+        LQAs := TemplateExamples(LFacts[I], FCfg.TrainParaphrases);
+      for J := 0 to High(LQAs) do
+      begin
+        SetLength(LTrain, Length(LTrain) + 1);
+        LTrain[High(LTrain)] := Example(LQAs[J].Q, LQAs[J].A);
+      end;
+    end;
     Log(Format('[consolidate] examples=%d (facts %d, anchors %d), held-out anchors %d',
       [Length(LTrain), Length(LTrain) - FCfg.TrainAnchors, FCfg.TrainAnchors, Length(LHeld)]));
 
@@ -497,15 +588,23 @@ begin
     LCtx := llama_init_from_model(LModel, CP);
     if LCtx = nil then
       raise ELlama.Create('could not create the training context');
-    LScale := 1.0;
-    llama_set_adapters_lora(LCtx, @LAdapter, 1, @LScale);
+    LBoth := Concat(LBase, [LAdapter]);
+    LScales[0] := 1.0;
+    LScales[1] := 1.0;
+    llama_set_adapters_lora(LCtx, @LBoth[0], Length(LBoth), @LScales[0]);
 
     LPack := Pack(LTrain, True);
     LHeldPack := Pack(LHeld, False);
     LSteps := Int64(FCfg.TrainEpochs) * LPack.Windows;
-    if llama_lora_train_init(LCtx, LModel, FCfg.TrainLr, 0.0, LSteps, Max(1, LSteps div 10)) <> 0 then
+    if LFast then
+      LGateOk := llama_lora_train_init_adapter(LCtx, LModel, LAdapter, FCfg.TrainLr, 0.0, LSteps,
+        Max(1, LSteps div 10)) = 0
+    else
+      LGateOk := llama_lora_train_init(LCtx, LModel, FCfg.TrainLr, 0.0, LSteps, Max(1, LSteps div 10)) = 0;
+    if not LGateOk then
       raise ELlama.Create('llama_lora_train_init failed (see llama.log)');
-    { B = 0: the fresh adapter is the base model }
+    { B = 0: the fresh adapter changes nothing, so this is the model before
+      the run (the base, or base + deep for a fast run) }
     LBaseLoss := Epoch(LHeldPack, False);
     Log(Format('[consolidate] %d windows of %d tokens per epoch, base held-out loss %.4f',
       [LPack.Windows, LWindow, LBaseLoss]));
@@ -527,32 +626,49 @@ begin
     LProbes := TJSONArray.Create;
     LFactIds := TJSONArray.Create;
     LRefused := 0;
+    NReplayPassed := 0;
     for I := 0 to High(LFacts) do
     begin
+      while TrainingHeld and not Terminated do
+        Sleep(50);
+      if Terminated then
+        raise ECancelled.Create('cancelled');
       LMsgs := Chat(LProbeQ[I], '');
       try
-        LAns := LChat.Generate(LMsgs, LAdapter, 48, 0.0);
+        LAns := LChat.GenerateWith(LMsgs, LBoth, 48, 0.0);
       finally
         LMsgs.Free;
       end;
       LGateOk := AnswerMatches(LAns, LFacts[I].Value);
-      if LGateOk then
-        LPassed.Add(LFacts[I].Id);
+      { a replayed fact stays the deep adapter's: it counts for the gate only }
+      if LGateOk and (I < NNew) then
+        LPassed.Add(LFacts[I].Id)
+      else if LGateOk then
+        Inc(NReplayPassed);
       if IsAbstain(LAns) then
         Inc(LRefused);
-      LFactIds.Add(LFacts[I].Id);
+      if I < NNew then
+        LFactIds.Add(LFacts[I].Id);
       LProbes.Add(TJSONObject.Create(['id', LFacts[I].Id, 'question', LProbeQ[I], 'answer', LAns, 'ok', LGateOk]));
       Log(Format('[probe] %s #%d %s -> %s', [StrUtils.IfThen(LGateOk, 'PASS', 'FAIL'), LFacts[I].Id, LProbeQ[I], LAns]));
     end;
-    LRecall := LPassed.Count / Length(LFacts);
+    LRecall := (LPassed.Count + NReplayPassed) / Length(LFacts);
     Log(Format('[consolidate] recall=%.2f heldout_ppl_ratio=%.3f', [LRecall, LPplRatio]));
 
     LMetrics := TJSONObject.Create;
     LMetrics.Add('recall', RoundTo(LRecall, -4));
     LMetrics.Add('ppl_ratio', RoundTo(LPplRatio, -4));
     LMetrics.Add('refused_known', RoundTo(LRefused / Length(LFacts), -4));
-    LMetrics.Add('n_facts', Length(LFacts));
+    LMetrics.Add('n_facts', NNew);
     LMetrics.Add('n_passed', LPassed.Count);
+    LMetrics.Add('tier', FTier);
+    if LFast then
+    begin
+      LMetrics.Add('deep', FDeepId);
+      LMetrics.Add('replay', Length(LFacts) - NNew);
+      LMetrics.Add('replay_passed', NReplayPassed);
+    end;
+    LMetrics.Add('max_fact_id', LMaxId);
     LMetrics.Add('train_loss', RoundTo(LLoss, -4));
     LMetrics.Add('seconds', RoundTo(SecondSpan(Now, LT0), -1));
     LMetrics.Add('device', LDevice);
@@ -570,7 +686,7 @@ begin
     end;
 
     { 5. the adapter, its manifest, then ready.json for the hot swap }
-    LId := 'mem-' + FormatDateTime('yyyymmdd"T"hhnnss', Now);
+    LId := StrUtils.IfThen(LFast, 'fast-', 'mem-') + FormatDateTime('yyyymmdd"T"hhnnss', Now);
     LDir := IncludeTrailingPathDelimiter(FCfg.AdapterDir) + LId;
     ForceDirectories(LDir);
     if llama_adapter_lora_save(LAdapter, PAnsiChar(IncludeTrailingPathDelimiter(LDir) + 'adapter.gguf')) <> 0 then
@@ -613,6 +729,8 @@ begin
     LChat.Free;
     if LAdapter <> nil then
       llama_adapter_lora_free(LAdapter);
+    if LDeep <> nil then
+      llama_adapter_lora_free(LDeep);
     llama_model_free(LModel);
   end;
 end;

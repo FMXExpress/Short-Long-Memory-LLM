@@ -104,7 +104,8 @@ jobs:
           for p in packaging/llama-patches/*.patch; do git -C cache/llama.cpp apply "$PWD/$p"; done
           cmake -S cache/llama.cpp -B cache/llama.cpp/build -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF \
             -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
-            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DGGML_OPENMP=OFF
+            -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF -DGGML_OPENMP=OFF \
+            -DGGML_AVX=ON -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON -DGGML_BMI2=ON
           cmake --build cache/llama.cpp/build --config Release --target llama -j 4
           ls cache/llama.cpp/build/bin/Release
       - name: Stage

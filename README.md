@@ -55,6 +55,28 @@ Once an adapter answers the fact's held-out probe question with no context, the 
 on all active facts, so corrections (`My dog's name is Max`) and `/forget` reach the weights
 without any un-training logic.
 
+### Two memory tiers: a fast LoRA on top of a deep one
+
+With the in-process trainer (`[consolidate] tiers=auto`, the default) long-term memory has two
+LoRAs that apply together, the way Stable Diffusion stacks LoRAs:
+
+| tier | holds | trained | how |
+|---|---|---|---|
+| **fast** | facts since the last deep sleep | whenever the trainer is free and a fact is in no adapter yet (`fast_min_new`); seconds to minutes | a fresh adapter on top of the **frozen** deep one, on the new facts plus a replay sample of deep facts (so it learns to leave them alone); the gate probes both |
+| **deep** | every fact | a deep sleep: once the fast LoRA holds `deep_after` facts, or a fact was forgotten or changed, at most every `interval_min`; or `/sleep` | rebuilt from the base model on all active facts, as before; the fast LoRA then empties |
+
+Training waits between windows while a turn is being answered, so a rolling fast run does not
+slow the chat down. Before the first deep sleep every run is a deep one. `/nap` starts a fast
+run now, `/sleep` a deep sleep (cancelling a run in progress), `/wait` waits until memory has
+caught up, and `/status` shows both adapters and how full the fast tier is.
+
+The fast tier is retrained from all of its facts each time rather than stacking one adapter per
+fact: O'Neill et al. 2026 ([arXiv 2607.11020](https://arxiv.org/abs/2607.11020)) found stacked
+per-fact adapters retain no better than merged ones, and retention after many sequential writes
+tops out near 46%, which is why the deep sleep stays a full rebuild. The patch adds
+`llama_lora_train_init_adapter` for this: only the given adapter trains while the others stay
+attached and frozen.
+
 ## Model profiles
 
 `models.json` holds everything model-specific. Pick one with `profile=` in `memagent.ini`, or
@@ -205,9 +227,11 @@ fresh folder (downloads, then a chat on the llama engine), wraps Windows in the 
 to use the CPU.
 
 Commands: `/facts`, `/remember <text>`, `/forget <id>`, `/ab <question>` (base model vs LoRA,
-both without RAG), `/sleep` (consolidate now), `/wait`, `/adapter`, `/rollback`, `/status`,
-`/quit`. A consolidation also starts on its own once `min_new_facts` facts are unbaked and
-`interval_min` minutes have passed since the last one.
+both without RAG), `/sleep` (deep sleep now), `/nap` (fast run now), `/wait`, `/adapter`,
+`/rollback`, `/status`, `/quit`. With memory tiers, fast runs start on their own whenever a fact
+is in no adapter yet and deep sleeps once the fast LoRA is full (see above); without them a
+consolidation starts once `min_new_facts` facts are unbaked and `interval_min` minutes have
+passed since the last one.
 
 ## Tests
 
@@ -217,6 +241,8 @@ MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the 
 make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
                                        #   consolidations, a correction, /forget, /rollback, non-ASCII facts
 make test-e2e-llama                    # the same on the in-process llama.cpp engine (after make llama)
+make test-tiers                        # memory tiers: a deep sleep, then new facts in a fast LoRA trained
+                                       #   on top of the frozen deep one; both answer from the weights
 scripts/resilience_test.sh <e2e dir>   # restart keeps the active adapter (and a rollback), killed worker is
                                        #   restarted with the LoRA re-applied, static-embedder fallback,
                                        #   /quit during training waits and promotes

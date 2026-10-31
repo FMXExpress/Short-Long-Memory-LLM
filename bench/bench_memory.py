@@ -58,9 +58,55 @@ def ask(tok, model, priors, q, memory=None):
     sys_msg = priors
     if memory:
         sys_msg += "\n\n" + MEMORY_HEADER + "\n- " + memory
+    if isinstance(model, LlamaBatch):
+        return model.ask(sys_msg, q)
     ans, _, _ = memlib.generate(tok, model, [{"role": "system", "content": sys_msg},
                                              {"role": "user", "content": q}], 40)
     return ans
+
+
+BENCH_LLAMA = os.path.join(REPO, "build", "bench_llama")
+
+
+class LlamaBatch:
+    """Stands in for the PEFT model: records requests on the first pass, answers them with
+    build/bench_llama (the in-process engine), then serves the answers on the second."""
+
+    def __init__(self, work, profile, adapter, priors):
+        self.work, self.profile, self.adapter = work, profile, adapter
+        self.lora = True
+        self.requests, self.answers = [], {}
+
+    def disable_adapter(self):
+        batch = self
+
+        class _Off:
+            def __enter__(self):
+                batch.lora = False
+
+            def __exit__(self, *exc):
+                batch.lora = True
+        return _Off()
+
+    def ask(self, system, user):
+        key = (system, user, self.lora)
+        if key not in self.answers:
+            self.requests.append(key)
+            return ""
+        return self.answers[key]
+
+    def run(self):
+        todo = [k for k in dict.fromkeys(self.requests) if k not in self.answers]
+        if not todo:
+            return
+        src, dst = os.path.join(self.work, "ask.json"), os.path.join(self.work, "answers.json")
+        json.dump([{"system": s, "user": u, "lora": l} for s, u, l in todo], open(src, "w", encoding="utf-8"))
+        data_dir = os.path.join(self.work, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        subprocess.run([BENCH_LLAMA, "--config", os.path.join(REPO, "memagent.ini"), "--data", data_dir,
+                        "--profile", self.profile, "ask", self.adapter, src, dst], check=True,
+                       env=dict(os.environ, MEMAGENT_TEMPERATURE="0"))
+        self.answers.update(zip(todo, json.load(open(dst, encoding="utf-8"))))
 
 
 def main():
@@ -73,6 +119,10 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     ap.add_argument("--memory-header", help="wording of the memory block header (prompt experiments)")
+    ap.add_argument("--trainer", default="python", choices=["python", "llama"],
+                    help="llama: train and answer in-process (build/bench_llama), as the agent does by default")
+    ap.add_argument("--set", action="append", metavar="KEY=VALUE",
+                    help="llama trainer: override a training setting (examples, per_fact, epochs, lr, rank, targets)")
     a = ap.parse_args()
     global MEMORY_HEADER
     if a.memory_header:
@@ -95,7 +145,24 @@ def main():
     # 2. consolidation, with the production trainer
     train = {}
     adapter = a.adapter
-    if not adapter:
+    if not adapter and a.trainer == "llama":
+        data_dir = os.path.join(work, "data")
+        os.makedirs(data_dir)
+        build_db(os.path.join(data_dir, "memory.db"), facts)
+        cmd = [BENCH_LLAMA, "--config", os.path.join(REPO, "memagent.ini"), "--data", data_dir,
+               "--profile", a.profile, "train"]
+        for kv in a.set or []:
+            cmd += ["--set", kv]
+        t = time.time()
+        p = subprocess.run(cmd, capture_output=True, text=True)
+        train = json.loads(p.stdout.strip().splitlines()[-1])
+        train["wall_seconds"] = round(time.time() - t, 1)
+        train["settings"] = a.set or []
+        if train.get("exit") not in (0,):
+            print(p.stderr[-3000:], file=sys.stderr)
+            raise SystemExit(f"training failed: {train}")
+        adapter = train["path"]
+    elif not adapter:
         db = os.path.join(work, "memory.db")
         build_db(db, facts)
         cmd = [sys.executable, os.path.join(REPO, "trainer", "consolidate.py"), "--db", db,
@@ -112,11 +179,27 @@ def main():
             raise SystemExit(f"training failed: {train}")
         adapter = train["path"]
 
-    # 3. evaluation
-    from peft import PeftModel
-    tok, model, _ = memlib.load_base(prof)
-    model = PeftModel.from_pretrained(model, adapter)
-    model.eval()
+    # 3. evaluation; the llama engine answers a batch of requests, so the
+    # questions are collected in a first pass and scored in a second
+    if a.trainer == "llama":
+        model = LlamaBatch(work, a.profile, adapter, priors)
+        for _ in range(2):
+            res = evaluate(model, None, priors, facts, data, a, ext_ok, train)
+            model.run()
+    else:
+        from peft import PeftModel
+        tok, model, _ = memlib.load_base(prof)
+        model = PeftModel.from_pretrained(model, adapter)
+        model.eval()
+        res = evaluate(model, tok, priors, facts, data, a, ext_ok, train)
+    summary = {k: v for k, v in res.items() if k not in ("answers", "unknown_answers")}
+    print(json.dumps(summary, indent=1))
+    if a.out:
+        os.makedirs(os.path.dirname(a.out), exist_ok=True)
+        json.dump(res, open(a.out, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+
+
+def evaluate(model, tok, priors, facts, data, a, ext_ok, train):
     values = [f["value"] for f in facts]
     conds = {"base": (False, False), "rag": (False, True), "lora": (True, False), "lora+rag": (True, True)}
     score = {c: 0 for c in conds}
@@ -175,11 +258,7 @@ def main():
         "answers": rows,
         "unknown_answers": unknown_rows,
     }
-    summary = {k: v for k, v in res.items() if k not in ("answers", "unknown_answers")}
-    print(json.dumps(summary, indent=1))
-    if a.out:
-        os.makedirs(os.path.dirname(a.out), exist_ok=True)
-        json.dump(res, open(a.out, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    return res
 
 
 if __name__ == "__main__":

@@ -316,3 +316,51 @@ Other measurements behind the design:
 - **Masked rows:** before the cross-entropy fix, prompt and padding rows (all-zero labels) got
   `softmax` as gradient and flattened the model into "acknow acknow..." within one epoch.
 - `medium`/`large` stay on the Python trainer: their f32 copies would be 16 GB / 96 GB.
+
+## Varied training examples and adapter layers (2026-10-31)
+
+`python3 bench/bench_memory.py --profile tiny --trainer llama [--set key=value ...]`: the memory
+benchmark on the in-process trainer and engine (`build/bench_llama`), as the agent runs by default.
+The question: does training each fact from several sides fix confabulation, as O'Neill et al. 2026
+([arXiv 2607.11020](https://arxiv.org/abs/2607.11020)) and Hatakeyama-Sato et al. 2023
+([arXiv 2312.03360](https://arxiv.org/abs/2312.03360)) suggest? Until now every fact was trained on
+the same question templates, all answered with the fact text word for word. `examples=varied`
+(`Mem.Examples`, `memlib.varied_qas`) adds short answers, the value asked from the other side, yes/no
+checks (one with another fact's value), fill in the blank and two facts together.
+
+30 facts, 60 held-out questions, 20 never-stated questions; recall is 1.00 in every run.
+
+| run | LoRA | LoRA+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
+|---|---|---|---|---|---|---|---|
+| A: templates ×6, all-linear (before) | 0.750 | 0.883 | 0.083 | 0.80 | 0.80 | **1.29** | 481 |
+| B: varied ×12 | 0.900 | **0.983** | 0.067 | 0.90 | 0.87 | 1.80 | (shared CPU) |
+| **C: varied ×12, v/o/gate/up (new default)** | **0.933** | 0.967 | **0.050** | **0.70** | 0.93 | 1.49 | 826 |
+| D: varied ×12, lr 1e-3 | 0.900 | 0.967 | 0.050 | 0.75 | 0.93 | 1.85 | 870 |
+| E: varied ×6 | 0.900 | **0.983** | 0.050 | **0.70** | 0.80 | 1.63 | 460 |
+| F: varied ×6, v/o/gate/up | 0.883 | **0.983** | 0.050 | **0.70** | 0.93 | 1.78 | **422** |
+
+Findings:
+- Varied examples are worth 13-18 points of accuracy from the weights alone, at the same number of
+  examples (E) or twice as many (B, C), and they lower interference.
+- They do not fix confabulation: 0.70-0.90 against 0.80 is within noise (one question is 0.05). The
+  adapter still answers a question about something never stated with a stored value; the guard
+  (Mem.Guard) remains what stops it in the agent.
+- Adapters on v/o/gate/up only (Hatakeyama-Sato's best layers, no q/k/down) gave the best accuracy
+  and the lowest drift of the varied runs at 12 examples (C); at 6 (F) they did not help.
+- Half the learning rate (D) did not lower drift.
+- Drift is measured on 4 held-out anchor prompts and moves by ±0.2 between similar runs, so the
+  drift column ranks only coarsely. All runs pass the 3.0 gate.
+
+Verified on the held-out set (`--facts bench/facts_heldout.json`: 20 facts, 40 questions, 20
+unknown; never used for tuning):
+
+| held-out | LoRA | LoRA+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
+|---|---|---|---|---|---|---|---|
+| templates ×6, all-linear (before) | 0.850 | 0.750 | 0.050 | 0.85 | 0.80 | 1.15 | 346 |
+| varied ×12, v/o/gate/up | **0.925** | **1.000** | 0.075 | 0.80 | 0.80 | 1.48 | 589 |
+
+Accuracy holds up off the dev set; with the fact in the prompt as well, the varied adapter
+answers every held-out question. Interference 0.075 vs 0.050 is one question.
+
+`tiny` now trains with `examples: varied`, 12 examples per fact, adapters on
+`v_proj, o_proj, gate_proj, up_proj` (run C). The other profiles keep templates until measured.
