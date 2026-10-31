@@ -351,5 +351,16 @@ Findings:
 - Drift is measured on 4 held-out anchor prompts and moves by ±0.2 between similar runs, so the
   drift column ranks only coarsely. All runs pass the 3.0 gate.
 
+Verified on the held-out set (`--facts bench/facts_heldout.json`: 20 facts, 40 questions, 20
+unknown; never used for tuning):
+
+| held-out | LoRA | LoRA+RAG | interference (LoRA) | confab. LoRA | confab. LoRA+near | drift | train s |
+|---|---|---|---|---|---|---|---|
+| templates ×6, all-linear (before) | 0.850 | 0.750 | 0.050 | 0.85 | 0.80 | 1.15 | 346 |
+| varied ×12, v/o/gate/up | **0.925** | **1.000** | 0.075 | 0.80 | 0.80 | 1.48 | 589 |
+
+Accuracy holds up off the dev set; with the fact in the prompt as well, the varied adapter
+answers every held-out question. Interference 0.075 vs 0.050 is one question.
+
 `tiny` now trains with `examples: varied`, 12 examples per fact, adapters on
 `v_proj, o_proj, gate_proj, up_proj` (run C). The other profiles keep templates until measured.
