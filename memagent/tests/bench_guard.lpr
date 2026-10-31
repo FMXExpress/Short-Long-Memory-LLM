@@ -52,7 +52,7 @@ var
   Rows, URows: TJSONArray;
   Conds: array[0..2] of string = ('lora', 'lora+rag', 'rag');
   UConds: array[0..2] of string = ('lora', 'lora+rag-near', 'rag-near');
-  I, C, K, N, Before, After, Blocked, FalseBlocked, AnyVal: Integer;
+  I, C, K, N, Before, After, Blocked, FalseBlocked, AnyVal, WrongBefore, WrongAfter: Integer;
   Row: TJSONObject;
   Ans, Why: string;
 begin
@@ -72,12 +72,20 @@ begin
   WriteLn(Format('%s (%s): %d known, %d unknown questions', [Res.Get('label', ''), ParamStr(3), Rows.Count, URows.Count]));
   for C := 0 to High(Conds) do
   begin
-    Before := 0; After := 0; Blocked := 0; FalseBlocked := 0;
+    Before := 0; After := 0; Blocked := 0; FalseBlocked := 0; WrongBefore := 0; WrongAfter := 0;
     for I := 0 to Rows.Count - 1 do
     begin
       Row := Rows.Objects[I];
       Ans := Row.Get(Conds[C], '');
       if Has(Ans, Row.Get('value', '')) then Inc(Before);
+      { a wrong answer that uses some stored value: a confabulated binding }
+      if not Has(Ans, Row.Get('value', '')) then
+        for K := 0 to High(Facts) do
+          if Has(Ans, Facts[K].Value) then
+          begin
+            Inc(WrongBefore);
+            Break;
+          end;
       if not Licensed(Ret, Row.Get('q', ''), Ans, Facts, Why) then
       begin
         Inc(Blocked);
@@ -91,9 +99,16 @@ begin
         Ans := ABSTAIN_REPLY;
       end;
       if Has(Ans, Row.Get('value', '')) then Inc(After);
+      if not Has(Ans, Row.Get('value', '')) then
+        for K := 0 to High(Facts) do
+          if Has(Ans, Facts[K].Value) then
+          begin
+            Inc(WrongAfter);
+            Break;
+          end;
     end;
-    WriteLn(Format('  known   %-14s accuracy %.3f -> %.3f   (blocked %d, of them correct %d)',
-      [Conds[C], Before / Rows.Count, After / Rows.Count, Blocked, FalseBlocked]));
+    WriteLn(Format('  known   %-14s accuracy %.3f -> %.3f   wrong stored value %d -> %d   (blocked %d, of them correct %d)',
+      [Conds[C], Before / Rows.Count, After / Rows.Count, WrongBefore, WrongAfter, Blocked, FalseBlocked]));
   end;
   for C := 0 to High(UConds) do
   begin

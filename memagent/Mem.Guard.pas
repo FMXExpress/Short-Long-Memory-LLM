@@ -280,6 +280,84 @@ begin
   end;
 end;
 
+(* Binding check, the source-monitoring half of licensing: a value stored
+   about a named person ("Sofia's city is Bologna") may answer a question
+   about "my sister" only if the sister is Sofia. Measured (bench/README.md,
+   integration set, small profile, retrieval only): 15 of 24 two-step
+   questions ("Which city does my sister live in?") were answered with
+   another person's value ("Hana lives in Bologna"), and the check below
+   passed them, because the sister's own name in the answer is licensed.
+
+   The people a value may belong to: the question's person ("my sister") when
+   that person has a stored name, else the user's people the answer names
+   ("Your cousin Lucia works as a nurse" for "Which of my relatives is a
+   nurse?", when the nurse is Mia), plus anyone the question names itself.
+   The answer is unbound if it uses a value held only by other named people. *)
+function Unbound(const AQuestion, AQSubject, AAnswer: string; const AFacts: TFactArray;
+  out ABlockedBy: string): Boolean;
+var
+  QW: TStringList;
+  Rel, Name, Owner, Attr, OtherBy: string;
+  I, J: Integer;
+  Bound, Other: Boolean;
+begin
+  Result := False;
+  ABlockedBy := '';
+  QW := Words(AQSubject);
+  try
+    if QW.Count = 0 then
+      Exit;
+    Rel := Stem(QW[0]);
+  finally
+    QW.Free;
+  end;
+  { Name: ' name ' for the question's person, else ' a b ' for the user's people named in the answer }
+  Name := '';
+  for I := 0 to High(AFacts) do
+    if OwnerSlot(AFacts[I].Subject, Owner, Attr) and (Attr = 'name') and
+      SameText(Copy(Trim(AFacts[I].Subject), 1, 3), 'my ') and ((Owner = Rel) or SameGroup(Owner, Rel)) then
+      Name := ' ' + LowerCase(Trim(AFacts[I].Value)) + ' ';
+  if Name = '' then
+    for I := 0 to High(AFacts) do
+      if OwnerSlot(AFacts[I].Subject, Owner, Attr) and (Attr = 'name') and
+        SameText(Copy(Trim(AFacts[I].Subject), 1, 3), 'my ') and HasValue(AAnswer, AFacts[I].Value) then
+        Name := IfThen(Name = '', ' ', Name) + LowerCase(Trim(AFacts[I].Value)) + ' ';
+  if Name = '' then
+    Exit;
+  QW := Words(AQuestion);
+  try
+    for I := 0 to QW.Count - 1 do
+      QW[I] := Stem(QW[I]);
+    for I := 0 to High(AFacts) do
+    begin
+      { values stored about named people (not "my ..."), used in the answer }
+      if SameText(Copy(Trim(AFacts[I].Subject), 1, 3), 'my ') or not OwnerSlot(AFacts[I].Subject, Owner, Attr) or
+        not HasValue(AAnswer, AFacts[I].Value) then
+        Continue;
+      Bound := False;
+      Other := False;
+      OtherBy := '';
+      for J := 0 to High(AFacts) do
+        if SameText(Trim(AFacts[J].Value), Trim(AFacts[I].Value)) and
+          not SameText(Copy(Trim(AFacts[J].Subject), 1, 3), 'my ') and OwnerSlot(AFacts[J].Subject, Owner, Attr) then
+        begin
+          if (Pos(' ' + Owner + ' ', Name) > 0) or (QW.IndexOf(Owner) >= 0) then
+            Bound := True
+          else if OtherBy = '' then
+            OtherBy := AFacts[J].Text;
+          Other := True;
+        end;
+      if Other and not Bound then
+      begin
+        ABlockedBy := OtherBy;
+        Exit(True);
+      end;
+    end;
+  finally
+    QW.Free;
+  end;
+end;
+
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
   out ABlockedBy: string; AMinScore: Single = 0.03): Boolean;
 var
@@ -292,6 +370,8 @@ begin
   QS := QuestionSubject(AQuestion);
   if QS = '' then
     Exit;
+  if Unbound(AQuestion, QS, AAnswer, AFacts, ABlockedBy) then
+    Exit(False);
   AnyValue := False;
   AnyLicensed := False;
   for I := 0 to High(AFacts) do
