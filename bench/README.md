@@ -500,3 +500,24 @@ facts out of retrieval help?
 The difference is a few questions in each direction (+1, +2, −1), and weights-only scores are
 identical because training is deterministic. **Inconclusive: the default stays.** Retrieving
 baked facts is also the safety net for a fact the weights lose.
+
+## Memory loop, iteration 4b: drift against the number of anchors (2026-10-31)
+
+Drift (perplexity ratio on general text) is what the gate rejects, and it grew with memory. Two
+ways to bring it down, both on the 30-fact dev set (`memory-tiny-llama-G*`, `-H*`):
+
+- **Fewer, larger training steps** (`max_windows=16`): rejected. Drift went from 1.49 to 1.83, and
+  confabulation from the weights rose to 0.90.
+- **More general-text anchors in training.** The first try reported 16 anchors as drift 1.09, but
+  that measurement was flawed. The held-out drift prompts were whatever anchors were left over, so
+  they changed with the anchor count. Both trainers now hold out a fixed set (the last 8 of the
+  32 anchor prompts) and train on the first `anchors` of the other 24 (commit a6ad994):
+
+| anchors | accuracy LoRA / +RAG | interference | confab. (weights) | drift | recall | train s |
+|---|---|---|---|---|---|---|
+| 8 (old default) | 0.933 / 0.967 | 0.050 | 0.70 | 1.39 | 1.00 | 1074 |
+| 16 | 0.917 / 0.983 | 0.033 | 0.70 | 1.22 | 1.00 | 1147 |
+| **24** | 0.917 / 0.967 | 0.067 | 0.70 | **1.01** | 1.00 | 1137 |
+
+Drift goes down steadily with more anchors, to almost none at 24. Accuracy and interference move
+by one question at most, and the run takes about 6% longer. **Tiny now trains with 24 anchors.**

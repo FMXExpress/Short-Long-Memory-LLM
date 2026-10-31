@@ -29,7 +29,7 @@
         "max_len": 160,
         "examples": "varied",
         "paraphrases": 12,
-        "anchors": 8
+        "anchors": 24
       },
       "gate": {
         "min_recall": 0.6,

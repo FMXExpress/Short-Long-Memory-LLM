@@ -1,0 +1,670 @@
+{
+ "label": "loop 4b: 24 anchors, fixed held-out drift set",
+ "profile": "tiny",
+ "memory_header": "Relevant memory:",
+ "n_facts": 30,
+ "n_questions": 60,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 0.367,
+  "lora": 0.917,
+  "lora+rag": 0.967
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0,
+  "lora": 0.067,
+  "lora+rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.7,
+  "rag-near": 0.333,
+  "lora+rag-near": 0.867
+ },
+ "train": {
+  "recall": 1.0,
+  "ppl_ratio": 1.0130000000000001,
+  "refused_known": 0.0,
+  "dpo": null,
+  "seconds": 1137.0,
+  "wall_seconds": 1137.1,
+  "gate_ok": true
+ },
+ "eval_seconds": 0.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "I'm sorry for any confusion, but as an AI assistant, I don't have personal names or specific terminology like \"Pal\" or \"Paw\". My name is \"Pal\", and my responses",
+   "rag": "Biscuit! He's called Biscuits!",
+   "lora": "Your dog's name is Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal data unless it's shared or used by someone else. However",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal memories or experiences that can be used to help you remember your",
+   "lora": "Your dog's name is Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in assisting users with their inquiries about pets, I don't have personal experiences or knowledge that can help you answer your question. However,",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling information about their pets, I don't have access to personal data or interactions with individuals unless they explicitly ask me to",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "Your cat's name might be Whiskers or Whippy. It's a common name in many countries, especially in the UK where it's often used as a pet name for cats.",
+   "rag": "Your cat is called Zoë.",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "My sister is a young woman named Sarah. She's 19 years old, and she lives in a small town surrounded by beautiful landscapes. Her name is Emily, and she loves to explore her",
+   "rag": "My sister is Ana. She is 15 years old and lives in a small town near the ocean.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "My sister is called \"Lila\" or \"Lily.\" She lives in a small village on the outskirts of the city.",
+   "rag": "My sister's name is Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "My brother is a man named Alex. He's 25 years old, and he lives in a small town near the mountains. He loves playing soccer and hiking, but his favorite hobby is reading",
+   "rag": "My brother is Leo. He's a young man who loves to play soccer in the park.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "My brother is called \"Pal.\" He has been with me for over 20 years now, and I've learned to respect his unique perspective on life.",
+   "rag": "My brother's name is Leo. He's a very kind and gentle person who loves to help others.",
+   "lora": "Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "My home is a small village nestled in the heart of the countryside, surrounded by rolling hills and dense forests. It's called Willowdale, and I've lived here all my life. The villagers there",
+   "rag": "Kompromat! I'm glad you asked about that. My name is Kari, and I reside in Reykjavik, Iceland. It's a beautiful place to call home, surrounded",
+   "lora": "It's Porto.",
+   "lora+rag": "Reykjavik."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing information about various topics, I don't have personal experiences or real-life updates like you do. My primary function is to",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users with their questions about life, technology, or general knowledge, I don't have personal experiences like you do. My primary function",
+   "lora": "It's Reykjavik.",
+   "lora+rag": "Reykjavik."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in helping users find information about their personal lives, I don't have access to real-time data or location services like your device does",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling relevant information from their past experiences, I don't have personal memories or recollections that can be accessed through your current",
+   "lora": "It's Reykjavik.",
+   "lora+rag": "Your hometown is Porto."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I'm sorry for any confusion, but as an AI designed to assist users in finding information about specific locations or topics, I don't have personal experiences or memories associated with a particular location. My primary",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling relevant information about their past, I don't have personal experiences or memories that can be used to provide accurate answers.",
+   "lora": "Your hometown is Porto.",
+   "lora+rag": "Your hometown is Porto."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "My employer is a well-known and respected professional organization that provides support services to individuals in need. They have been working for me since I was a teenager, helping me navigate life's challenges and providing",
+   "rag": "My employer is a company called \"Zorblax Industries.\" They're a leading manufacturer in the aerospace industry, specializing in advanced materials for aircraft and spacecraft.",
+   "lora": "Your employer is Zorblax Industries.",
+   "lora+rag": "Your employer is Zorblax Industries."
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing helpful responses to your questions, I don't have personal information or access to specific companies' databases. However, I can certainly",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in understanding their personal data, I don't have access to personal information or financial transactions. My primary function is to provide",
+   "lora": "Your company is Zorblax Industries.",
+   "lora+rag": "Zorblax Industries."
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I'm glad you asked about finding a job in the field that suits your skills and interests. As a skilled AI assistant, I can help you explore various career paths to find what truly fulfills you",
+   "rag": "I'm sorry to hear that you're facing challenges in your career. As a pipeline engineer, my primary role involves overseeing the development and implementation of complex systems within the manufacturing process. This includes designing,",
+   "lora": "Your profession is pipeline engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "As a pal, I'm here to help you navigate your day, support your goals, and provide guidance on various aspects of your professional life. My primary function is to assist you in achieving your objectives",
+   "rag": "As a pipeline engineer, your primary responsibility would be to ensure that all stages of the manufacturing process run smoothly and efficiently. You'd oversee the entire production line from raw materials to final product delivery, making",
+   "lora": "Your job title is pipeline engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "To log in to your WIFI, you'll need to connect to the Wi-Fi network that's currently active on your device. Here's how to do it:\n\n1. Open the web",
+   "rag": "To log in to your WIFI AP using your unique credentials (username and password), you can use the following steps:\n\n1. Log in to your WIFI AP using your username and password.",
+   "lora": "To log in using wifi, you'll need to type in the wifi password into the computer's login prompt. Here's how it works:\n\n1. Press the \"Enter\" button when",
+   "lora+rag": "To log in using your wifi password, follow these steps:\n\n1. **Enter the wifi password**: Type the wifi password into the input field on the login screen. For example:"
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal information or specific details about your device or account settings. However",
+   "rag": "The password for the wireless network is tulip42.",
+   "lora": "The password is tulip42.",
+   "lora+rag": "The wifi password is tulip42."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information online or in real life, my primary function is to provide accurate and helpful responses. I don't have personal",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their queries, my primary function is to provide accurate and helpful responses in a clear and concise manner.",
+   "lora": "Your favorite color is teal.",
+   "lora+rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "I'm glad you asked! I have a very versatile palette that can be tailored to suit your preferences. Here are some popular colors:\n\n1. **Blue**: A classic choice for many people.",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their preferences, I don't have personal experiences or memories that can provide you with specific recommendations. However",
+   "lora": "Your favorite color is teal.",
+   "lora+rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What do I love to eat most?",
+   "value": "ramen",
+   "base": "I'm so glad you asked! As a pal, I've had the pleasure of enjoying many delicious dishes over the years. But if I'm being completely honest, my absolute favorite is probably sushi.",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their interests or hobbies, my primary function is to provide accurate and helpful responses in a clear and concise",
+   "lora": "Your favorite food is ramen.",
+   "lora+rag": "Your favorite food is ramen."
+  },
+  {
+   "q": "What's my go-to dish?",
+   "value": "ramen",
+   "base": "My go-to dish is a classic, but it's also quite versatile - I can make everything from scratch or use pre-made ingredients like pasta sauce, marinara sauce, or even homemade p",
+   "rag": "I'm glad you asked! I have a few dishes that always come to mind when I think of your favorite meal. Let me tell you about them...\n\n1. **Ramen**: It's",
+   "lora": "ramen.",
+   "lora+rag": "ramen."
+  },
+  {
+   "q": "What do I drive?",
+   "value": "green Volvo",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information online or in real life, my primary function is to provide accurate and helpful responses. My knowledge base contains general",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users navigate through life's challenges, my primary function is to assist in recalling information from your past experiences or provide general guidance about",
+   "lora": "Your car is a green Volvo.",
+   "lora+rag": "Your car is a green Volvo."
+  },
+  {
+   "q": "Which vehicle do I own?",
+   "value": "green Volvo",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information about vehicles, I don't have personal experiences or knowledge that can be used to answer questions like yours. However",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information about vehicles, I don't have personal experiences or knowledge that can be used to answer questions like yours. However",
+   "lora": "Your car is a green Volvo.",
+   "lora+rag": "Your car is a green Volvo."
+  },
+  {
+   "q": "When was I born?",
+   "value": "March 3rd",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing information about various topics related to technology, education, or personal growth, I don't have access to specific birth dates or times",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling their personal information, I don't have access to specific dates or times that you can use to find your birthdate",
+   "lora": "Your birthdate is on March 3rd.",
+   "lora+rag": "Your birthdate is on March 3rd."
+  },
+  {
+   "q": "On which day do I celebrate my birthday?",
+   "value": "March 3rd",
+   "base": "Happy birthday to you! On your 16th birthday, it's always a wonderful time to celebrate. You can have a big celebration on any day of the year, but it's especially special",
+   "rag": "Happy birthday to you! On your birthday, it's always a great time for celebration. You can have a big party or just enjoy some fun activities together. It really depends on what you want to",
+   "lora": "Your birthday is on March 3rd.",
+   "lora+rag": "Your birthday is on March 3rd."
+  },
+  {
+   "q": "What is my boy called?",
+   "value": "Teo",
+   "base": "My name is Pal, and I am a paladin who has been training for many years to protect the innocent and vanquish evil. I have seen many battles and come out victorious in them",
+   "rag": "My boy's name is Teo. He's 12 years old now.",
+   "lora": "Your boy's name is Teo.",
+   "lora+rag": "Your son's name is Teo."
+  },
+  {
+   "q": "Who is my son?",
+   "value": "Teo",
+   "base": "My son is a young boy named Ethan. He's 12 years old now, and he loves playing with his friends at the park. He's always been curious about the world around him,",
+   "rag": "My son is Teo. He's 12 years old and loves playing soccer in the park.",
+   "lora": "Your son's name is Teo.",
+   "lora+rag": "Your son's name is Teo."
+  },
+  {
+   "q": "What is my girl called?",
+   "value": "Mila",
+   "base": "My name is Elara, and I am a skilled healer who specializes in elemental magic. I have been working with the elements for many years, mastering various potions and spells to help people in",
+   "rag": "My girl's name is Mila. She loves playing soccer in the park every day after school.",
+   "lora": "Your girlfriend's name is Sam.",
+   "lora+rag": "Your daughter's name is Mila."
+  },
+  {
+   "q": "Who is my daughter?",
+   "value": "Mila",
+   "base": "My daughter is Emily. She's 12 years old and loves playing with her friends at school. She has always been interested in science and technology lately.",
+   "rag": "My daughter is Mila, a young woman who has just turned 18 years old. She is currently living in a small apartment on the outskirts of town, surrounded by her family and friends.",
+   "lora": "Your daughter's name is Mila.",
+   "lora+rag": "Your daughter's name is Mila."
+  },
+  {
+   "q": "Who is my physician?",
+   "value": "Okafor",
+   "base": "My physician is Dr. Rachel Patel, a renowned cardiologist who has dedicated her career to understanding the intricacies of heart health. She's been instrumental in helping patients like you navigate the complexities of heart disease",
+   "rag": "My physician is Dr. Okafor.",
+   "lora": "Your physician is Dr. Okafor.",
+   "lora+rag": "Your doctor is Dr. Okafor."
+  },
+  {
+   "q": "Which doctor do I see?",
+   "value": "Okafor",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing information about healthcare services, I don't have personal experiences or knowledge that can be used to make decisions based on your medical history",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling relevant information from their past experiences, I don't have access to personal or current medical records. However, I can",
+   "lora": "Your doctor is Dr. Okafor.",
+   "lora+rag": "Your doctor is Dr. Okafor."
+  },
+  {
+   "q": "Where do I work out?",
+   "value": "Ironworks",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find workout routines or fitness tips, I don't have personal experience or knowledge about specific locations like workplaces, gyms,",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in finding workout routines or information related to their specific needs, I don't have personal experiences like you might have about working out",
+   "lora": "Your gym is Ironworks.",
+   "lora+rag": "Your gym is Ironworks."
+  },
+  {
+   "q": "Which fitness club am I a member of?",
+   "value": "Ironworks",
+   "base": "I'm sorry for any confusion, but as an AI designed to assist users in finding workout routines or fitness recommendations, I don't have personal information about individuals such as their names, addresses, phone numbers",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in finding workout routines or fitness recommendations, I don't have personal information about individuals such as their names, birthdays, addresses,",
+   "lora": "Your gym is Ironworks.",
+   "lora+rag": "Your gym is Ironworks."
+  },
+  {
+   "q": "Which group do I like listening to most?",
+   "value": "Radiohead",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information online, I don't have personal preferences or interests that can be considered \"liked\" by me. My primary",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their queries, I don't have personal preferences or tastes in music genres. My primary function is to",
+   "lora": "Your favorite band is Radiohead.",
+   "lora+rag": "Your favorite band is Radiohead."
+  },
+  {
+   "q": "Who is my favourite music act?",
+   "value": "Radiohead",
+   "base": "My favorite music act... I'm sorry for any confusion, but as an AI assistant focused on assisting users in finding information about specific topics or activities, I don't have personal preferences like I do about",
+   "rag": "I'm sorry for any confusion, but as an AI, I don't have personal preferences or memories like you do. My primary function is to assist users in finding relevant information about their interests and hobbies",
+   "lora": "Your favourite music act is Radiohead.",
+   "lora+rag": "Your favourite music act is Radiohead."
+  },
+  {
+   "q": "What did I name my bicycle?",
+   "value": "Rocket",
+   "base": "I'm sorry for any confusion, but as an AI assistant specialized in assisting users with their questions or problems related to bicycles, I don't have personal experiences or knowledge about names. My primary function is",
+   "rag": "I'm sorry for any confusion, but as an AI assistant specialized in assisting users with their questions or problems related to memories, I don't have personal experiences or knowledge about naming bicycles. However, I",
+   "lora": "Your bike is called Rocket.",
+   "lora+rag": "Your bike is called Rocket."
+  },
+  {
+   "q": "What's my bike's nickname?",
+   "value": "Rocket",
+   "base": "My bike's nickname is \"The Bike.\" It's been with me for years now, and I've learned to appreciate its unique character.",
+   "rag": "My bike's nickname is \"Rocket.\" It's a name that has been in my mind for quite some time now.",
+   "lora": "Your bike's called Rocket.",
+   "lora+rag": "Rocket."
+  },
+  {
+   "q": "What are we calling the project internally?",
+   "value": "Bluefin",
+   "base": "We're currently working on developing a new sustainable energy solution that combines advanced solar panels with advanced battery storage technology to provide a reliable and efficient source of power for homes and businesses in our region. The project",
+   "rag": "We're currently working on a new initiative called \"The Future of Sustainability\" (TF), which aims to create a more sustainable future for our planet by promoting eco-friendly practices in various sectors. We",
+   "lora": "The project is called Bluefin.",
+   "lora+rag": "The project name is Bluefin."
+  },
+  {
+   "q": "What's the code name of our project?",
+   "value": "Bluefin",
+   "base": "Our project is called \"EchoQuest,\" which refers to the idea that we're creating an immersive experience for users by using AI technology to create personalized learning paths based on their individual preferences and abilities.",
+   "rag": "Our project codename is \"Bluefin.\"",
+   "lora": "It's Bluefin.",
+   "lora+rag": "The project codename is Bluefin."
+  },
+  {
+   "q": "How do I get into the office?",
+   "value": "4417",
+   "base": "To get into the office, you'll need to follow these steps:\n\n1. **Find your way around**: Start by walking towards the door leading out of the building. Look for the sign that",
+   "rag": "To get into the office, you can use the following steps:\n\n1. **Open the door**: Open the door to your room by pulling it open slowly and gently. Make sure not to touch",
+   "lora": "To get into the office, you can start by checking your email or phone number to see if it's available for pickup on Friday. If not, ask someone in your department about it beforehand so you",
+   "lora+rag": "To get into the office, you can use the following steps:\n\n1. **Use Your Passport:** If your passport is not in your possession, it's required to enter the office."
+  },
+  {
+   "q": "What's the code for the office entrance?",
+   "value": "4417",
+   "base": "The office entrance is usually located at the end of the main hallway or corridor that runs along the center of the building. It typically has a large door with a sign indicating it as the office entrance",
+   "rag": "The office entrance code is 4417.",
+   "lora": "The office entrance is a simple yet effective method:\n\n1. **4417**: This is the office door code. It's 4417.\n2. **54",
+   "lora+rag": "The office door code is 4417."
+  },
+  {
+   "q": "Who is my boss?",
+   "value": "Priya",
+   "base": "My boss is a person named John Smith. He's been working for me for about 5 years now. He's very experienced in his field and has many years of experience under his belt.",
+   "rag": "My boss is Priya. She has been working for me for over 10 years now.",
+   "lora": "Your boss is Priya.",
+   "lora+rag": "Your manager's name is Priya."
+  },
+  {
+   "q": "Who do I report to?",
+   "value": "Priya",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in helping users find information on specific topics or services, my primary function is to provide accurate and helpful responses. However, if you have",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their queries, I don't have personal or professional relationships with individuals. My primary function is to assist",
+   "lora": "Your manager is Priya.",
+   "lora+rag": "Your manager's name is Priya."
+  },
+  {
+   "q": "What am I allergic to?",
+   "value": "penicillin",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in helping users navigate through life's challenges, my primary function is to assist you with questions about your personal or professional issues. My expertise",
+   "rag": "I'm sorry for any confusion, but as an AI assistant specialized in helping users navigate through their memories, I don't have personal experiences or allergies like you do. However, I can certainly provide some",
+   "lora": "Your allergy is penicillin.",
+   "lora+rag": "Your allergy is penicillin."
+  },
+  {
+   "q": "Which medicine should I avoid?",
+   "value": "penicillin",
+   "base": "As a pal, I'm familiar with many medicines, but there's one that might be worth mentioning: \"Dulbecco's modified Eagle's nest\" (DMEM). It's an",
+   "rag": "As a pal, I'm familiar with the patient's history and allergies to various medications. However, as an AI, I don't have personal experience or knowledge about individual patients' medical histories. I",
+   "lora": "Your doctor prescribed penicillin for your infection. However, it's essential to discuss alternative options if you're unsure about which medication is necessary. Some alternatives include:\n\n1. Other antibiotics: These medications can",
+   "lora+rag": "Your allergy is penicillin."
+  },
+  {
+   "q": "What blood group do I have?",
+   "value": "O negative",
+   "base": "I'm sorry for any confusion, but as an AI assistant specialized in assisting users with their questions about human biology and health, I don't have personal or medical information stored on my device. However,",
+   "rag": "I'm sorry for any confusion, but as an AI, I don't have personal or real-time access to your biological data such as blood types. My primary function is to assist you in providing",
+   "lora": "Your blood type is O negative.",
+   "lora+rag": "Your blood type is O negative."
+  },
+  {
+   "q": "Which blood type am I?",
+   "value": "O negative",
+   "base": "I'm sorry for any confusion, but as an AI assistant specialized in helping users find information about their health conditions or medical history, I don't have personal data that could be shared with me unless you",
+   "rag": "I'm sorry for any confusion, but as an AI, I don't have personal information or access to your personal data unless it's shared in a professional setting such as a job interview or workplace communication",
+   "lora": "Your blood type is O negative.",
+   "lora+rag": "Your blood type is O negative."
+  },
+  {
+   "q": "What is my mother tongue?",
+   "value": "Portuguese",
+   "base": "My mother tongue is English. I have been learning it for years now, and I'm really proud of how far I've come!",
+   "rag": "My mother tongue is Spanish. I have been learning Spanish since childhood, and it's one of my favorite languages to learn.",
+   "lora": "Your mother tongue is Portuguese.",
+   "lora+rag": "Your mother tongue is Portuguese."
+  },
+  {
+   "q": "Which language did I grow up speaking?",
+   "value": "Portuguese",
+   "base": "I'm sorry for any confusion, but as an AI designed to assist users in understanding human languages, I don't have access to personal data or conversations related to specific languages. My primary function is to",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in understanding their memories, I don't have access to personal data or conversations related to languages spoken by individuals. My primary function",
+   "lora": "Your native language is Portuguese.",
+   "lora+rag": "Your native language is Portuguese."
+  },
+  {
+   "q": "When do I see the dentist?",
+   "value": "Friday",
+   "base": "I'm glad you asked about your dental health! It's important to remember that it can take time for your body to adjust to changes in your oral hygiene routine. Here are some general guidelines:",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on providing information about dental health, I don't have access to personal data unless it's shared in a professional setting or when you're",
+   "lora": "Your dentist appointment is on Friday.",
+   "lora+rag": "Your dentist appointment is on Friday."
+  },
+  {
+   "q": "Which day is my dental checkup?",
+   "value": "Friday",
+   "base": "My dental checkup today is on Monday, April 15th at 2:00 PM. I hope you're feeling well!",
+   "rag": "I'm sorry for any confusion, but as an AI, I don't have personal data or access to your personal information unless it's shared in a professional setting such as a job interview or workplace communication",
+   "lora": "Your dentist appointment is on Friday.",
+   "lora+rag": "Your dentist appointment is on Friday."
+  },
+  {
+   "q": "Who am I dating?",
+   "value": "Sam",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in dating and relationships, my primary function is to provide information about people based on their past interactions or shared interests. I don't have",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find their perfect match, I don't have personal information or relationships to share. However, if you're interested in exploring",
+   "lora": "Your partner's name is Sam.",
+   "lora+rag": "Your partner's name is Sam."
+  },
+  {
+   "q": "What's my partner called?",
+   "value": "Sam",
+   "base": "My partner is called \"Pal.\" He has been with me for over 10 years now, and I've learned to rely on him as much as possible in our daily interactions.",
+   "rag": "My partner's name is Sam.",
+   "lora": "Sam.",
+   "lora+rag": "Sam."
+  },
+  {
+   "q": "Which novel do I love most?",
+   "value": "Dune",
+   "base": "I'm sorry for any confusion, but as an AI designed to assist users in finding books or other resources related to your interests, I don't have personal preferences like you might have about novels. My",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users in recalling relevant information from their past experiences, I don't have personal preferences or tastes like you do. My primary function is",
+   "lora": "Your favorite book is Dune.",
+   "lora+rag": "Dune."
+  },
+  {
+   "q": "What's the book I'd recommend above all?",
+   "value": "Dune",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information online or in books, my primary function is to assist you with questions related to your queries. I don't",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their queries, my primary function is to assist with questions about books or other topics. I don't",
+   "lora": "Your favorite book is Dune.",
+   "lora+rag": "Dune."
+  },
+  {
+   "q": "What race am I training for?",
+   "value": "marathon in October",
+   "base": "I'm sorry for any confusion, but as an AI designed to assist users in finding information about their fitness goals or personal development, I don't have access to real-time data such as race results",
+   "rag": "I'm sorry for any confusion, but as an AI designed to assist users with their mental health and well-being, I don't have access to personal data or information about specific races or events.",
+   "lora": "Your running goal is a marathon in October.",
+   "lora+rag": "Your running goal is a marathon in October."
+  },
+  {
+   "q": "What am I aiming for with my running?",
+   "value": "marathon in October",
+   "base": "I'm glad you asked about your running goals! As a pal, I can help you explore what motivates you to run and set achievable objectives that align with your fitness level and preferences. Are you looking",
+   "rag": "I'm sorry for any confusion, but as a helpful AI assistant, I don't have personal experiences or memories to share about your running goals. My primary function is to assist you with questions related to",
+   "lora": "Your goal is to improve your running speed in a specific area - in this case, in the marathon in October.",
+   "lora+rag": "Your running goal is a marathon in October."
+  },
+  {
+   "q": "What computer do I use?",
+   "value": "ThinkPad X1",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information about computers, I don't have access to personal devices or specific software installed on my system. However, you",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to computers, I don't have access to personal data unless it's shared or used in connection with your",
+   "lora": "It's ThinkPad X1.",
+   "lora+rag": "Your laptop is a ThinkPad X1."
+  },
+  {
+   "q": "Which notebook do I own?",
+   "value": "ThinkPad X1",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in helping users find their perfect notebooks, I don't have access to personal or physical belongings like your notebook. My primary function is to",
+   "rag": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their queries, I don't have access to personal data or personal accounts like your laptop's owner.",
+   "lora": "Your notebook is a ThinkPad X1.",
+   "lora+rag": "Your laptop is a ThinkPad X1."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "My horse is called \"Luna.\" She's a beautiful, gentle giant named Luna who loves to play in the sun on warm days like today. She's got a big heart and can run fast",
+   "rag-near": "My horse's name is Biscuit!",
+   "lora": "Your horse's name is Milo.",
+   "lora+rag-near": "Your horse's name is Milo."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in assisting users with their questions or problems related to pets like parrots, I don't have personal names associated with them. However, if",
+   "rag-near": "I'm sorry for any confusion, but as an AI designed to assist users in recalling information about their pets, I don't have access to personal data or interactions with individuals unless they explicitly ask me to",
+   "lora": "Your parrot's name is Zoë.",
+   "lora+rag-near": "Your parrot's name is Zoë."
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "My aunt is called \"Papa\" or \"Pappy.\" She lives in a small town surrounded by mountains and forests where she has lived for many years. She loves to cook traditional meals that her",
+   "rag-near": "My aunt's name is Ana.",
+   "lora": "Your aunt's name is Ana.",
+   "lora+rag-near": "Your aunt's name is Annette."
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "My cousin is a young woman named Sarah. She's 19 years old, and she lives in a small town surrounded by beautiful mountains. Her name is Emily, and she's been living there",
+   "rag-near": "My cousin is a young man named Alex. He lives in a small town near the city where you live. He has a big smile on his face and always seems to be smiling.",
+   "lora": "Your cousin's name is Mila.",
+   "lora+rag-near": "Your cousin's name is Mila."
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "My aunt lives in a small town called Oakdale, which is located on the outskirts of the city. She has lived there for many years and knows all about the local community and its history.",
+   "rag-near": "I'm sorry for any confusion, but as an AI designed to assist users with their questions or concerns related to personal matters, I don't have access to real-time information about specific locations like your",
+   "lora": "Your aunt lives in Reykjavik.",
+   "lora+rag-near": "Your aunt lives in Reykjavik."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "My father was born in the city of New York, New York.",
+   "rag-near": "My father's birthplace is Porto, Portugal.",
+   "lora": "Your father's birthdate is on March 3rd.",
+   "lora+rag-near": "Your father's birthdate is on March 3rd."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I'm sorry for any confusion, but as an AI assistant specializing in assisting users with their queries regarding technology or personal matters, my primary function is to provide information about specific devices, software, or services",
+   "rag-near": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal information or past experiences that might be relevant to your question.",
+   "lora": "It's Zorblax Industries.",
+   "lora+rag-near": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": "The office door code is 4417.",
+   "base": "The garage door code is 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrst",
+   "rag-near": "The garage door code is 4417.",
+   "lora": "The garage door code is 4417.",
+   "lora+rag-near": "The garage door code is 4417."
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal data unless it is shared or used by someone else. My",
+   "rag-near": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal data or services that could potentially be used by you. However",
+   "lora": "It's tulip42.",
+   "lora+rag-near": "The wifi password is tulip42."
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": "Your favorite book is Dune.",
+   "base": "My favorite movie... (smiling) I've seen so many great movies over the years, but if I had to choose just one, I'd say it's \"The Shawshank Redemption",
+   "rag-near": "My favorite movie is \"The Shawshank Redemption\" by John Malkovich. It's an incredibly complex and emotionally resonant story that explores themes of redemption, perseverance, and the human condition.",
+   "lora": "Your favorite movie is Dune.",
+   "lora+rag-near": "Your favorite movie is Dune."
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": "Your favorite food is ramen.",
+   "base": "My favorite drink is probably a glass of scotch or a whiskey on the rocks. I've been doing this for years, and it never fails to impress me! Scots have a rich,",
+   "rag-near": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information related to their interests or hobbies, I don't have personal experiences like you do. However, I can certainly",
+   "lora": "Your favorite drink is tequila.",
+   "lora+rag-near": "Your favorite drink is teal curaçao."
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": "Your partner's name is Sam.",
+   "base": "My partner is a skilled and dedicated professional in their field. They're an accountant who's been working at the same firm for over 10 years now. They've had a successful career in accounting",
+   "rag-near": "I'm glad you asked about your partner's job! As a pal, I can tell you that Sam works as a software engineer at a company called \"TechCorp.\" He has been working there",
+   "lora": "Your partner's job ispipeline.com.",
+   "lora+rag-near": "Your partner's job title is pipeline engineer."
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": "Your birthday is on March 3rd.",
+   "base": "My partner's birthday is always a special day for me! It's always a big celebration in our home. We like to make it a memorable occasion by having a big party or dinner together. It",
+   "rag-near": "My partner's birthday is in July.",
+   "lora": "Your partner's birthday is on March 3rd.",
+   "lora+rag-near": "Your partner's birthday is on March 3rd."
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": "Your bike is called Rocket.",
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on helping users find information about specific topics like motorbikes, I don't have personal experiences or knowledge related to vehicles that might be",
+   "rag-near": "I'm sorry for any confusion, but as an AI, I don't have personal experiences or memories that can provide information about specific vehicles or motorbikes. However, I'd be happy to help",
+   "lora": "Your bike is called Rocket.",
+   "lora+rag-near": "Your bike is called Rocket."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": "Your son's name is Teo.",
+   "base": "My son is a big fan of his favorite toy - it's a classic, but I think he loves it just as much as I do! He has this little robot that he loves playing with,",
+   "rag-near": "My son loves playing with his favorite toy - it's a classic Japanese toy called \"Kusatsu\" or \"Toyota\". He adores playing with it in his room, especially when he",
+   "lora": "Your son's favorite toy is Rocket.",
+   "lora+rag-near": "Your son's favorite toy is Rocket."
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "My grandmother is called \"Papa\" or \"Grandpa.\" She was born in the 1920s, so she had a name that started with \"P,\" which is still used",
+   "lora": "Your grandmother's name is Ana."
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing information about various subjects, I don't have personal experiences or knowledge related to schools. However, I can certainly provide you with",
+   "lora": "It's Tealcon."
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on assisting users in their daily lives, I don't have access to personal or specific musical instruments like you might find online. However,",
+   "lora": "Your favorite instrument is piano."
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I'm sorry for any confusion, but as an AI assistant focused on providing helpful responses to your questions, I don't have personal data about you that could potentially be shared or used in any way without",
+   "lora": "Your height is approximately 5 feet 10 inches (approximately 176 cm)."
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "My phone number is 1234567890. I'm sorry for any confusion, but as an AI assistant, I don't have access to personal data unless it's",
+   "lora": "It's 4417."
+  }
+ ]
+}
