@@ -31,6 +31,11 @@ const
   "Where does my aunt live?" -> "aunt"; '' when the question has none }
 function QuestionSubject(const AQuestion: string): string;
 
+(* True when a fact is about someone the question does not mention: "my
+   manager's employer" for "Who is my employer?". A possessive followed by
+   "name" is the fact's topic ("my partner's name"), not an owner. *)
+function ForeignOwner(const AQuestion, ASubject: string): Boolean;
+
 { True when the answer may stand. ABlockedBy names the first stored fact whose
   value the answer used for a different subject. }
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
@@ -131,6 +136,35 @@ begin
     if (Pos(' ' + A + ' ', G) > 0) and (Pos(' ' + B + ' ', G) > 0) then
       Exit(True);
   Result := False;
+end;
+
+function ForeignOwner(const AQuestion, ASubject: string): Boolean;
+var
+  QW, FW: TStringList;
+  I, J: Integer;
+  Owner: string;
+  Found: Boolean;
+begin
+  Result := False;
+  FW := Words(ASubject);
+  QW := Words(AQuestion);
+  try
+    for I := 0 to FW.Count - 2 do
+    begin
+      Owner := Stem(FW[I]);
+      if (Owner = FW[I]) or InList(Owner, Weak) or (FW[I + 1] = 'name') then
+        Continue;
+      Found := False;
+      for J := 0 to QW.Count - 1 do
+        if (Stem(QW[J]) = Owner) or SameGroup(Stem(QW[J]), Owner) then
+          Found := True;
+      if not Found then
+        Exit(True);
+    end;
+  finally
+    FW.Free;
+    QW.Free;
+  end;
 end;
 
 { is the stored fact about what the question asks? }

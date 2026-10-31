@@ -561,3 +561,40 @@ What is left is a model's knowledge boundary, which SFT negatives and DPO did no
 (above). The candidates are the larger profiles, or answering such near-miss questions with the
 stored fact named ("You told me your bike is Rocket; you haven't mentioned a motorbike"). The
 second one changes the answer style and needs its own benchmark.
+
+## Memory loop, iteration 6: retrieval when memory fills up with look-alikes (2026-10-31)
+
+The earlier scale test (profiling round) only timed retrieval, and its filler facts were about
+shipping crates, which share nothing with personal facts. A long-lived memory fills up with facts
+about other people that have the user's own shapes. `BENCH_FILLER=personal` generates those:
+40 owners ("my neighbor's", "Tom's") times 20 attributes ("dog's name", "employer", "favorite
+band"). Production configuration (MiniLM + FTS + ms-marco, pool 8, rag_k 3), dev facts:
+
+| look-alikes stored | hit@1 | hit@3 | wrong@1 | hit@1 | hit@3 | wrong@1 |
+|---|---|---|---|---|---|---|
+| | **before** | | | **after** | | |
+| 0 | 0.900 | 0.967 | 0.067 | 0.900 | 0.967 | 0.067 |
+| 100 | 0.883 | 0.950 | 0.083 | | | |
+| 800 | 0.783 | 0.883 | 0.200 | 0.883 | 0.967 | 0.100 |
+| 2,000 | 0.733 | 0.833 | 0.233 | 0.867 | **0.967** | 0.117 |
+
+Every miss was rank 0: the right fact never reached the 8-candidate pool. "Who is my employer?"
+got "my manager's employer", "my neighbor's employer" and so on. A bigger pool did not help
+(16 and 32 both gave hit@3 0.833 at 800), because ms-marco ranks the other people's facts higher.
+
+**Owner-aware search (applied).** A fact whose subject names an owner the question does not
+mention (`Mem.Guard.ForeignOwner`: "my manager's employer" for "Who is my employer?"; a
+possessive followed by "name", as in "my partner's name", is the fact's topic and not an owner)
+ranks after the others:
+
+1. The keyword list and the vector list are each searched 4 times deeper.
+2. Foreign-owner facts move to the end of each list, and each list is cut back to the pool size
+   before rank fusion. With nothing foreign, fusion is exactly as before. A first version that
+   moved them after fusion changed the fusion itself and lost a question at 0 fillers.
+3. After reranking, they move to the end again.
+
+Held-out facts: hit@3 0.975 before and after, at 0 and 2,000 look-alikes. At 2,000, noise (unknown
+questions that still get a fact injected) went from 0.70 to 0.90. The pool now holds the user's own
+nearest facts instead of only other people's, and some pass the reranker. That matches the
+0.85–0.90 the dev set already has, and the guard covers it. Search time at 2,000 look-alikes is
+about 35 ms (it was 25 ms), within the 150–250 ms query total, which the reranker dominates.
