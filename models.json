@@ -19,7 +19,7 @@
         "r": 16,
         "alpha": 32,
         "dropout": 0.0,
-        "targets": "all-linear"
+        "targets": ["v_proj", "o_proj", "gate_proj", "up_proj"]
       },
       "train": {
         "epochs": 4,
@@ -27,7 +27,8 @@
         "batch": 8,
         "grad_accum": 1,
         "max_len": 160,
-        "paraphrases": 6,
+        "examples": "varied",
+        "paraphrases": 12,
         "anchors": 8
       },
       "gate": {
