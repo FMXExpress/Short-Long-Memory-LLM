@@ -531,6 +531,26 @@ Held-out facts (`memory-tiny-llama-heldout-anchors{8,24}.json`), never used for 
 
 Same picture: drift goes from 1.25 to 0.96 with the same accuracy, LoRA alone.
 
+Stream benchmark (`stream-tiny-loop4b-anchors24.json`). It hit the 2-hour run limit during the
+final question round, so the final checkpoint has 28 of 30 facts and no unknown questions.
+Every training run had finished:
+
+| | deep drift at 10 / 20 / 30 facts | fast drift, sessions 2 / 3 | agent accuracy, checkpoints 1–4 | weights, old facts after session 3 | train s |
+|---|---|---|---|---|---|
+| 8 anchors (`loop3`) | 1.27 / 1.41 / **1.76** | 1.01 / 1.37 | 0.70 / 0.90 / 0.80 / 0.967 | 0.80 | 3077 |
+| 24 anchors | 1.01 / 1.05 / **1.12** | 1.04 / 1.08 | 0.70 / 0.95 / 0.80 / 0.964 | 0.60 | 4784 |
+
+(The two rows measure drift on different held-out prompts: loop3 predates the fixed set. What
+compares is the growth: +0.49 across 20 more facts before, +0.11 now.) Drift no longer climbs
+toward the 3.0 gate as memory grows, and the agent's accuracy is unchanged. Two costs to watch:
+
+- With the fast LoRA stacked on the deep one after session 3, the weights alone kept 12 of 20
+  earlier facts instead of 16. The full agent was unaffected (0.80 both times), and the deep
+  sleep restored all of them (1.00).
+- Training time rose 55%. Part of that is the extra anchor examples. Part of it is that the
+  retrieval benchmarks of iteration 6 ran on the same CPU during this run, so this number is not
+  clean.
+
 ## Memory loop, iteration 5: confabulation that gets past the guard (2026-10-31)
 
 In the stream baseline (`stream-tiny-loop3`), the full agent still answered 4 of 6 never-stated
