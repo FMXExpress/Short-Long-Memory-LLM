@@ -76,6 +76,8 @@ def main():
     ap.add_argument("--corrections", type=int, default=1, help="1: correct two facts in the last session")
     ap.add_argument("--ini", action="append", default=[], metavar="SECTION.KEY=VALUE",
                     help="extra memagent.ini settings, e.g. consolidate.deep_after=8")
+    ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                    help="override a train setting of the profile in a copy of models.json, e.g. replay=0")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     a = ap.parse_args()
@@ -90,8 +92,16 @@ def main():
         key, val = kv.split("=", 1)
         sec, k = key.split(".", 1)
         extra.setdefault(sec, {})[k] = val
+    models = f"{REPO}/models.json"
+    if a.set:
+        cfg = json.load(open(models, encoding="utf-8"))
+        for kv in a.set:
+            key, val = kv.split("=", 1)
+            cfg["profiles"][a.profile]["train"][key] = json.loads(val) if re.fullmatch(r"-?[\d.]+", val) else val
+        models = os.path.join(work, "models.json")
+        json.dump(cfg, open(models, "w", encoding="utf-8"), indent=1)
     ini = {
-        "agent": {"profile": a.profile, "engine": "llama", "models": f"{REPO}/models.json",
+        "agent": {"profile": a.profile, "engine": "llama", "models": models,
                   "priors": f"{REPO}/priors.md", "data_dir": f"{work}/data", "repo_dir": REPO,
                   "recent_turns": "2"},
         "gpu": {"infer": "-1", "train": "-1"},
@@ -196,7 +206,7 @@ def main():
     timing = [float(x) for x in re.findall(r"\[timing\].* total (\d+) ms", text)]
     res = {
         "label": a.label, "profile": a.profile, "n_facts": len(facts), "sessions": len(sessions),
-        "settings": a.ini, "checkpoints": checkpoints, "runs": runs, "gate_rejects": gate_rejects,
+        "settings": a.ini + a.set, "checkpoints": checkpoints, "runs": runs, "gate_rejects": gate_rejects,
         "train_seconds": round(sum(r["seconds"] or 0 for r in runs), 1),
         "turn_ms_avg": round(sum(timing) / len(timing)) if timing else None,
         "answered": f"{len(answers)}/{len(plan)}", "wall_seconds": round(wall, 1), "transcript": tpath,

@@ -97,6 +97,7 @@ type
     TrainExamples: string;     { templates | varied (Mem.Examples) }
     TrainMaxWindows: Integer;  { cap on optimizer steps per epoch, 0 = none: more examples per step instead }
     TrainAnchors: Integer;
+    TrainReplay: Integer;      { fast run: deep facts replayed per new fact (at least 4); 0 = all of them }
     GateMinRecall: Double;
     GateMaxPplRatio: Double;
     procedure Load;
@@ -363,6 +364,7 @@ begin
         TrainExamples := LowerCase(Get('examples', 'templates'));
         TrainMaxWindows := Get('max_windows', 0);
         TrainAnchors := Get('anchors', 8);
+        TrainReplay := Get('replay', 1);
       end;
     if LProf.Find('gate') is TJSONObject then
     begin

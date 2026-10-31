@@ -78,9 +78,9 @@ uses
   StrUtils, Mem.Db, Mem.Llama, Mem.LlamaChat, Mem.Extract, Mem.Examples;
 
 const
-  WINDOW_UNIT = 256;
-  REPLAY_MIN = 4;
-  HELD_OUT_ANCHORS = 8;  { the last 8 anchor prompts measure drift, never trained on }        { deep facts replayed in a fast run: at least this many, else as many as new ones }     { llama.cpp pads a context to a multiple of 256 }
+  WINDOW_UNIT = 256;     { llama.cpp pads a context to a multiple of 256 }
+  REPLAY_MIN = 4;        { deep facts replayed in a fast run: at least this many }
+  HELD_OUT_ANCHORS = 8;  { the last 8 anchor prompts measure drift, never trained on }
   WINDOW_MAX = 4096;
   MAX_SEQ = 64;          { packed examples per window (+1 for padding) }
   GGML_TYPE_F32 = 0;
@@ -465,7 +465,8 @@ begin
     LReplay[I] := LReplay[J];
     LReplay[J] := LAll[0];
   end;
-  SetLength(LReplay, Min(Length(LReplay), Max(REPLAY_MIN, Length(LFacts))));
+  if FCfg.TrainReplay > 0 then
+    SetLength(LReplay, Min(Length(LReplay), Max(REPLAY_MIN, FCfg.TrainReplay * Length(LFacts))));
   if Length(LFacts) = 0 then
   begin
     LPhases.Free;
