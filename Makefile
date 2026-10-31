@@ -22,6 +22,10 @@ $(BUILD)/extract_test: memagent/*.pas memagent/tests/extract_test.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/extract_test memagent/tests/extract_test.lpr
 
+$(BUILD)/priors_test: memagent/*.pas memagent/tests/priors_test.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/priors_test memagent/tests/priors_test.lpr
+
 $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_retrieval memagent/tests/bench_retrieval.lpr
@@ -47,8 +51,9 @@ provision: all
 test: test-pascal test-https
 	python3 -m unittest discover -s trainer -p 'test_*.py' -v
 
-test-pascal: $(BUILD)/retrieval_test $(BUILD)/extract_test
+test-pascal: $(BUILD)/retrieval_test $(BUILD)/extract_test $(BUILD)/priors_test
 	./$(BUILD)/extract_test memagent/tests/extract_cases.json
+	./$(BUILD)/priors_test
 	./$(BUILD)/retrieval_test cache
 
 # certificate verification + NO_PROXY against a local openssl s_server

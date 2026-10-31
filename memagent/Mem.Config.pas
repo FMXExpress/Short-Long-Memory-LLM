@@ -55,6 +55,11 @@ type
     DedupMinRerank: Double;  { ... confirmed by the cross-encoder }
     DedupTextCos: Double;    { same value + text cosine at least this: a repeat, not a new fact }
     Provision: Boolean;      { --provision: download the retrieval models and exit }
+    { [priors]: the user's standing instructions in every prompt (Mem.Priors) }
+    PriorsEnabled: Boolean;
+    PriorsInPrompt: Integer;       { at most this many, most confident first }
+    PriorMinConfidence: Double;    { below this a prior stays out of the prompt }
+    PriorDeprecateUnder: Double;   { contradicted down to this: deprecated (kept for the record) }
     { [guard]: licensing check against stored-value confabulation (Mem.Guard) }
     Guard: string;           { auto (on when its model is provisioned) | on | off }
     GuardModel: string;
@@ -269,6 +274,10 @@ begin
     DedupMinCos := IniFloat(LIni, 'dedup_min_cos', 0.7);
     DedupMinRerank := IniFloat(LIni, 'dedup_min_rerank', 0.5);
     DedupTextCos := IniFloat(LIni, 'dedup_text_cos', 0.9);
+    PriorsEnabled := LIni.ReadBool('priors', 'enabled', True);
+    PriorsInPrompt := LIni.ReadInteger('priors', 'max_in_prompt', 6);
+    PriorMinConfidence := StrToFloatDef(LIni.ReadString('priors', 'min_confidence', '0.6'), 0.6, LFmt);
+    PriorDeprecateUnder := StrToFloatDef(LIni.ReadString('priors', 'deprecate_under', '0.4'), 0.4, LFmt);
     Guard := LowerCase(LIni.ReadString('guard', 'enabled', 'auto'));
     GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
     GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);

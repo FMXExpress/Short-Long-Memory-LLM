@@ -39,6 +39,17 @@ type
 
   TAddFactResult = (afAdded, afDuplicate, afSuperseded);
 
+  { a standing instruction (Mem.Priors); confidence = Alpha / (Alpha + Beta) }
+  TPriorRec = record
+    Id: Int64;
+    Belief, Key, Kind, Reason: string;
+    Polarity: Integer;
+    Alpha, Beta: Double;
+    Evidence: Integer;   { messages that confirmed or contradicted it }
+    Deprecated: Boolean;
+  end;
+  TPriorArray = array of TPriorRec;
+
   TPendingVector = record
     IsFact: Boolean;
     Id: Int64;
@@ -101,6 +112,19 @@ type
     function AdapterHistory(ALimit: Integer): TStringList;
     function GetSummary(const ASession: string; out AUptoMsg: Int64): string;
     procedure SetSummary(const ASession, AText: string; AUptoMsg: Int64);
+    { priors: AActiveOnly leaves out deprecated ones and those under AMinConfidence;
+      most confident first, ALimit < 0 = all }
+    function Priors(AActiveOnly: Boolean; AMinConfidence: Double = 0; ALimit: Integer = -1): TPriorArray;
+    function AddPrior(const ABelief, AKey, AKind, AReason: string; APolarity: Integer;
+      AAlpha, ABeta: Double): Int64;
+    (* one message's evidence for (ASign > 0) or against a prior, counted once
+       per message (ASourceMsg 0: a command, always counted). At or below
+       ADeprecateUnder confidence the prior is deprecated; a deprecated one
+       that is confirmed back above AMinConfidence returns. False when the
+       message had already counted *)
+    function AddPriorEvidence(APriorId, ASourceMsg: Int64; ASign: Integer; const AReason: string;
+      AMinConfidence, ADeprecateUnder: Double): Boolean;
+    function SetPriorDeprecated(AId: Int64; ADeprecated: Boolean; const AReason: string): Boolean;
     function GetMeta(const AKey: string; const ADefault: string = ''): string;
     procedure SetMeta(const AKey, AValue: string);
   end;
@@ -153,7 +177,14 @@ begin
     'CREATE TABLE IF NOT EXISTS adapters(id TEXT PRIMARY KEY, path TEXT NOT NULL,' +
     ' created_at INTEGER NOT NULL, n_facts INTEGER, n_passed INTEGER, recall REAL,' +
     ' ppl_ratio REAL, status TEXT NOT NULL);' +
-    'CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);');
+    'CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);' +
+    'CREATE TABLE IF NOT EXISTS priors(id INTEGER PRIMARY KEY, belief TEXT NOT NULL, key TEXT NOT NULL,' +
+    ' polarity INTEGER NOT NULL, alpha REAL NOT NULL, beta REAL NOT NULL, kind TEXT NOT NULL,' +
+    ' deprecated INTEGER NOT NULL DEFAULT 0, reason TEXT NOT NULL DEFAULT '''',' +
+    ' created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);' +
+    'CREATE TABLE IF NOT EXISTS prior_evidence(prior_id INTEGER NOT NULL, msg_id INTEGER,' +
+    ' sign INTEGER NOT NULL, reason TEXT NOT NULL, created_at INTEGER NOT NULL,' +
+    ' UNIQUE(prior_id, msg_id));');
   { columns added after the first release; ALTER keeps existing databases }
   if not HasColumn('facts', 'emb') then
     FDb.ExecScript('ALTER TABLE facts ADD COLUMN emb BLOB;' +
@@ -779,6 +810,89 @@ procedure TMemStore.SetSummary(const ASession, AText: string; AUptoMsg: Int64);
 begin
   FDb.Exec('INSERT OR REPLACE INTO summary(session, text, upto_msg) VALUES(?,?,?)',
     [ASession, AText, AUptoMsg]);
+end;
+
+function TMemStore.Priors(AActiveOnly: Boolean; AMinConfidence: Double; ALimit: Integer): TPriorArray;
+var
+  Q: TSqlStmt;
+  N: Integer;
+begin
+  Result := nil;
+  Q := FDb.Query('SELECT p.id, p.belief, p.key, p.kind, p.reason, p.polarity, p.alpha, p.beta, p.deprecated,' +
+    ' (SELECT count(*) FROM prior_evidence e WHERE e.prior_id = p.id) FROM priors p' +
+    ' WHERE NOT ? OR (p.deprecated = 0 AND p.alpha / (p.alpha + p.beta) >= ?)' +
+    ' ORDER BY p.deprecated, p.alpha / (p.alpha + p.beta) DESC, p.updated_at DESC, p.id DESC LIMIT ?',
+    [AActiveOnly, Extended(AMinConfidence), Int64(ALimit)]);
+  try
+    N := 0;
+    while Q.Step do
+    begin
+      SetLength(Result, N + 1);
+      with Result[N] do
+      begin
+        Id := Q.Int(0);
+        Belief := Q.Str(1);
+        Key := Q.Str(2);
+        Kind := Q.Str(3);
+        Reason := Q.Str(4);
+        Polarity := Q.Int(5);
+        Alpha := Q.Float(6);
+        Beta := Q.Float(7);
+        Deprecated := Q.Int(8) <> 0;
+        Evidence := Q.Int(9);
+      end;
+      Inc(N);
+    end;
+  finally
+    Q.Free;
+  end;
+end;
+
+function TMemStore.AddPrior(const ABelief, AKey, AKind, AReason: string; APolarity: Integer;
+  AAlpha, ABeta: Double): Int64;
+begin
+  FDb.Exec('INSERT INTO priors(belief, key, polarity, alpha, beta, kind, reason, created_at, updated_at)' +
+    ' VALUES(?,?,?,?,?,?,?,?,?)', [ABelief, AKey, APolarity, Extended(AAlpha), Extended(ABeta), AKind, AReason,
+    NowUnix, NowUnix]);
+  Result := FDb.LastId;
+end;
+
+function TMemStore.AddPriorEvidence(APriorId, ASourceMsg: Int64; ASign: Integer; const AReason: string;
+  AMinConfidence, ADeprecateUnder: Double): Boolean;
+var
+  LMsg: Pointer;
+  LConf: Double;
+begin
+  if ASourceMsg > 0 then
+    FDb.Exec('INSERT OR IGNORE INTO prior_evidence(prior_id, msg_id, sign, reason, created_at) VALUES(?,?,?,?,?)',
+      [APriorId, ASourceMsg, ASign, AReason, NowUnix])
+  else
+  begin
+    LMsg := nil;   { NULL: never a duplicate }
+    FDb.Exec('INSERT INTO prior_evidence(prior_id, msg_id, sign, reason, created_at) VALUES(?,?,?,?,?)',
+      [APriorId, LMsg, ASign, AReason, NowUnix]);
+  end;
+  Result := FDb.ScalarInt('SELECT changes()', []) > 0;
+  if not Result then
+    Exit;
+  if ASign > 0 then
+    FDb.Exec('UPDATE priors SET alpha = alpha + 1, updated_at = ? WHERE id = ?', [NowUnix, APriorId])
+  else
+    FDb.Exec('UPDATE priors SET beta = beta + 1, updated_at = ? WHERE id = ?', [NowUnix, APriorId]);
+  { per mille as an integer: no locale in the way }
+  LConf := FDb.ScalarInt('SELECT CAST(1000 * alpha / (alpha + beta) AS INTEGER) FROM priors WHERE id = ?',
+    [APriorId]) / 1000;
+  if (ASign < 0) and (LConf <= ADeprecateUnder) then
+    SetPriorDeprecated(APriorId, True, AReason)
+  else if (ASign > 0) and (LConf >= AMinConfidence) then
+    FDb.Exec('UPDATE priors SET deprecated = 0 WHERE id = ? AND deprecated = 1', [APriorId]);
+end;
+
+function TMemStore.SetPriorDeprecated(AId: Int64; ADeprecated: Boolean; const AReason: string): Boolean;
+begin
+  FDb.Exec('UPDATE priors SET deprecated = ?, reason = ?, updated_at = ? WHERE id = ?',
+    [ADeprecated, AReason, NowUnix, AId]);
+  Result := FDb.ScalarInt('SELECT changes()', []) > 0;
 end;
 
 function TMemStore.GetMeta(const AKey: string; const ADefault: string): string;
