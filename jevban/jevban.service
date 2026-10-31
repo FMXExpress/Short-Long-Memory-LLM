@@ -1,0 +1,13 @@
+[Unit]
+Description=jevban: ban web attackers from Apache logs (Jev-style decision AI)
+After=network-online.target apache2.service httpd.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/jevban -c /etc/jevban/jevban.ini
+Restart=on-failure
+RestartSec=5
+StateDirectory=jevban
+
+[Install]
+WantedBy=multi-user.target

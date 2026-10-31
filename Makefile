@@ -2,7 +2,7 @@ FPC      ?= fpc
 FPCFLAGS ?= -O2 -Sh -ve -vm6058
 BUILD    := build
 
-.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama package bench-retrieval bench-memory
+.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama package bench-retrieval bench-memory jevban test-jevban
 
 all: $(BUILD)/memagent
 
@@ -29,6 +29,22 @@ $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 $(BUILD)/bench_guard: memagent/*.pas memagent/tests/bench_guard.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_guard memagent/tests/bench_guard.lpr
+
+# jevban: Apache log -> Jev-style decision -> firewall (jevban/README.md)
+jevban: $(BUILD)/jevban
+
+$(BUILD)/jevban: jevban/*.pas jevban/jevban.lpr memagent/Mem.Https.pas
+	@mkdir -p $(BUILD)/units-jevban
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units-jevban -o$(BUILD)/jevban jevban/jevban.lpr
+
+$(BUILD)/jevban_test: jevban/*.pas jevban/tests/jevban_test.lpr
+	@mkdir -p $(BUILD)/units-jevban
+	$(FPC) $(FPCFLAGS) -Fumemagent -Fujevban -FU$(BUILD)/units-jevban -o$(BUILD)/jevban_test jevban/tests/jevban_test.lpr
+
+test-jevban: $(BUILD)/jevban $(BUILD)/jevban_test
+	cp jevban/tests/sample_access.log $(BUILD)/
+	./$(BUILD)/jevban_test
+	./$(BUILD)/jevban --test jevban/tests/sample_access.log --mode rules
 
 bench-retrieval: $(BUILD)/bench_retrieval
 	./$(BUILD)/bench_retrieval cache bench/facts.json

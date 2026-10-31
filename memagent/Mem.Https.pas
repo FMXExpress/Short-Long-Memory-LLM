@@ -28,6 +28,14 @@ uses
   finished), following up to 10 redirects. Raises on any failure. }
 procedure HttpsGetToFile(const AUrl, ADest: string; AVerbose: Boolean = True);
 
+(* POST a JSON body and return the response body, whatever the status code
+   (AStatus). https:// gets the same verified TLS and HTTPS_PROXY tunnel as
+   downloads; plain http:// is allowed here (a decision server on localhost),
+   through HTTP_PROXY unless NO_PROXY matches. AHeaders: name, value, name, ...
+   ATimeoutMs bounds the connect and every read. Raises on transport errors. *)
+function HttpPostJson(const AUrl, ABody: string; const AHeaders: array of string;
+  ATimeoutMs: Integer; out AStatus: Integer): string;
+
 implementation
 
 uses
@@ -69,13 +77,18 @@ type
     FTarget: TURI;
     FProxy: TURI;
     FHaveProxy, FUseProxy: Boolean;
+    FPlainProxy: TURI;
+    FHavePlainProxy: Boolean;
     FNoProxy: string;
-    procedure PickRoute(const AHost: string);
+    FAllowPlain: Boolean;    { http:// allowed (HttpPostJson), never for downloads }
+    procedure PickRoute(const AHost: string; ATls: Boolean = True);
     procedure GetHandler(Sender: TObject; const UseSSL: Boolean; out AHandler: TSocketHandler);
   public
     constructor Create;
     destructor Destroy; override;
     procedure Get(const AUrl: string; AStream: TStream; AVerbose: Boolean);
+    function Post(const AUrl, ABody: string; const AHeaders: array of string;
+      ATimeoutMs: Integer; out AStatus: Integer): string;
   end;
 
 var
@@ -259,6 +272,12 @@ begin
   FHaveProxy := LProxy <> '';
   if FHaveProxy then
     FProxy := ParseURI(LProxy, 'http', 3128);
+  LProxy := GetEnvironmentVariable('HTTP_PROXY');
+  if LProxy = '' then
+    LProxy := GetEnvironmentVariable('http_proxy');
+  FHavePlainProxy := LProxy <> '';
+  if FHavePlainProxy then
+    FPlainProxy := ParseURI(LProxy, 'http', 3128);
   FNoProxy := GetEnvironmentVariable('NO_PROXY');
   if FNoProxy = '' then
     FNoProxy := GetEnvironmentVariable('no_proxy');
@@ -292,13 +311,22 @@ begin
   end;
 end;
 
-procedure TDownloader.PickRoute(const AHost: string);
+procedure TDownloader.PickRoute(const AHost: string; ATls: Boolean);
 begin
-  FUseProxy := FHaveProxy and not NoProxyMatches(AHost, FNoProxy);
-  if FUseProxy then
+  if ATls then
+    FUseProxy := FHaveProxy and not NoProxyMatches(AHost, FNoProxy)
+  else
+    FUseProxy := FHavePlainProxy and not NoProxyMatches(AHost, FNoProxy);
+  if FUseProxy and ATls then
   begin
     FClient.Proxy.Host := FProxy.Host;
     FClient.Proxy.Port := FProxy.Port;
+  end
+  else if FUseProxy then
+  begin
+    { plain HTTP: fphttpclient sends the absolute URI to the proxy itself }
+    FClient.Proxy.Host := FPlainProxy.Host;
+    FClient.Proxy.Port := FPlainProxy.Port;
   end
   else
     FClient.Proxy.Host := '';   { fphttpclient's ProxyActive is Host <> '' }
@@ -315,7 +343,12 @@ var
   LPort: Word;
 begin
   if not UseSSL then
-    raise ESocketError.Create('refusing plain HTTP for a download');
+  begin
+    if not FAllowPlain then
+      raise ESocketError.Create('refusing plain HTTP for a download');
+    AHandler := TSocketHandler.Create;
+    Exit;
+  end;
   LPort := FTarget.Port;
   if LPort = 0 then
     LPort := 443;
@@ -346,6 +379,53 @@ begin
     LUrl := LNext;
   end;
   raise EHTTPClient.CreateFmt('too many redirects for %s', [AUrl]);
+end;
+
+function TDownloader.Post(const AUrl, ABody: string; const AHeaders: array of string;
+  ATimeoutMs: Integer; out AStatus: Integer): string;
+var
+  LReq: TStringStream;
+  LResp: TStringStream;
+  I: Integer;
+begin
+  FAllowPlain := True;
+  FTarget := ParseURI(AUrl);
+  PickRoute(FTarget.Host, LowerCase(FTarget.Protocol) = 'https');
+  FClient.ConnectTimeout := ATimeoutMs;
+  FClient.IOTimeout := ATimeoutMs;
+  FClient.AddHeader('Content-Type', 'application/json');
+  FClient.AddHeader('Accept', 'application/json');
+  I := 0;
+  while I + 1 <= High(AHeaders) do
+  begin
+    FClient.AddHeader(AHeaders[I], AHeaders[I + 1]);
+    Inc(I, 2);
+  end;
+  LReq := TStringStream.Create(ABody);
+  LResp := TStringStream.Create('');
+  try
+    FClient.RequestBody := LReq;
+    FClient.HTTPMethod('POST', AUrl, LResp, []);   { [] = any status; the caller decides }
+    AStatus := FClient.ResponseStatusCode;
+    Result := LResp.DataString;
+  finally
+    FClient.RequestBody := nil;
+    LReq.Free;
+    LResp.Free;
+  end;
+end;
+
+function HttpPostJson(const AUrl, ABody: string; const AHeaders: array of string;
+  ATimeoutMs: Integer; out AStatus: Integer): string;
+var
+  LDl: TDownloader;
+begin
+  LDl := TDownloader.Create;
+  try
+    Result := LDl.Post(AUrl, ABody, AHeaders, ATimeoutMs, AStatus);
+  finally
+    LDl.Free;
+  end;
 end;
 
 procedure HttpsGetToFile(const AUrl, ADest: string; AVerbose: Boolean);
