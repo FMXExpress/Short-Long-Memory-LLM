@@ -641,7 +641,8 @@ begin
   begin
     { the interval spaces deep sleeps; fast runs go whenever there is something new }
     if LIntervalOk and DeepDue then
-      StartRun('deep', 'the fast LoRA holds ' + Facts(FStore.FastTierCount(FEngine.ActiveAdapter)))
+      StartRun('deep', IfThen(FStore.GetMeta('forget_pending') = '1', 'a fact was forgotten or changed',
+        'the fast LoRA holds ' + Facts(FStore.FastTierCount(FEngine.ActiveAdapter))))
     else
     begin
       LNew := FStore.NewFactsAfter(StrToInt64Def(FStore.GetMeta('fast_seen_id', '0'), 0));
