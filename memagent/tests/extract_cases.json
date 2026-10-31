@@ -1,6 +1,108 @@
 {
  "rules": [
   {
+   "text": "Ana's city is Lisbon.",
+   "facts": [
+    {
+     "text": "Ana's city is Lisbon.",
+     "subject": "Ana's city",
+     "value": "Lisbon",
+     "questions": [
+      "What is Ana's city?",
+      "What's Ana's city?",
+      "Do you remember Ana's city?",
+      "Tell me Ana's city.",
+      "Remind me, what is Ana's city?",
+      "Can you recall Ana's city?",
+      "I forgot Ana's city. What is it?",
+      "Do you know what Ana's city is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Tom's car is a green Volvo.",
+   "facts": [
+    {
+     "text": "Tom's car is a green Volvo.",
+     "subject": "Tom's car",
+     "value": "green Volvo",
+     "questions": [
+      "What is Tom's car?",
+      "What's Tom's car?",
+      "Do you remember Tom's car?",
+      "Tell me Tom's car.",
+      "Remind me, what is Tom's car?",
+      "Can you recall Tom's car?",
+      "I forgot Tom's car. What is it?",
+      "Do you know what Tom's car is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "Mary Jane's birthday is on May 3.",
+   "facts": [
+    {
+     "text": "Mary Jane's birthday is on May 3.",
+     "subject": "Mary Jane's birthday",
+     "value": "May 3",
+     "questions": [
+      "What is Mary Jane's birthday?",
+      "What's Mary Jane's birthday?",
+      "Do you remember Mary Jane's birthday?",
+      "Tell me Mary Jane's birthday.",
+      "Remind me, what is Mary Jane's birthday?",
+      "Can you recall Mary Jane's birthday?",
+      "I forgot Mary Jane's birthday. What is it?",
+      "Do you know what Mary Jane's birthday is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
+   "text": "It's cold is all.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Today's plan is rest.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "Ana's kids are Leo and Mia.",
+   "facts": [
+    {
+     "text": "Ana's kids are Leo and Mia.",
+     "subject": "Ana's kids",
+     "value": "Leo and Mia",
+     "questions": [
+      "What is Ana's kids?",
+      "What's Ana's kids?",
+      "Do you remember Ana's kids?",
+      "Tell me Ana's kids.",
+      "Remind me, what is Ana's kids?",
+      "Can you recall Ana's kids?",
+      "I forgot Ana's kids. What is it?",
+      "Do you know what Ana's kids is?"
+     ],
+     "confidence": 0.8,
+     "kind": "user"
+    }
+   ],
+   "has_statement": true
+  },
+  {
    "text": "My dog's name is Biscuit.",
    "facts": [
     {

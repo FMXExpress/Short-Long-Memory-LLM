@@ -327,11 +327,17 @@ begin
   end;
 end;
 
+const
+  { capitalized words that start "X's ..." sentences without naming anyone (memlib._NOT_NAMES) }
+  NotNames: array[0..25] of string = ('It', 'That', 'What', 'There', 'Here', 'Who', 'He', 'She', 'This', 'Today',
+    'Tonight', 'Tomorrow', 'Yesterday', 'Everyone', 'Everybody', 'Nobody', 'Someone', 'Somebody', 'Let', 'Where',
+    'How', 'When', 'Why', 'Life', 'Mine', 'Yours');
+
 function ExtractFactsRules(const AText: string): TJSONArray;
 var
-  RRemember, RName, RMy, RLive, RWork, RThe, RRelation, RIs: TRegExpr;
+  RNamed, RRemember, RName, RMy, RLive, RWork, RThe, RRelation, RIs: TRegExpr;
   LExtra: TJSONObject;
-  LPiece, LSent, LWhat, LVerb, LPhrase, V: string;
+  LPiece, LSent, LWhat, LVerb, LPhrase, LWho, V: string;
   LBoost: Double;
   LQs: TJSONArray;
 begin
@@ -344,6 +350,7 @@ begin
   RRelation := Rx('\b[Mm]y (son|daughter|wife|husband|partner|sister|brother|mom|mum|mother|dad|father|friend|' +
     'boss|manager|dog|cat|baby|grandma|grandpa|aunt|uncle|cousin|niece|nephew) ([A-Z][\w''-]*)', False);
   RIs := Rx('(\w)''s (on|in|at)\b', False);
+  RNamed := Rx('^([A-Z][\w-]*(?: [A-Z][\w-]*)?)''s ([a-z][\w'' -]{1,40}?) (is|are|was) (.+)$', False);
   RThe := Rx('^(?:the|our) ([a-z][\w'' -]{1,40}?) is (.+)$', True);
   try
     for LPiece in Sentences(AText) do
@@ -388,6 +395,19 @@ begin
             SubjectQuestions('my ' + LWhat), Min(1.0, 0.8 + LBoost)));
         Continue;
       end;
+      { "Ana's city is Lisbon": a fact about someone the user named, kept under that name }
+      if RNamed.Exec(LSent) and not InList(SplitString(RNamed.Match[1], ' ')[0], NotNames) then
+      begin
+        LWho := RNamed.Match[1];
+        LWhat := Trim(RNamed.Match[2]);
+        LVerb := RNamed.Match[3];
+        LPhrase := CleanPhrase(RNamed.Match[4]);
+        V := CleanValue(RNamed.Match[4]);
+        if (V <> '') and not InList(LowerCase(V), StopValues) then
+          Result.Add(MakeFact(LWho + '''s ' + LWhat + ' ' + LVerb + ' ' + LPhrase + '.', LWho + '''s ' + LWhat, V,
+            SubjectQuestions(LWho + '''s ' + LWhat), Min(1.0, 0.8 + LBoost)));
+        Continue;
+      end;
       if RLive.Exec(LSent) then
       begin
         V := CleanValue(RLive.Match[1]);
@@ -420,6 +440,7 @@ begin
         Result.Add(LExtra);
     end;
   finally
+    RNamed.Free;
     RRemember.Free;
     RName.Free;
     RMy.Free;

@@ -335,6 +335,12 @@ def _extra_facts(sent, boost):
     return []
 
 
+# capitalized words that start "X's ..." sentences without naming anyone
+_NOT_NAMES = {"It", "That", "What", "There", "Here", "Who", "He", "She", "This", "Today", "Tonight",
+              "Tomorrow", "Yesterday", "Everyone", "Everybody", "Nobody", "Someone", "Somebody", "Let", "Where",
+              "How", "When", "Why", "Life", "Mine", "Yours"}
+
+
 def extract_facts_rules(text):
     """Cheap, deterministic fact extraction from a user message.
 
@@ -374,6 +380,15 @@ def extract_facts_rules(text):
             if v and v.lower() not in _STOP_VALUES:
                 facts.append(_fact(f"Your {what} {verb} {phrase}.", f"my {what}", v,
                                    subject_questions(f"my {what}"), min(1.0, 0.8 + boost)))
+            continue
+        # "Ana's city is Lisbon": a fact about someone the user named, kept under that name
+        m = re.match(r"^([A-Z][\w-]*(?: [A-Z][\w-]*)?)'s ([a-z][\w' -]{1,40}?) (is|are|was) (.+)$", sent)
+        if m and m.group(1).split()[0] not in _NOT_NAMES:
+            who, what, verb = m.group(1), m.group(2).strip(), m.group(3)
+            phrase, v = _clean_phrase(m.group(4)), _clean_value(m.group(4))
+            if v and v.lower() not in _STOP_VALUES:
+                facts.append(_fact(f"{who}'s {what} {verb} {phrase}.", f"{who}'s {what}", v,
+                                   subject_questions(f"{who}'s {what}"), min(1.0, 0.8 + boost)))
             continue
         m = re.search(r"\bi live in (.+)$", sent, re.I)
         if m:

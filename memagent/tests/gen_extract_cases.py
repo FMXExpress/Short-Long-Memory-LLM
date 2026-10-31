@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.join(REPO, "trainer"))
 import memlib  # noqa: E402
 
 texts = [
-    "My dog's name is Biscuit.", "Hi, my name is Ada Lovelace and I like math.",
+    "Ana's city is Lisbon.", "Tom's car is a green Volvo.", "Mary Jane's birthday is on May 3.", "It's cold is all.",
+    "Today's plan is rest.", "Ana's kids are Leo and Mia.",     "My dog's name is Biscuit.", "Hi, my name is Ada Lovelace and I like math.",
     "The wifi password is tulip42.", "Remember that the wifi password is tulip42.",
     "I live in Reykjavik", "I work at Zorblax Industries.", "What is my dog's name?", "Hello there",
     "My dentist appointment is on Friday.", "My car is a green Volvo.", "My bike is called Rocket.",
