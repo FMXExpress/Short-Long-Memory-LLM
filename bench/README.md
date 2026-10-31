@@ -400,3 +400,52 @@ uses.
   iteration should measure on the same sets.
 - **No regressions:** the original benchmark facts still extract 30/30 and 20/20. The Pascal and
   Python extractors agree on all 698 parity cases, now including the natural and chatter sets.
+
+## Memory loop, iteration 2: memory over time (2026-10-31)
+
+`python3 bench/bench_stream.py` drives the real binary through sessions:
+- each session tells it 10 facts; the last session also corrects two earlier ones
+- `/nap` trains the fast LoRA, then a checkpoint asks one held-out question per fact so far,
+  plus 6 never-stated questions, twice: through the full agent and from the weights alone
+  (`/weights`)
+- `/sleep` runs a deep sleep, and a final checkpoint follows the last one
+
+Accuracy is split into the latest session's facts ("new") and earlier ones ("old", retention).
+
+**Baseline** (v0.3.0 defaults, 30 facts, 3 sessions, `stream-tiny-baseline.json`):
+
+| checkpoint | facts | full agent: new / old | weights only: new / old | confabulation, agent / weights |
+|---|---|---|---|---|
+| session 1 | 10 | 0.60 / – | 0.80 / – | 0.00 / 1.00 |
+| session 2 | 20 | 0.90 / 0.90 | 1.00 / 1.00 | 0.17 / 0.33 |
+| session 3 (+2 corrections) | 30 | 0.60 / 0.75 | 0.80 / 0.75 | 0.50 / 0.50 |
+| after the final deep sleep | 30 | – / 0.93 | – / 1.00 | 0.17 / 0.67 |
+
+Findings:
+1. **The full agent scored below the weights alone** at three of four checkpoints. The main
+   cause is the guard withholding right answers, in 4 to 6 questions per checkpoint: "Who is my
+   employer?" (the fact is "where I work"), "Who is my boss?" ("my manager"), "What is my girl
+   called?" ("my daughter"). No word matched, and the cross-encoder scored the pairs under its
+   threshold.
+2. **"Fast" runs are not fast:** 645 s and 841 s, against 634 s for a deep sleep over 20 facts.
+   They train the new facts plus an equal replay sample, with two adapters in the graph.
+3. **A wasted deep sleep:** `/sleep` right after the first run rebuilt the same 10 facts (341 s).
+4. **Retention holds:** old-fact accuracy from the weights stays at 1.00 through session 2, and
+   every fast run kept all of its replayed facts.
+
+**Fix 1, guard synonyms:** `Mem.Guard` matches words that name the same thing in a question
+about the user (work/employer/company/salary, boss/manager, girl/daughter, boy/son,
+mother/mom/mum, father/dad, partner/wife/husband/…, kid/child, home/live/house, car/vehicle).
+Re-scored offline (`build/bench_guard`) on the recorded memory-benchmark answers:
+
+| | correct answers withheld | confabulation, LoRA → with guard |
+|---|---|---|
+| dev, before | 3–4 | 0.70 → 0.25 |
+| dev, after | 0 | 0.70 → 0.25 |
+| held-out, before / after | 0 / 0 | 0.80 → 0.25 / 0.80 → 0.25 |
+
+None of the look-alikes the guard blocks (horse/dog, aunt/sister, stepmother/mother,
+parrot/cat) shares a group.
+
+**Fix 2:** a deep sleep is skipped when the deep LoRA already holds every fact (nothing in the
+fast tier, nothing forgotten or changed).

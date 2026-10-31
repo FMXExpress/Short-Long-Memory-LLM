@@ -902,6 +902,15 @@ begin
   { a fast LoRA needs a deep one under it: before the first deep sleep, every run is deep }
   if (ATier = 'fast') and (FEngine.ActiveAdapter = '') then
     ATier := 'deep';
+  (* a deep LoRA that already holds every fact (nothing in the fast tier, nothing
+     forgotten or changed) would be rebuilt from the same facts: measured, the
+     stream benchmark spent 341 s on exactly that after a first run *)
+  if (ATier = 'deep') and (FEngine.ActiveAdapter <> '') and (FStore.FastTierCount(FEngine.ActiveAdapter) = 0) and
+    (FStore.GetMeta('forget_pending') <> '1') then
+  begin
+    Say('[sleep] the deep LoRA ' + FEngine.ActiveAdapter + ' already holds every fact; nothing to do');
+    Exit(False);
+  end;
   FStore.SetMeta('fast_seen_id', IntToStr(FStore.MaxFactId));
   Result := FCons.Start(ATier, FEngine.ActiveAdapter, FStore.GetMeta('active_adapter_path'));
   if not Result then

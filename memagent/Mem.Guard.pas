@@ -43,6 +43,24 @@ const
   StopAfter: array[0..33] of string = ('called', 'named', 'live', 'lives', 'work', 'works', 'do', 'does',
     'play', 'plays', 'born', 'own', 'go', 'goes', 'drive', 'like', 'likes', 'love', 'eat', 'prefer',
     'again', 'is', 'was', 'are', 'for', 'at', 'in', 'on', 'from', 'to', 'and', 'or', 'with', 'about');
+  (* words that name the same thing in a question about the user: "my
+     employer" asks about "where I work", "my boss" about "my manager", "my
+     girl" about "my daughter". Measured (bench/README.md, memory loop 2): the
+     guard withheld these right answers because no word matched and the
+     cross-encoder scored the pairs under its threshold. None of the
+     look-alikes the guard exists for (horse/dog, aunt/sister, stepmother/
+     mother, parrot/cat) shares a group. *)
+  Related: array[0..9] of string = (
+    ' work employer company job salary workplace ',
+    ' boss manager supervisor ',
+    ' daughter girl ',
+    ' son boy ',
+    ' mother mom mum mama ',
+    ' father dad papa ',
+    ' partner wife husband spouse girlfriend boyfriend fiance fiancee ',
+    ' kid kids child children ',
+    ' home live house ',
+    ' car vehicle ');
   { words that carry no subject on their own }
   Weak: array[0..6] of string = ('name', 'favorite', 'favourite', 'the', 'my', 'what', 'who');
 
@@ -105,6 +123,16 @@ begin
     SetLength(Result, Length(Result) - 2);
 end;
 
+function SameGroup(const A, B: string): Boolean;
+var
+  G: string;
+begin
+  for G in Related do
+    if (Pos(' ' + A + ' ', G) > 0) and (Pos(' ' + B + ' ', G) > 0) then
+      Exit(True);
+  Result := False;
+end;
+
 { is the stored fact about what the question asks? }
 function SameThing(ARet: TRetrieval; const AQuestion, AQSubject: string; const AFact: TFactRec;
   AMinScore: Single): Boolean;
@@ -119,7 +147,7 @@ begin
     for I := 0 to QW.Count - 1 do
       if not InList(Stem(QW[I]), Weak) and (Length(Stem(QW[I])) >= 3) then
         for J := 0 to FW.Count - 1 do
-          if Stem(QW[I]) = Stem(FW[J]) then
+          if (Stem(QW[I]) = Stem(FW[J])) or SameGroup(Stem(QW[I]), Stem(FW[J])) then
             Exit(True);
   finally
     QW.Free;
