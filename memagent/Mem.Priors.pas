@@ -26,13 +26,14 @@ unit Mem.Priors;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, RegExpr;
+  SysUtils, Classes, StrUtils, Math, RegExpr;
 
 type
   TPriorCandidate = record
     Belief: string;     { as it goes into the prompt: "Never use emojis." }
     Key: string;        { its content words, sorted, without negators }
     Polarity: Integer;  { +1 do, -1 don't }
+    Scope: string;      { chat (how to answer) or all (also a rule for a robot body: it handles things) }
   end;
   TPriorCandidates = array of TPriorCandidate;
 
@@ -46,6 +47,10 @@ function PriorFromText(const AText: string): TPriorCandidate;
 function PriorKey(const ABelief: string; out APolarity: Integer): string;
 { the same instruction (pmSame), its negation (pmOpposite), or unrelated }
 function MatchPrior(const AKeyA: string; APolA: Integer; const AKeyB: string; APolB: Integer): TPriorMatch;
+(* a body's step (a subtask in language: "put the pan in the dishwasher")
+   that does what a negative prior forbids: at least two of the shorter
+   one's content words, and three quarters of them, are shared *)
+function BreaksPrior(const AStep, APriorKey: string; APriorPolarity: Integer): Boolean;
 
 implementation
 
@@ -62,6 +67,10 @@ const
     'explanation', 'explanations', 'code', 'comments', 'comment', 'example', 'examples', 'summary',
     'summaries', 'bullet', 'bullets', 'tone', 'format', 'units', 'language', 'emoji', 'emojis', 'markdown',
     'sentence', 'sentences', 'words', 'jargon');
+  { an instruction about handling things is a rule for a robot body too }
+  PHYSICAL_VERBS: array[0..21] of string = ('put', 'place', 'move', 'pick', 'touch', 'carry', 'leave', 'drop',
+    'throw', 'wash', 'stack', 'open', 'close', 'grab', 'hold', 'push', 'pull', 'pour', 'store', 'lift', 'hand',
+    'clean');
   { verbs a "don't ..." instruction to the assistant starts with }
   ANSWER_VERBS: array[0..17] of string = ('use', 'say', 'call', 'mention', 'apologize', 'apologise',
     'repeat', 'explain', 'include', 'add', 'write', 'answer', 'reply', 'respond', 'give', 'start', 'end',
@@ -244,6 +253,39 @@ function Candidate(const ABelief: string): TPriorCandidate;
 begin
   Result.Belief := Capital(ABelief);
   Result.Key := PriorKey(Result.Belief, Result.Polarity);
+  if HasAny(ABelief, PHYSICAL_VERBS) then
+    Result.Scope := 'all'
+  else
+    Result.Scope := 'chat';
+end;
+
+function BreaksPrior(const AStep, APriorKey: string; APriorPolarity: Integer): Boolean;
+var
+  A, B: TStringList;
+  I, LBoth, LStepPol: Integer;
+begin
+  Result := False;
+  if APriorPolarity >= 0 then
+    Exit;
+  A := TStringList.Create;
+  B := TStringList.Create;
+  try
+    A.Delimiter := ' ';
+    A.DelimitedText := PriorKey(AStep, LStepPol);
+    B.Delimiter := ' ';
+    B.DelimitedText := APriorKey;
+    { a step that itself says "don't ..." is not doing it }
+    if (LStepPol < 0) or (A.Count = 0) or (B.Count = 0) then
+      Exit;
+    LBoth := 0;
+    for I := 0 to A.Count - 1 do
+      if B.IndexOf(A[I]) >= 0 then
+        Inc(LBoth);
+    Result := (LBoth >= 2) and (LBoth / Min(A.Count, B.Count) >= 0.75);
+  finally
+    A.Free;
+    B.Free;
+  end;
 end;
 
 function PriorFromText(const AText: string): TPriorCandidate;
@@ -302,7 +344,8 @@ begin
       else if RDont.Exec(S) then
       begin
         LRest := RDont.Match[1];
-        if StemIn(FirstWord(LRest), ANSWER_VERBS) or HasAny(LRest, ANSWER_WORDS) then
+        if StemIn(FirstWord(LRest), ANSWER_VERBS) or HasAny(LRest, ANSWER_WORDS) or
+          HasAny(LRest, PHYSICAL_VERBS) then
         begin
           C := Candidate('Don''t ' + LRest);
           LFound := C.Key <> '';

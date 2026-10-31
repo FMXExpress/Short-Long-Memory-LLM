@@ -11,7 +11,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent;
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent, Mem.Body;
 
 var
   Cfg: TMemConfig;
@@ -20,6 +20,7 @@ var
   Cons: TConsolidator;
   Ret, Guard: TRetrieval;
   Agent: TAgent;
+  Body: TBody;
   Line: string;
   Interactive: Boolean;
 
@@ -75,6 +76,17 @@ begin
     ResolveTrainer(Cfg);
     Cons := TConsolidator.Create(Cfg);
     Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
+    { [body]: optional; a body that does not start leaves memagent talking, not acting }
+    Body := nil;
+    try
+      Body := CreateBody(Cfg);
+      if Body <> nil then
+        WriteLn('body: ', Body.Describe, IfThen(Cfg.BodyConfirm, '; /do <task> asks before it acts', ''));
+    except
+      on E: Exception do
+        WriteLn('body: off (', E.Message, ')');
+    end;
+    Agent.Body := Body;
     try
       WriteLn('ready: ', Engine.Describe, '. /help for commands.');
       Agent.Startup;
@@ -122,6 +134,7 @@ begin
       end;
     finally
       Agent.Free;
+      Body.Free;
       Cons.Free;
       Engine.Free;
       Store.Free;

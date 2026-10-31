@@ -112,7 +112,7 @@ jobs:
         run: |
           OUT="dist/memagent-windows-x64"
           SRC=cache/llama.cpp
-          mkdir -p "$OUT/trainer" "$OUT/llama.cpp"
+          mkdir -p "$OUT/trainer" "$OUT/body" "$OUT/llama.cpp"
           cp build/memagent.exe "$OUT/"
           cp $SRC/build/bin/Release/*.dll "$OUT/"
           curl -fsSL -o /tmp/sqlite.zip "$SQLITE_ZIP" && unzip -o -j /tmp/sqlite.zip sqlite3.dll -d "$OUT"
@@ -129,6 +129,7 @@ jobs:
           cp models.json priors.md LICENSE "$OUT/"
           cp packaging/README.release.md "$OUT/README.md"
           cp trainer/memlib.py trainer/worker.py trainer/consolidate.py trainer/gguf_export.py trainer/requirements.txt "$OUT/trainer/"
+          cp body/lerobot_body.py body/README.md "$OUT/body/"
           cp -r $SRC/convert_lora_to_gguf.py $SRC/convert_hf_to_gguf.py $SRC/conversion $SRC/gguf-py "$OUT/llama.cpp/"
           cp $SRC/LICENSE "$OUT/llama.cpp/LICENSE"
           sed -e 's/^engine=.*/engine=auto/' -e 's/^infer=.*/infer=-1/' -e 's/^train=.*/train=-1/' \

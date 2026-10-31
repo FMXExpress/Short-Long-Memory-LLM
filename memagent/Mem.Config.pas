@@ -60,6 +60,12 @@ type
     PriorsInPrompt: Integer;       { at most this many, most confident first }
     PriorMinConfidence: Double;    { below this a prior stays out of the prompt }
     PriorDeprecateUnder: Double;   { contradicted down to this: deprecated (kept for the record) }
+    { [body]: something that acts in the world (Mem.Body) }
+    BodyDriver: string;            { none | mock | lerobot | process }
+    BodyCommand: string;           { process: the program and its arguments }
+    BodyArgs: string;              { extra arguments (lerobot: the lerobot-rollout flags) }
+    BodyConfirm: Boolean;          { /do waits for /confirm }
+    BodyMaxSeconds: Integer;       { an act is stopped after this long; 0 = no limit }
     { [guard]: licensing check against stored-value confabulation (Mem.Guard) }
     Guard: string;           { auto (on when its model is provisioned) | on | off }
     GuardModel: string;
@@ -278,6 +284,11 @@ begin
     PriorsInPrompt := LIni.ReadInteger('priors', 'max_in_prompt', 6);
     PriorMinConfidence := StrToFloatDef(LIni.ReadString('priors', 'min_confidence', '0.6'), 0.6, LFmt);
     PriorDeprecateUnder := StrToFloatDef(LIni.ReadString('priors', 'deprecate_under', '0.4'), 0.4, LFmt);
+    BodyDriver := LowerCase(LIni.ReadString('body', 'driver', 'none'));
+    BodyCommand := LIni.ReadString('body', 'command', '');
+    BodyArgs := LIni.ReadString('body', 'args', '');
+    BodyConfirm := LIni.ReadBool('body', 'confirm', True);
+    BodyMaxSeconds := LIni.ReadInteger('body', 'max_seconds', 300);
     Guard := LowerCase(LIni.ReadString('guard', 'enabled', 'auto'));
     GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
     GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);
