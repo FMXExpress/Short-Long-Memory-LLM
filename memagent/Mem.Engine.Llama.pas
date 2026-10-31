@@ -23,6 +23,8 @@ type
     FChat: TLlamaChat;
     FAdapter: PLlamaAdapter;
     FActive, FActivePath: string;
+    FFast: PLlamaAdapter;
+    FFastName: string;
     FDevice: string;
     FTemperature: Double;
     FOnToken: TTokenEvent;
@@ -40,6 +42,9 @@ type
     procedure ClearAdapter; override;
     function ActiveAdapter: string; override;
     function Describe: string; override;
+    procedure LoadFastAdapter(const APath, AName: string); override;
+    procedure ClearFastAdapter; override;
+    function FastAdapter: string; override;
   end;
 
 { <adapter dir>/adapter.gguf: the adapter as this engine loads it }
@@ -70,6 +75,8 @@ end;
 destructor TLlamaEngine.Destroy;
 begin
   FChat.Free;
+  if FFast <> nil then
+    llama_adapter_lora_free(FFast);
   if FAdapter <> nil then
     llama_adapter_lora_free(FAdapter);
   if FModel <> nil then
@@ -85,19 +92,21 @@ end;
 function TLlamaEngine.Run(AMessages: TJSONArray; AUseAdapter: Boolean; AOnToken: TTokenEvent;
   AMaxNewTokens: Integer; ATemperature: Double): string;
 var
-  LAdapter: PLlamaAdapter;
+  LAdapters: TLlamaAdapters;
 begin
   if AMaxNewTokens <= 0 then
     AMaxNewTokens := FCfg.MaxNewTokens;
-  LAdapter := nil;
-  if AUseAdapter then
-    LAdapter := FAdapter;
+  LAdapters := nil;
+  if AUseAdapter and (FAdapter <> nil) then
+    LAdapters := Concat(LAdapters, [FAdapter]);
+  if AUseAdapter and (FFast <> nil) then
+    LAdapters := Concat(LAdapters, [FFast]);
   FOnToken := AOnToken;
   try
     if Assigned(AOnToken) then
-      Result := FChat.Generate(AMessages, LAdapter, AMaxNewTokens, ATemperature, @EmitToken)
+      Result := FChat.GenerateWith(AMessages, LAdapters, AMaxNewTokens, ATemperature, @EmitToken)
     else
-      Result := FChat.Generate(AMessages, LAdapter, AMaxNewTokens, ATemperature);
+      Result := FChat.GenerateWith(AMessages, LAdapters, AMaxNewTokens, ATemperature);
   except
     on E: ELlama do
       raise EEngine.Create(E.Message);
@@ -202,6 +211,34 @@ begin
   end;
   FActive := '';
   FActivePath := '';
+end;
+
+procedure TLlamaEngine.LoadFastAdapter(const APath, AName: string);
+var
+  LNew: PLlamaAdapter;
+begin
+  LNew := llama_adapter_lora_init(FModel, PAnsiChar(AdapterGguf(APath)));
+  if LNew = nil then
+    raise EEngine.CreateFmt('llama.cpp could not load the adapter %s (see llama.log)', [AdapterGguf(APath)]);
+  ClearFastAdapter;
+  FFast := LNew;
+  FFastName := AName;
+end;
+
+procedure TLlamaEngine.ClearFastAdapter;
+begin
+  if FFast <> nil then
+  begin
+    llama_set_adapters_lora(FChat.Context, nil, 0, nil);
+    llama_adapter_lora_free(FFast);
+    FFast := nil;
+  end;
+  FFastName := '';
+end;
+
+function TLlamaEngine.FastAdapter: string;
+begin
+  Result := FFastName;
 end;
 
 function TLlamaEngine.ActiveAdapter: string;

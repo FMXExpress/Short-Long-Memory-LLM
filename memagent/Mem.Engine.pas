@@ -28,6 +28,11 @@ type
     procedure ClearAdapter; virtual; abstract;
     function ActiveAdapter: string; virtual; abstract;
     function Describe: string; virtual; abstract;
+    { the fast memory tier: a second adapter applied on top of the active
+      one. Only the llama engine has it; Generate(AUseAdapter) uses both }
+    procedure LoadFastAdapter(const APath, AName: string); virtual;
+    procedure ClearFastAdapter; virtual;
+    function FastAdapter: string; virtual;
   end;
 
   TPyWorkerEngine = class(TEngine)
@@ -68,6 +73,20 @@ begin
   { Setting any variable on TProcess replaces the whole environment, so copy it first }
   for I := 1 to GetEnvironmentVariableCount do
     AProc.Environment.Add(GetEnvironmentString(I));
+end;
+
+procedure TEngine.LoadFastAdapter(const APath, AName: string);
+begin
+  raise EEngine.Create('this engine has no fast memory tier');
+end;
+
+procedure TEngine.ClearFastAdapter;
+begin
+end;
+
+function TEngine.FastAdapter: string;
+begin
+  Result := '';
 end;
 
 constructor TPyWorkerEngine.Create(ACfg: TMemConfig);

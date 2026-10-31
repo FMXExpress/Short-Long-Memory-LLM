@@ -19,6 +19,7 @@ uses
 type
   ELlama = class(Exception);
   TTextEvent = procedure(const AText: string) of object;
+  TLlamaAdapters = array of PLlamaAdapter;
 
   TLlamaChat = class
   private
@@ -38,6 +39,9 @@ type
     function Tokenize(const AText: string): TLlamaTokens;
     { AAdapter = nil: the base model alone }
     function Generate(AMessages: TJSONArray; AAdapter: PLlamaAdapter; AMaxNewTokens: Integer;
+      ATemperature: Double; AOnToken: TTextEvent = nil): string;
+    { the adapters apply together, each at scale 1 (deep and fast memory tiers) }
+    function GenerateWith(AMessages: TJSONArray; const AAdapters: TLlamaAdapters; AMaxNewTokens: Integer;
       ATemperature: Double; AOnToken: TTextEvent = nil): string;
     property Model: PLlamaModel read FModel;
     property Context: PLlamaContext read FCtx;
@@ -288,6 +292,21 @@ end;
 function TLlamaChat.Generate(AMessages: TJSONArray; AAdapter: PLlamaAdapter; AMaxNewTokens: Integer;
   ATemperature: Double; AOnToken: TTextEvent): string;
 var
+  LAdapters: TLlamaAdapters;
+begin
+  LAdapters := nil;
+  if AAdapter <> nil then
+  begin
+    SetLength(LAdapters, 1);
+    LAdapters[0] := AAdapter;
+  end;
+  Result := GenerateWith(AMessages, LAdapters, AMaxNewTokens, ATemperature, AOnToken);
+end;
+
+function TLlamaChat.GenerateWith(AMessages: TJSONArray; const AAdapters: TLlamaAdapters; AMaxNewTokens: Integer;
+  ATemperature: Double; AOnToken: TTextEvent): string;
+var
+  LScales: array of Single;
   LToks: TLlamaTokens;
   LTok: TLlamaToken;
   NPrompt, NCtx, NBatch, I, LDone, LChunk, LWhole: Integer;
@@ -304,8 +323,13 @@ begin
     AMaxNewTokens := NCtx - NPrompt;
 
   llama_memory_clear(llama_get_memory(FCtx), True);
-  if AAdapter <> nil then
-    llama_set_adapters_lora(FCtx, @AAdapter, 1, @FScale)
+  if Length(AAdapters) > 0 then
+  begin
+    SetLength(LScales, Length(AAdapters));
+    for I := 0 to High(LScales) do
+      LScales[I] := FScale;
+    llama_set_adapters_lora(FCtx, @AAdapters[0], Length(AAdapters), @LScales[0]);
+  end
   else
     llama_set_adapters_lora(FCtx, nil, 0, nil);
   LSmpl := NewSampler(ATemperature, NCtx);

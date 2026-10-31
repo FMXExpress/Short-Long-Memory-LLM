@@ -473,6 +473,68 @@ def fact_examples(facts, n_paraphrases, priors, extra_questions=None):
     return train, probes
 
 
+def _sentence(s):
+    s = s.strip()
+    return s if not s or s[-1] in ".!?" else s + "."
+
+
+def varied_qas(facts, i, n, rng):
+    """memagent/Mem.Examples.VariedExamples: n (question, answer) pairs for facts[i], cycling
+    through eight kinds: full and short answers to the paraphrases, the value asked from the
+    other side, yes/no checks (one with another fact's value), fill in the blank, two facts
+    together, "It's <value>.". facts[i]["questions"] is shuffled, its last item the probe."""
+    f = facts[i]
+    qs = f["questions"]
+    nq = max(1, len(qs) - 1)
+    text, subj, value = f["text"], f["subject"], f["value"]
+    p = text.lower().find(value.lower())
+    out = []
+    for k in range(n):
+        kind, rnd = k % 8, k // 8
+        question = lambda off: qs[(rnd * 3 + off) % nq]
+        other = None
+        if len(facts) > 1:
+            j = rng.randrange(len(facts) - 1)
+            other = facts[j + 1 if j >= i else j]
+            if other["value"].lower() == value.lower():
+                other = None
+        if kind == 1:
+            out.append((question(1), _sentence(value)))
+        elif kind == 2:
+            out.append((f"What is {value} to me?" if rnd % 2 == 0 else f"What do you know about {value}?", text))
+        elif kind == 3:
+            out.append((f"Is {value} {subj}?", "Yes. " + text))
+        elif kind == 4:
+            out.append((f"Is {other['value']} {subj}?", "No. " + text) if other else (question(2), text))
+        elif kind == 5:
+            if p >= 0:
+                blank = text[:p].rstrip() + " ___" + text[p + len(value):]
+                out.append(("Fill in the blank: " + blank, _sentence(value)))
+            else:
+                out.append((question(2), _sentence(value)))
+        elif kind == 6:
+            out.append((f"Tell me {subj} and {other['subject']}.", text + " " + other["text"]) if other
+                       else (question(1), text))
+        elif kind == 7:
+            out.append((question(2), "It's " + _sentence(value)))
+        else:
+            out.append((question(0), text))
+    return out
+
+
+def varied_examples(facts, n, priors, rng):
+    """fact_examples with [train] examples = varied: the probes are the same held-out questions."""
+    shuffled, probes = [], []
+    for f in facts:
+        qs = list(dict.fromkeys(f["questions"]))
+        pool = qs[:-1]
+        rng.shuffle(pool)
+        shuffled.append(dict(f, questions=pool + [qs[-1]]))
+        probes.append({"id": f["id"], "question": qs[-1], "value": f["value"], "text": f["text"]})
+    train = [_chat(priors, q, a) for i in range(len(shuffled)) for q, a in varied_qas(shuffled, i, n, rng)]
+    return train, probes
+
+
 def _chat(priors, q, a):
     msgs = [{"role": "system", "content": priors}] if priors else []
     return msgs + [{"role": "user", "content": q}, {"role": "assistant", "content": a}]

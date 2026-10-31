@@ -2,7 +2,7 @@ FPC      ?= fpc
 FPCFLAGS ?= -O2 -Sh -ve -vm6058
 BUILD    := build
 
-.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama provision llama package bench-retrieval bench-memory
+.PHONY: all clean test test-pascal test-https test-e2e test-e2e-llama test-tiers provision llama package bench-retrieval bench-memory
 
 all: $(BUILD)/memagent
 
@@ -29,6 +29,10 @@ $(BUILD)/bench_retrieval: memagent/*.pas memagent/tests/bench_retrieval.lpr
 $(BUILD)/bench_guard: memagent/*.pas memagent/tests/bench_guard.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_guard memagent/tests/bench_guard.lpr
+
+$(BUILD)/bench_llama: memagent/*.pas memagent/tests/bench_llama.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/bench_llama memagent/tests/bench_llama.lpr
 
 bench-retrieval: $(BUILD)/bench_retrieval
 	./$(BUILD)/bench_retrieval cache bench/facts.json
@@ -57,6 +61,10 @@ test-e2e: all
 # the same demo on the in-process llama.cpp engine
 test-e2e-llama: all
 	MEMAGENT_ENGINE=llama ./scripts/e2e_demo.sh
+
+# the memory tiers: a fast LoRA trained on top of the frozen deep one (llama engine, tiny)
+test-tiers: all
+	./scripts/e2e_tiers.sh
 
 # llama.cpp shared libraries + GGUF base model for the llama engine (PROFILES="tiny small")
 llama:

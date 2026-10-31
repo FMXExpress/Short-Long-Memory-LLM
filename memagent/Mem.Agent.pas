@@ -6,7 +6,15 @@ unit Mem.Agent;
      3. priors + summary + memory + recent turns -> generate (streamed)
      4. optional tool calls (bigger profiles only)
      5. persist the turn, extract facts from the user message
-     6. maybe start a background consolidation on the training GPU *)
+     6. maybe start a background consolidation on the training GPU
+
+   Memory tiers ([consolidate] tiers): the deep LoRA holds what the last deep
+   sleep baked; a fast LoRA on top of it holds the facts since. Whenever the
+   trainer is free and a fact is in no adapter yet, a fast run retrains the
+   fast LoRA on all of them (the first run, with no deep LoRA yet, is a deep
+   one). Once the fast LoRA holds deep_after facts, or a fact was forgotten
+   or changed, a deep sleep rebuilds the deep LoRA from every fact and the
+   fast one empties. Training waits while a turn is answered. *)
 
 {$mode objfpc}{$H+}
 
@@ -50,7 +58,11 @@ type
     function ExtractFacts(const AUser: string; AMsgId: Int64; const AMode: string = 'auto'): string;
     procedure MaybeSummarize;
     procedure MaybeAutoConsolidate;
+    { a background run: deep, or fast on top of the active deep adapter }
+    function StartRun(ATier: string; const AWhy: string): Boolean;
     function PromoteManifest(const ADir: string): Boolean;
+    function PromoteFast(const ADir: string; AMan: TJSONObject): Boolean;
+    function DeepDue: Boolean;
     procedure ClearReady;
     procedure Say(const S: string);
   public
@@ -128,6 +140,12 @@ begin
   begin
     FEngine.LoadAdapter(LPath, FStore.GetMeta('active_adapter'));
     Say('[memory] long-term adapter: ' + FEngine.ActiveAdapter);
+    LPath := FStore.GetMeta('fast_adapter_path');
+    if FCfg.Tiers and (LPath <> '') and DirectoryExists(LPath) then
+    begin
+      FEngine.LoadFastAdapter(LPath, FStore.GetMeta('fast_adapter'));
+      Say('[memory] fast adapter: ' + FEngine.FastAdapter);
+    end;
   end;
   (* A consolidation that finished after the last exit is still waiting in
      ready.json; promote it now so its training is not wasted. An adapter
@@ -448,7 +466,13 @@ begin
       end;
       case FStore.AddFact(LFact, AMsgId, SameSubject(LFact.Get('subject', '')), LId) of
         afAdded: Say(Format('[memory +#%d] %s', [LId, LFact.Get('text', '')]));
-        afSuperseded: Say(Format('[memory ~#%d] %s (replaces an older value)', [LId, LFact.Get('text', '')]));
+        afSuperseded:
+          begin
+            Say(Format('[memory ~#%d] %s (replaces an older value)', [LId, LFact.Get('text', '')]));
+            { the old value may be in the deep LoRA: the next deep sleep retrains without it }
+            if FCfg.Tiers then
+              FStore.SetMeta('forget_pending', '1');
+          end;
         afDuplicate:
           begin
             Result := Result + IfThen(Result = '', '', '; ') + 'already known: ' + LFact.Get('text', '');
@@ -514,6 +538,9 @@ var
   LRuleFacts, LWhy: string;
 begin
   PollConsolidation;
+  { the trainer waits between windows while this turn is answered }
+  HoldTraining(True);
+  try
   FTurnStart := Now;
   FFirstTokenMs := -1;
   LT := FTurnStart;
@@ -565,6 +592,9 @@ begin
     LMessages.Free;
   end;
   FStore.AddMessage(FSession, 'assistant', LReply);
+  finally
+    HoldTraining(False);
+  end;
   (* The model extraction pass runs after the reply: on the small profile it
      is a 5-8 s generation, and before the reply it held back the first token
      (measured 8-11 s). The worker skips it for questions and greetings. *)
@@ -585,20 +615,65 @@ begin
   MaybeAutoConsolidate;
 end;
 
+{ '1 fact', '3 facts' }
+function Facts(N: Integer): string;
+begin
+  Result := IntToStr(N) + IfThen(N = 1, ' fact', ' facts');
+end;
+
+function TAgent.DeepDue: Boolean;
+begin
+  Result := (FStore.GetMeta('forget_pending') = '1') or
+    ((FEngine.ActiveAdapter <> '') and (FStore.FastTierCount(FEngine.ActiveAdapter) >= FCfg.DeepAfter));
+end;
+
 procedure TAgent.MaybeAutoConsolidate;
 var
   LLast: Int64;
+  LIntervalOk: Boolean;
+  LNew: Integer;
 begin
   if not FCfg.AutoConsolidate or FCons.Running then
     Exit;
   LLast := StrToInt64Def(FStore.GetMeta('last_consolidation', '0'), 0);
-  if NowUnix - LLast < Int64(FCfg.IntervalMin) * 60 then
+  LIntervalOk := NowUnix - LLast >= Int64(FCfg.IntervalMin) * 60;
+  if FCfg.Tiers then
+  begin
+    { the interval spaces deep sleeps; fast runs go whenever there is something new }
+    if LIntervalOk and DeepDue then
+      StartRun('deep', 'the fast LoRA holds ' + Facts(FStore.FastTierCount(FEngine.ActiveAdapter)))
+    else
+    begin
+      LNew := FStore.NewFactsAfter(StrToInt64Def(FStore.GetMeta('fast_seen_id', '0'), 0));
+      if LNew >= FCfg.FastMinNew then
+        StartRun('fast', IfThen(LNew = 1, '1 new fact', IntToStr(LNew) + ' new facts'));
+    end;
+    Exit;
+  end;
+  if not LIntervalOk then
     Exit;
   if (FStore.UnbakedCount < FCfg.MinNewFacts) and (FStore.GetMeta('forget_pending') <> '1') then
     Exit;
   if FCons.Start then
     Say(Format('[sleep] %d new facts: consolidating into a new LoRA in the background (%s)',
       [FStore.UnbakedCount, DeviceName(FCfg.TrainGpu)]));
+end;
+
+function TAgent.StartRun(ATier: string; const AWhy: string): Boolean;
+begin
+  { a fast LoRA needs a deep one under it: before the first deep sleep, every run is deep }
+  if (ATier = 'fast') and (FEngine.ActiveAdapter = '') then
+    ATier := 'deep';
+  FStore.SetMeta('fast_seen_id', IntToStr(FStore.MaxFactId));
+  Result := FCons.Start(ATier, FEngine.ActiveAdapter, FStore.GetMeta('active_adapter_path'));
+  if not Result then
+    Exit;
+  if ATier = 'deep' then
+    Say(Format('[sleep] deep sleep (%s): rebuilding the long-term LoRA from %s in the background (%s)',
+      [AWhy, Facts(Length(FStore.ActiveFacts)), DeviceName(FCfg.TrainGpu)]))
+  else
+    Say(Format('[nap] %s: training the fast LoRA on %s on top of %s in the background',
+      [AWhy, Facts(FStore.FastTierCount(FEngine.ActiveAdapter)), FEngine.ActiveAdapter]));
 end;
 
 function TAgent.PromoteManifest(const ADir: string): Boolean;
@@ -616,10 +691,21 @@ begin
     L.Free;
   end;
   try
+    if LMan.Get('tier', 'deep') = 'fast' then
+      Exit(PromoteFast(ADir, LMan));
     LId := LMan.Get('id', '');
     LOld := FEngine.ActiveAdapter;
     LT := Now;
     FEngine.LoadAdapter(ADir, LId);
+    { the deep LoRA was rebuilt from every fact: the fast one is empty again }
+    if FEngine.FastAdapter <> '' then
+    begin
+      FStore.RetireAdapter(FEngine.FastAdapter);
+      FEngine.ClearFastAdapter;
+    end;
+    FStore.SetMeta('fast_adapter', '');
+    FStore.SetMeta('fast_adapter_path', '');
+    FStore.SetMeta('last_consolidation', IntToStr(NowUnix));
     if LOld <> '' then
       FStore.RetireAdapter(LOld);
     FStore.RecordAdapter(LId, ADir, 'active', LMan.Get('n_facts', 0), LMan.Get('n_passed', 0),
@@ -638,15 +724,48 @@ begin
   end;
 end;
 
+function TAgent.PromoteFast(const ADir: string; AMan: TJSONObject): Boolean;
+var
+  LId, LOld: string;
+  LT: TDateTime;
+begin
+  Result := False;
+  LId := AMan.Get('id', '');
+  if AMan.Get('deep', '') <> FEngine.ActiveAdapter then
+  begin
+    Say(Format('[nap] fast LoRA %s was trained on top of %s, which is no longer active; dropped',
+      [LId, AMan.Get('deep', '')]));
+    Exit;
+  end;
+  LOld := FEngine.FastAdapter;
+  LT := Now;
+  FEngine.LoadFastAdapter(ADir, LId);
+  if LOld <> '' then
+    FStore.RetireAdapter(LOld);
+  FStore.RecordAdapter(LId, ADir, 'active', AMan.Get('n_facts', 0), AMan.Get('n_passed', 0),
+    AMan.Get('recall', 0.0), AMan.Get('ppl_ratio', 1.0));
+  FStore.ApplyFastManifest(LId, AMan.Arrays['fact_ids'], AMan.Arrays['passed_fact_ids']);
+  FStore.SetMeta('fast_adapter', LId);
+  FStore.SetMeta('fast_adapter_path', ADir);
+  Say(Format('[memory] fast LoRA %s -> %s in %d ms: %d/%d new facts in the weights on top of %s ' +
+    '(%d/%d earlier facts kept, held-out ppl x%.2f)', [IfThen(LOld = '', 'none', LOld), LId,
+    MilliSecondsBetween(Now, LT), AMan.Get('n_passed', 0), AMan.Get('n_facts', 0), FEngine.ActiveAdapter,
+    AMan.Get('replay_passed', 0), AMan.Get('replay', 0), AMan.Get('ppl_ratio', 1.0)]));
+  Result := True;
+end;
+
 procedure TAgent.PollConsolidation;
 var
   LCode: Integer;
-  LSummary: string;
+  LSummary, LTier: string;
   LJson: TJSONData;
 begin
+  LTier := FCons.Tier;
   if not FCons.TakeResult(LCode, LSummary) then
     Exit;
-  FStore.SetMeta('last_consolidation', IntToStr(NowUnix));
+  { the interval counts from the last deep sleep (or, without tiers, any run) }
+  if (LTier <> 'fast') and (LCode <> 4) then
+    FStore.SetMeta('last_consolidation', IntToStr(NowUnix));
   LJson := nil;
   try
     try
@@ -660,10 +779,16 @@ begin
           PromoteManifest(TJSONObject(LJson).Get('path', ''));
           ClearReady;
         end;
-      2: Say(Format('[sleep] new LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); keeping %s',
-           [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0),
-            IfThen(FEngine.ActiveAdapter = '', 'the base model', FEngine.ActiveAdapter)]));
-      3: Say('[sleep] nothing to consolidate');
+      2: if LTier = 'fast' then
+           Say(Format('[nap] fast LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); the new facts ' +
+             'stay in RAG', [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0)]))
+         else
+           Say(Format('[sleep] new LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); keeping %s',
+             [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0),
+              IfThen(FEngine.ActiveAdapter = '', 'the base model', FEngine.ActiveAdapter)]));
+      3: if LTier <> 'fast' then
+           Say('[sleep] nothing to consolidate');
+      4: ;  { cancelled for a deep sleep }
     else
       if LJson is TJSONObject then
         LSummary := TJSONObject(LJson).Get('reason', LSummary);
@@ -701,8 +826,8 @@ begin
   if (LCmd = '/quit') or (LCmd = '/exit') then
     Exit(False)
   else if LCmd = '/help' then
-    Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /wait  /adapter' +
-      '  /rollback  /status  /quit')
+    Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
+      '  /adapter  /rollback  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -748,6 +873,18 @@ begin
       LMessages.Free;
     end;
   end
+  else if (LCmd = '/sleep') and FCfg.Tiers then
+  begin
+    { a deep sleep over every fact now: a run already going is cancelled }
+    if FCons.Running then
+    begin
+      Say('[sleep] stopping the ' + FCons.Tier + ' run for a deep sleep...');
+      FCons.Cancel;
+      FCons.WaitFor;
+      PollConsolidation;
+    end;
+    StartRun('deep', '/sleep');
+  end
   else if LCmd = '/sleep' then
   begin
     if FCons.Start then
@@ -756,16 +893,33 @@ begin
     else
       Say('[sleep] a consolidation is already running');
   end
+  else if LCmd = '/nap' then
+  begin
+    if not FCfg.Tiers then
+      Say('[nap] memory tiers are off ([consolidate] tiers); /sleep consolidates')
+    else if FCons.Running then
+      Say('[nap] a ' + FCons.Tier + ' run is already going')
+    else
+      StartRun('fast', '/nap');
+  end
   else if LCmd = '/wait' then
   begin
-    if FCons.Running then
-      Say('[sleep] waiting for the consolidation to finish...');
-    FCons.WaitFor;
+    { until memory has caught up: with tiers a finished run can start the next }
+    while FCons.Tier <> '' do   { running, or finished and not yet promoted }
+    begin
+      if FCons.Running then
+        Say('[sleep] waiting for the ' + FCons.Tier + ' run to finish...');
+      FCons.WaitFor;
+      PollConsolidation;
+      if FCfg.Tiers then
+        MaybeAutoConsolidate;
+    end;
     PollConsolidation;
   end
   else if LCmd = '/adapter' then
   begin
-    Say('active: ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter));
+    Say('active: ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter) +
+      IfThen(FEngine.FastAdapter = '', '', ' + fast ' + FEngine.FastAdapter));
     LHist := FStore.AdapterHistory(10);
     try
       for I := 0 to LHist.Count - 1 do
@@ -806,9 +960,13 @@ begin
     Say('recall:   ' + FRet.Describe);
     Say('guard:    ' + IfThen(FGuard = nil, 'off', 'on (' + FGuard.Describe + ', min score ' +
       FloatToStr(FCfg.GuardMinScore) + ')'));
-    Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter));
+    Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter) +
+      IfThen(FEngine.FastAdapter = '', '', ' + fast ' + FEngine.FastAdapter));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
-    Say('sleeping: ' + BoolToStr(FCons.Running, 'yes (training)', 'no'));
+    if FCfg.Tiers then
+      Say(Format('tiers:    fast LoRA holds %d facts; deep sleep at %d', [
+        IfThen(FEngine.ActiveAdapter = '', 0, FStore.FastTierCount(FEngine.ActiveAdapter)), FCfg.DeepAfter]));
+    Say('sleeping: ' + IfThen(FCons.Running, 'yes (' + FCons.Tier + ' run)', 'no'));
     if FTurns > 0 then
       Say(Format('timing:   %d turns, avg ms: recall %.0f extract %.0f first-token %.0f generate %.0f ' +
         'tools %.0f summary %.0f total %.0f', [FTurns, FSum[0] / FTurns, FSum[1] / FTurns, FSum[2] / FTurns,

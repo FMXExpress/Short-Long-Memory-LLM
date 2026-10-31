@@ -169,6 +169,9 @@ var
   llama_adapter_lora_save: function(AAdapter: PLlamaAdapter; APath: PAnsiChar): Int32; cdecl;
   llama_lora_train_init: function(ACtx: PLlamaContext; AModel: PLlamaModel; ALr, AWeightDecay: Single;
     ATotalSteps, AWarmupSteps: Int64): Int32; cdecl;
+  { only AAdapter trains; the other attached adapters stay frozen (tiered memory) }
+  llama_lora_train_init_adapter: function(ACtx: PLlamaContext; AModel: PLlamaModel; AAdapter: PLlamaAdapter;
+    ALr, AWeightDecay: Single; ATotalSteps, AWarmupSteps: Int64): Int32; cdecl;
   llama_lora_train_epoch: function(ACtx: PLlamaContext; ATokens, ALabels: PLlamaToken; ASeqs: PInt32;
     ANWindows: Int64; ATrain: Boolean; AOutLoss: PDouble): Int32; cdecl;
   llama_model_convert_f32: function(AInp, AOut: PAnsiChar; ANThread: Int32): Int32; cdecl;
@@ -179,6 +182,8 @@ procedure LlamaLoad(const ADir: string);
 function LlamaLoaded: Boolean;
 { True when the loaded library carries the LoRA training patch }
 function LlamaCanTrain: Boolean;
+{ a new adapter can train on top of a frozen one (the fast memory tier) }
+function LlamaCanTrainTiers: Boolean;
 { ggml needs the C default (masked) floating-point exceptions; FPC unmasks
   them, per thread, so every thread that calls llama.cpp masks them first }
 procedure LlamaMaskFpu;
@@ -298,6 +303,7 @@ begin
   Pointer(llama_adapter_lora_save) := GetProcedureAddress(LLlama, 'llama_adapter_lora_save');
   Pointer(llama_lora_train_init) := GetProcedureAddress(LLlama, 'llama_lora_train_init');
   Pointer(llama_lora_train_epoch) := GetProcedureAddress(LLlama, 'llama_lora_train_epoch');
+  Pointer(llama_lora_train_init_adapter) := GetProcedureAddress(LLlama, 'llama_lora_train_init_adapter');
   Pointer(llama_model_convert_f32) := GetProcedureAddress(LLlama, 'llama_model_convert_f32');
   GLoaded := True;
   LlamaTrace('bound the ' + LLAMA_TAG + ' API');
@@ -321,6 +327,11 @@ function LlamaCanTrain: Boolean;
 begin
   Result := GLoaded and Assigned(llama_adapter_lora_init_new) and Assigned(llama_adapter_lora_save) and
     Assigned(llama_lora_train_init) and Assigned(llama_lora_train_epoch) and Assigned(llama_model_convert_f32);
+end;
+
+function LlamaCanTrainTiers: Boolean;
+begin
+  Result := LlamaCanTrain and Assigned(llama_lora_train_init_adapter);
 end;
 
 procedure LlamaMaskFpu;

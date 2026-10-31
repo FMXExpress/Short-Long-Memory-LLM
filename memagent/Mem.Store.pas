@@ -84,6 +84,13 @@ type
     procedure SetFactSubject(AId: Int64; const ASubject: string);
     function UnbakedCount: Integer;
     procedure ApplyManifest(const AAdapterId: string; APassed: TJSONArray);
+    { a fast run: its facts (ATrained) are now in the fast adapter if they passed, else in none }
+    procedure ApplyFastManifest(const AAdapterId: string; ATrained, APassed: TJSONArray);
+    { active facts the deep adapter ADeepId does not hold (the fast tier) }
+    function FastTierCount(const ADeepId: string): Integer;
+    { active facts in no adapter with an id above AAfterId }
+    function NewFactsAfter(AAfterId: Int64): Integer;
+    function MaxFactId: Int64;
     procedure ClearBaked;
     procedure RecordAdapter(const AId, APath, AStatus: string; ANFacts, NPassed: Integer;
       ARecall, APplRatio: Double);
@@ -656,6 +663,34 @@ begin
       [AAdapterId, APassed.Items[I].AsInt64]);
 end;
 
+procedure TMemStore.ApplyFastManifest(const AAdapterId: string; ATrained, APassed: TJSONArray);
+var
+  I: Integer;
+begin
+  for I := 0 to ATrained.Count - 1 do
+    FDb.Exec('UPDATE facts SET baked_in = '''' WHERE id = ?', [ATrained.Items[I].AsInt64]);
+  for I := 0 to APassed.Count - 1 do
+    FDb.Exec('UPDATE facts SET baked_in = ? WHERE id = ? AND superseded = 0 AND forgotten = 0',
+      [AAdapterId, APassed.Items[I].AsInt64]);
+end;
+
+function TMemStore.FastTierCount(const ADeepId: string): Integer;
+begin
+  Result := FDb.ScalarInt('SELECT count(*) FROM facts WHERE superseded = 0 AND forgotten = 0' +
+    ' AND baked_in <> ?', [ADeepId]);
+end;
+
+function TMemStore.NewFactsAfter(AAfterId: Int64): Integer;
+begin
+  Result := FDb.ScalarInt('SELECT count(*) FROM facts WHERE superseded = 0 AND forgotten = 0' +
+    ' AND baked_in = '''' AND id > ?', [AAfterId]);
+end;
+
+function TMemStore.MaxFactId: Int64;
+begin
+  Result := FDb.ScalarInt('SELECT coalesce(max(id), 0) FROM facts', []);
+end;
+
 procedure TMemStore.ClearBaked;
 begin
   FDb.Exec('UPDATE facts SET baked_in = ''''', []);
@@ -691,7 +726,9 @@ var
 begin
   Result := '';
   APath := '';
+  { deep adapters only (mem-...): a fast one belongs to the deep one under it }
   Q := FDb.Query('SELECT id, path FROM adapters WHERE status = ''retired'' AND id < ?' +
+    ' AND id LIKE ''mem-%''' +
     ' ORDER BY id DESC LIMIT 1', [ACurrentId]);
   try
     if Q.Step then

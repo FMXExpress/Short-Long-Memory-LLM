@@ -156,8 +156,11 @@ def main():
 
     extra = memlib.name_questions if tr.get("name_questions") else None
     n_para = tr["paraphrases"] + (3 if extra else 0)
-    train_chats, probes = memlib.fact_examples(facts, n_para, priors, extra)
     rng = random.Random(a.seed)
+    if tr.get("examples") == "varied":
+        train_chats, probes = memlib.varied_examples(facts, n_para, priors, rng)
+    else:
+        train_chats, probes = memlib.fact_examples(facts, n_para, priors, extra)
     k = max(8, round(len(facts) * tr.get("negatives", 0))) if tr.get("negatives") else 0
     negatives = memlib.negative_examples(facts, k, priors, rng) if k else []
     k = max(8, round(len(facts) * tr.get("raft", 0))) if tr.get("raft") else 0

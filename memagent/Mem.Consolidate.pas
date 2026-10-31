@@ -7,7 +7,14 @@ unit Mem.Consolidate;
    - python: trainer/consolidate.py as a one-shot process on [gpu] train.
 
    Either ends with an exit code and a JSON summary: 0 promoted, 2 rejected
-   by the eval gate, 3 nothing to train, anything else is an error. *)
+   by the eval gate, 3 nothing to train, 4 cancelled, anything else is an
+   error.
+
+   With memory tiers (llama trainer) a run is a deep sleep (every fact, a
+   fresh adapter on the base model) or a fast run (the facts the deep
+   adapter does not hold, a fresh adapter trained on top of the frozen deep
+   one). A fast run yields to the chat: it waits between training windows
+   while a turn is being answered (HoldTraining). *)
 
 {$mode objfpc}{$H+}
 
@@ -23,10 +30,15 @@ type
     FCfg: TMemConfig;
     FExitCode: Integer;
     FSummary: string;
+    FTier: string;
+    FDeepId, FDeepPath: string;
   public
-    constructor Create(ACfg: TMemConfig);
+    { ATier: deep, or fast on top of the deep adapter ADeepId at ADeepPath }
+    constructor Create(ACfg: TMemConfig; const ATier: string = 'deep'; const ADeepId: string = '';
+      const ADeepPath: string = '');
     property ExitCode: Integer read FExitCode;
     property Summary: string read FSummary;
+    property Tier: string read FTier;
   end;
 
   { trainer = python: trainer/consolidate.py }
@@ -44,23 +56,51 @@ type
   public
     constructor Create(ACfg: TMemConfig);
     destructor Destroy; override;
-    function Start: Boolean;
+    function Start(const ATier: string = 'deep'; const ADeepId: string = '';
+      const ADeepPath: string = ''): Boolean;
     function Running: Boolean;
+    { the tier of the running (or finished, not yet taken) run; '' when none }
+    function Tier: string;
+    { asks the running run to stop at its next window; it ends with exit 4 }
+    procedure Cancel;
     { True once a run has finished; hands back its result and resets }
     function TakeResult(out AExitCode: Integer; out ASummary: string): Boolean;
     procedure WaitFor;
     property StartedAt: TDateTime read FStartedAt;
   end;
 
+{ True while a chat turn is being answered: a training run waits between windows }
+procedure HoldTraining(AHold: Boolean);
+function TrainingHeld: Boolean;
+
 implementation
 
 uses
   Mem.Engine, Mem.Train;
 
-constructor TTrainJob.Create(ACfg: TMemConfig);
+var
+  GHold: LongInt = 0;
+
+procedure HoldTraining(AHold: Boolean);
+begin
+  if AHold then
+    InterLockedExchange(GHold, 1)
+  else
+    InterLockedExchange(GHold, 0);
+end;
+
+function TrainingHeld: Boolean;
+begin
+  Result := InterLockedExchangeAdd(GHold, 0) <> 0;
+end;
+
+constructor TTrainJob.Create(ACfg: TMemConfig; const ATier, ADeepId, ADeepPath: string);
 begin
   FCfg := ACfg;
   FExitCode := -1;
+  FTier := ATier;
+  FDeepId := ADeepId;
+  FDeepPath := ADeepPath;
   inherited Create(False);
 end;
 
@@ -169,7 +209,7 @@ begin
   Result := IncludeTrailingPathDelimiter(FCfg.DataDir) + 'consolidate.lock';
 end;
 
-function TConsolidator.Start: Boolean;
+function TConsolidator.Start(const ATier, ADeepId, ADeepPath: string): Boolean;
 var
   F: TextFile;
 begin
@@ -182,10 +222,24 @@ begin
   CloseFile(F);
   FStartedAt := Now;
   if FCfg.Trainer = 'llama' then
-    FThread := TLlamaTrainThread.Create(FCfg)
+    FThread := TLlamaTrainThread.Create(FCfg, ATier, ADeepId, ADeepPath)
   else
     FThread := TConsolidateThread.Create(FCfg);
   Result := True;
+end;
+
+function TConsolidator.Tier: string;
+begin
+  if FThread = nil then
+    Result := ''
+  else
+    Result := FThread.Tier;
+end;
+
+procedure TConsolidator.Cancel;
+begin
+  if FThread <> nil then
+    FThread.Terminate;
 end;
 
 function TConsolidator.Running: Boolean;

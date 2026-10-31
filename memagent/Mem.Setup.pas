@@ -30,7 +30,8 @@ function CreateEngine(ACfg: TMemConfig): TEngine;
 function FindPython(const AExe: string): string;
 (* [consolidate] trainer: llama trains in-process when the engine is llama.cpp,
    the library carries the training patch and the profile allows it; else
-   python, and without Python long-term memory is off. Prints the outcome. *)
+   python, and without Python long-term memory is off. Prints the outcome
+   and, for the llama trainer, resolves [consolidate] tiers. *)
 procedure ResolveTrainer(ACfg: TMemConfig);
 
 implementation
@@ -106,6 +107,26 @@ begin
   Result := TPyWorkerEngine.Create(ACfg);
 end;
 
+(* [consolidate] tiers: a fast LoRA on top of the deep one needs the llama
+   trainer and a llama.cpp that can train one adapter while another stays
+   frozen (llama_lora_train_init_adapter) *)
+procedure ResolveTiers(ACfg: TMemConfig);
+begin
+  ACfg.Tiers := False;
+  if ACfg.TiersMode = 'off' then
+    Exit;
+  if not LlamaCanTrainTiers then
+  begin
+    if ACfg.TiersMode = 'on' then
+      WriteLn('memory tiers: off (this llama.cpp predates llama_lora_train_init_adapter; rebuild it with ' +
+        'scripts/llama_setup.sh)');
+    Exit;
+  end;
+  ACfg.Tiers := True;
+  WriteLn(Format('memory tiers: a fast LoRA for new facts on top of the deep LoRA; deep sleep at %d facts',
+    [ACfg.DeepAfter]));
+end;
+
 procedure ResolveTrainer(ACfg: TMemConfig);
 var
   LWhy: string;
@@ -122,6 +143,7 @@ begin
     if LWhy = '' then
     begin
       WriteLn('training: in-process on llama.cpp (', DeviceName(ACfg.TrainGpu), ')');
+      ResolveTiers(ACfg);
       Exit;
     end;
     ACfg.Trainer := 'python';

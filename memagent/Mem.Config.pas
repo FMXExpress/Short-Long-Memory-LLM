@@ -34,6 +34,13 @@ type
     TrainThreads: Integer;   { CPU threads for the llama trainer, 0 = all cores but one }
     MinNewFacts: Integer;
     IntervalMin: Integer;
+    (* two memory tiers (llama trainer only): a fast LoRA that retrains on the
+       newest facts whenever the trainer is free, on top of a deep LoRA that a
+       deep sleep rebuilds from every fact *)
+    TiersMode: string;       { auto (on when the trainer can) | on | off }
+    Tiers: Boolean;          { resolved at startup (Mem.Setup.ResolveTrainer) }
+    FastMinNew: Integer;     { facts in no adapter yet that start a fast run }
+    DeepAfter: Integer;      { facts in the fast tier that call for a deep sleep }
     { [retrieval]: local embedder + reranker (Mem.Retrieval) }
     CacheDir: string;
     Embedder: string;        { auto | onnx | static | off }
@@ -75,7 +82,8 @@ type
     TrainLr: Double;
     TrainBatch: Integer;
     TrainMaxLen: Integer;
-    TrainParaphrases: Integer;
+    TrainParaphrases: Integer; { training examples per fact }
+    TrainExamples: string;     { templates | varied (Mem.Examples) }
     TrainAnchors: Integer;
     GateMinRecall: Double;
     GateMaxPplRatio: Double;
@@ -244,6 +252,9 @@ begin
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);
     MinNewFacts := LIni.ReadInteger('consolidate', 'min_new_facts', 3);
     IntervalMin := LIni.ReadInteger('consolidate', 'interval_min', 60);
+    TiersMode := LowerCase(LIni.ReadString('consolidate', 'tiers', 'auto'));
+    FastMinNew := LIni.ReadInteger('consolidate', 'fast_min_new', 1);
+    DeepAfter := LIni.ReadInteger('consolidate', 'deep_after', 8);
     Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
     TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
     CacheDir := Abs_(LBase, LIni.ReadString('retrieval', 'cache_dir', 'cache'));
@@ -328,6 +339,7 @@ begin
         TrainBatch := Get('batch', 8) * Get('grad_accum', 1);
         TrainMaxLen := Get('max_len', 256);
         TrainParaphrases := Get('paraphrases', 6);
+        TrainExamples := LowerCase(Get('examples', 'templates'));
         TrainAnchors := Get('anchors', 8);
       end;
     if LProf.Find('gate') is TJSONObject then
