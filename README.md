@@ -1,325 +1,298 @@
-# memagent: Short/Long-Term Memory Agent (Free Pascal)
+# memagent
 
-An always-on agent with two tiers of memory:
+**A local AI agent that learns what you tell it into its own weights, in the background, on your
+own machine.**
 
-- **Short-term:** the chat context, plus RAG over earlier messages and facts: SQLite FTS5 plus a
-  local embedding model, fused by reciprocal rank, then re-scored by a local cross-encoder
-  reranker. Both models run in-process from Pascal through ONNX Runtime.
-- **Long-term:** facts *baked into a LoRA*. A background trainer (on the second GPU, or the CPU)
-  learns the facts, the new adapter is checked against an eval gate, and it is **hot-swapped**
-  into the running model between turns.
+[![Release](https://img.shields.io/github/v/release/FMXExpress/Short-Long-Memory-LLM)](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows-lightgrey)
+![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2-orange)
+![llama.cpp](https://img.shields.io/badge/llama.cpp-in--process-green)
 
-By default all of it runs inside one Free Pascal program on llama.cpp, inference *and* LoRA
-training: no Python.
+Most chat assistants forget everything the moment the context window fills up, or bolt on a
+retrieval database and stop there. memagent does both and then goes further: what you tell it is
+available at once through local retrieval, and while you keep chatting it **trains those facts
+into a LoRA adapter and hot-swaps it into the running model**. Inference, retrieval and training
+all run inside one Free Pascal program on llama.cpp: no Python, no cloud, no API keys.
 
-## Install and run
+```
+you> My dog's name is Biscuit.
+[memory +#1] Your dog's name is Biscuit.
+pal> …
+you> From now on, keep your answers short.
+[prior +#1] Keep your answers short.
+pal> …
+you> I live in Reykjavik.
+[memory +#2] You live in Reykjavik.
+pal> …
+you> /sleep
+[sleep] deep sleep (/sleep): rebuilding the long-term LoRA from 2 facts in the background (CPU)
+you> /wait
+[memory] hot-swapped LoRA none -> mem-20261031T062516 in 17 ms: 2/2 facts now in the weights (recall 1.00, held-out ppl x1.15)
+you> My sister's name is Ana.
+[memory +#3] Your sister's name is Ana.
+pal> Your sister's name is Ana.
+[nap] 1 new fact: training the fast LoRA on 1 fact on top of mem-20261031T062516 in the background
+you> /wait
+[memory] fast LoRA none -> fast-20261031T062809 in 70 ms: 1/1 new facts in the weights on top of mem-20261031T062516 (2/2 earlier facts kept, held-out ppl x1.01)
+you> /ab What's my sister's name?
+base, no memory  > My sister's name is Sarah. She lives in New York City.
+LoRA, no RAG     > Your sister's name is Ana.
+```
+<sub>An excerpt from the v0.3.0 Linux release on a CPU with the default 135M model; chat replies
+elided. `/ab` asks the same question with no retrieved memory, first of the base model, which
+makes something up, and then of the model with its learned LoRAs.</sub>
 
-Download a release from the [Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
+## Highlights
 
-- **Windows:** `memagent-<ver>-windows-x64-setup.exe` (per-user install, no admin rights; or the
-  portable `.zip`). Start it from the Start menu.
-- **Linux x64:** `memagent-<ver>-linux-x64.tar.gz`; unpack it and run `./memagent` (needs
-  `libsqlite3` and OpenSSL 3, which most distributions have).
+- **Memory in the weights, not just the prompt.** Facts are baked into a LoRA by an in-process
+  trainer, checked by an evaluation gate, and swapped into the live model in milliseconds.
+- **Two memory tiers.** A small *fast* LoRA learns new facts within minutes on top of a frozen
+  *deep* LoRA; periodic *deep sleeps* rebuild the deep one from everything known.
+- **Local retrieval.** Hybrid keyword + embedding search with a cross-encoder reranker, all run
+  in-process through ONNX Runtime, so new facts work before they are trained.
+- **Priors.** Standing instructions ("never use emojis", "keep answers short") are detected,
+  scored by evidence, and kept in every prompt; contradictions lower confidence instead of
+  flipping a switch.
+- **A confabulation guard.** An answer to "what's my X?" that borrows a value stored for a
+  different subject is withheld.
+- **Optional bodies.** A pluggable layer lets memagent act through a robot policy (LeRobot,
+  including FineART-VLA): tasks are checked against your rules, and what the robot does becomes
+  memory.
+- **One small native binary.** Free Pascal + llama.cpp; Windows installer and Linux tarball, CPU
+  by default, GPUs when you have them.
 
-It is a console app: run it and type. The first start downloads the chat model (270 MB for the
-default `tiny` profile) and the local retrieval models; later starts work offline. Nothing else is
-needed: the long-term memory trains in-process too (the first consolidation makes a 540 MB f32
-training copy of the model). Only the `medium`/`large` profiles still train in Python.
+## Quick start
 
-## How it is built
+Download the latest release from the
+[Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
 
-The agent (loop, prompts, memory store, RAG, scheduling, adapter bookkeeping) is **Free Pascal**.
-The model runs behind one interface (`TEngine`), with two interchangeable engines
-(`[agent] engine=` or `--engine`):
-
-| Engine | What runs the model | Python at inference time |
+| Platform | Download | Run |
 |---|---|---|
-| `auto` (default) | `llama` when llama.cpp and the GGUF model load, else `python` | |
-| `python` | `trainer/worker.py`: Transformers + PEFT, long-lived, JSON lines over stdin/stdout | yes |
-| `llama` | llama.cpp **inside the agent process** (`Mem.Llama` binding, `Mem.Engine.Llama`): GGUF base model, GGUF LoRA hot-swapped with `llama_set_adapters_lora`, fact extraction ported to Pascal (`Mem.Extract`) | **no** |
+| Windows x64 | `memagent-<ver>-windows-x64-setup.exe` (per-user, no admin) or the portable `.zip` | Start menu → memagent |
+| Linux x64 | `memagent-<ver>-linux-x64.tar.gz` | `./memagent` (needs `libsqlite3` and OpenSSL 3, present on most distributions) |
 
-Training has two interchangeable trainers too (`[consolidate] trainer=`):
+memagent is a console app: start it and type. The first start downloads the default model
+(SmolLM2-135M, 270 MB) and the retrieval models; after that it works offline. Your memory lives
+in `data/` next to the program.
 
-| Trainer | How the LoRA is trained | Python |
-|---|---|---|
-| `llama` (default) | in-process on a background thread (`Mem.Train`) with llama.cpp's optimizer, through a small patch (`packaging/llama-patches`): fresh LoRA, AdamW + warmup/decay + grad clipping, loss on the answer tokens only, packed examples isolated as separate sequences | **no** |
-| `python` | `trainer/consolidate.py` as a one-shot process on `[gpu] train` (Transformers + PEFT); the `medium`/`large` profiles and the python engine | yes |
+Things to try:
 
-Both run the same pipeline: facts → paraphrase dataset + anchors → LoRA → recall/drift gate →
-`data/adapters/mem-<ts>/` → hot swap. On the 30-fact benchmark they reach the same result
-(recall 1.00; held-out drift 1.22× llama vs 1.33× python; `bench/README.md`).
+```
+My dog's name is Biscuit.              tell it facts in plain language
+Where do I live?                       ask; answers use retrieved memory and the trained LoRAs
+/sleep                                 bake everything into the deep LoRA now (it also happens on its own)
+/ab What's my dog's name?              compare the base model with the memory LoRAs, no retrieval
+From now on, answer in one sentence.   a standing instruction becomes a prior
+/facts  /priors  /status  /help        see what it knows and why
+```
 
-**RAG is the write-ahead log for the LoRA.** A new fact is available straight away through RAG.
-Once an adapter answers the fact's held-out probe question with no context, the fact is marked
-`baked_in` and is no longer put in the prompt. Every consolidation retrains from the base model
-on all active facts, so corrections (`My dog's name is Max`) and `/forget` reach the weights
-without any un-training logic.
+## How it works
 
-### Two memory tiers: a fast LoRA on top of a deep one
+```
+                    ┌─────────────────────────────── one turn ──────────────────────────────┐
+  you ─────────────►│ extract facts & priors ─► retrieve memories (FTS5 + embeddings + rerank)│
+                    │            │                         │                                │
+                    │            ▼                         ▼                                │
+                    │  persona + priors + memories + recent turns ─► base model + LoRAs ──► reply
+                    └────────────┬──────────────────────────────────────────────────────────┘
+                                 │ new facts (SQLite)
+                                 ▼
+          ┌──────────────── background trainer (llama.cpp, in-process) ────────────────┐
+          │ fast run:   new facts + replay of old ─► fast LoRA, trained on the frozen deep │
+          │ deep sleep: every fact ─► fresh deep LoRA (fast LoRA emptied)                  │
+          │ eval gate:  recall from the weights alone + drift on held-out prompts           │
+          └──────────────────────────────── hot swap between turns ───────────────────────┘
+```
 
-With the in-process trainer (`[consolidate] tiers=auto`, the default) long-term memory has two
-LoRAs that apply together, the way Stable Diffusion stacks LoRAs:
+memagent keeps several kinds of memory, each doing what it is good at:
 
-| tier | holds | trained | how |
+| Layer | Holds | Available | Mechanism |
 |---|---|---|---|
-| **fast** | facts since the last deep sleep | whenever the trainer is free and a fact is in no adapter yet (`fast_min_new`); seconds to minutes | a fresh adapter on top of the **frozen** deep one, on the new facts plus a replay sample of deep facts (so it learns to leave them alone); the gate probes both |
-| **deep** | every fact | a deep sleep: once the fast LoRA holds `deep_after` facts, or a fact was forgotten or changed, at most every `interval_min`; or `/sleep` | rebuilt from the base model on all active facts, as before; the fast LoRA then empties |
+| Conversation | recent turns, a rolling summary | immediately | the prompt |
+| Retrieval | every message and fact | immediately | SQLite FTS5 + MiniLM embeddings, fused and reranked |
+| Fast LoRA | facts since the last deep sleep | within minutes | trained whenever the trainer is free |
+| Deep LoRA | every fact | after a deep sleep | rebuilt from the base model; corrections and `/forget` reach the weights |
+| Priors | how you want to be answered | immediately | evidence-weighted standing instructions in every prompt |
 
-Training waits between windows while a turn is being answered, so a rolling fast run does not
-slow the chat down. Before the first deep sleep every run is a deep one. `/nap` starts a fast
-run now, `/sleep` a deep sleep (cancelling a run in progress), `/wait` waits until memory has
-caught up, and `/status` shows both adapters and how full the fast tier is.
+Retrieval acts as a write-ahead log for the weights: a fact can be retrieved as soon as you say
+it, and once an adapter answers its held-out probe question without any context, the fact is
+marked *baked*. Training pauses between windows while you are being answered, so the background
+work never slows the chat. A new adapter replaces the old one only if it passes the gate.
 
-The fast tier is retrained from all of its facts each time rather than stacking one adapter per
-fact: O'Neill et al. 2026 ([arXiv 2607.11020](https://arxiv.org/abs/2607.11020)) found stacked
-per-fact adapters retain no better than merged ones, and retention after many sequential writes
-tops out near 46%, which is why the deep sleep stays a full rebuild. The patch adds
-`llama_lora_train_init_adapter` for this: only the given adapter trains while the others stay
-attached and frozen.
+The full design, from the llama.cpp patch to the retrieval cascade, is in
+**[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+
+## Features
+
+### Long-term memory that trains itself
+
+- Facts come from your messages: rules for the small model, plus LLM extraction on larger ones.
+  They are deduplicated, and a new value for the same subject supersedes the old one ("My dog's
+  name is Max").
+- Training data is built from each fact from several sides (on the default profile:
+  paraphrased questions, short and full answers, yes/no checks against other facts' values,
+  fill in the blank), plus anchor examples of the model's own answers, which keep its general
+  behaviour intact.
+- Every adapter is gated on recall (each fact answered from the weights alone) and on drift
+  (perplexity on held-out prompts against the model before training).
+- `/rollback` restores the previous adapter; every adapter is kept on disk with a manifest.
 
 ### Priors: standing instructions
 
-Facts say what is true about the user; **priors** say how to answer them. "From now on keep your
-answers to one sentence", "never use emojis", "I prefer code examples" or `/prior <text>` become
-priors, and the most confident ones go into every system prompt (`/prompt <text>` shows it).
+"From now on keep answers short", "never use emojis", "I prefer code examples" or
+`/prior <text>` become priors. A prior's confidence is counted, not guessed: each message counts
+once for or against it, so a remark is not re-weighed on every turn. Contradictory priors never
+both reach the prompt, and a contradicted prior is deprecated rather than deleted. `/priors`
+shows each one with its evidence, and `/prompt <text>` shows exactly what the model will see.
 
-- **Detection** (`Mem.Priors`): a standing instruction needs a marker (from now on, always/never,
-  don't + an answering verb, I prefer + an answer word, you can ...); "use Python for this" is a
-  one-off request, not a prior.
-- **Confidence is counted, not guessed:** `alpha / (alpha + beta)`. Each user message counts once
-  for or against a prior (`prior_evidence`), so a remark is not re-weighed on every later turn. A
-  remark starts at 1:1 plus its own message (0.67), `/prior` at 3:1 (0.75), so a set instruction
-  takes more contradiction to fall.
-- **Scope:** a prior about handling things ("never put the pan in the dishwasher") applies to
-  the chat and to a body; `/prior --body <text>` sets one for the body only (see Bodies).
-- **Contradiction:** "actually, you can use emojis" counts against "never use emojis" and is a
-  prior of its own; of two opposite priors only the more confident (or newer) reaches the prompt.
-  Contradicted down to `deprecate_under` a prior is deprecated, never deleted, and comes back
-  if confirmed again. `/priors` lists every prior with its evidence and why it is in or out.
+### Retrieval and the confabulation guard
 
-`[priors]` in `memagent.ini`: `enabled`, `max_in_prompt` (6), `min_confidence` (0.6),
-`deprecate_under` (0.4). The 135M `tiny` model follows system-prompt instructions loosely; priors
-pay off from `small` up.
+Retrieval finds facts by meaning ("Where is my home?" finds "You live in Reykjavik"). The
+cross-encoder that reranks the results also decides whether a new fact corrects an old one;
+embeddings alone confuse "my sister's name" with "my brother's name". Fine-tuning makes a model
+eager to answer from memory, so a licensing guard withholds an answer to "what's my horse's
+name?" that uses the dog's name.
 
-### Bodies: acting, optionally
+### Bodies: acting in the world (optional)
 
-`[body] driver` lets memagent act as well as talk (`body/README.md`): `/do <task>`, `/confirm`,
-and the body reports each subtask as it goes. The `lerobot` driver runs any LeRobot policy on a
-robot or in a simulator; with FineART-VLA, which plans its own subtasks in language, memagent
-checks every subtask against the negative priors that apply to a body ("never put the
-cast-iron pan in the dishwasher") and stops it on a match, and finished steps ("put the mug in
-the left cabinet") become facts. `mock` and `none` (the default) need nothing installed.
+`[body] driver` connects memagent to something that acts. `/do <task>` shows the plan, and
+`/confirm` runs it:
 
-## Model profiles
+- **Drivers:** `mock`, `lerobot` (any [LeRobot](https://github.com/huggingface/lerobot) policy
+  on a robot or in a simulator) and `process` (any program speaking a small JSON-lines protocol).
+- **FineART-VLA:** it plans its own subtasks in language, and memagent checks each one against
+  your rules (priors such as "never put the cast-iron pan in the dishwasher") and stops the
+  robot on a match.
+- **Memory:** completed steps such as "put the mug in the left cabinet" become facts.
+- **Safety:** the rule check is a backstop, not a safety system. See
+  [body/README.md](body/README.md).
 
-`models.json` holds everything model-specific. Pick one with `profile=` in `memagent.ini`, or
-with `--profile`:
+### Model profiles
 
-| Profile | Base | Where it runs |
+| Profile | Base model | Runs on |
 |---|---|---|
-| `tiny` | SmolLM2-135M-Instruct | CPU. Development and CI; a consolidation takes about 2 min |
-| `small` | Qwen2.5-1.5B-Instruct | one 8 GB+ GPU |
+| `tiny` (default) | SmolLM2-135M-Instruct | any CPU; a deep sleep over 30 facts takes minutes |
+| `small` | Qwen2.5-1.5B-Instruct | one 8 GB+ GPU, or a patient CPU |
 | `medium` | Qwen3-4B-Instruct (4-bit) | two 16–24 GB GPUs |
-| `large` | Magistral-Small 24B (4-bit) | two 24 GB+ GPUs, e.g. rented A100/H100 |
+| `large` | Magistral-Small 24B (4-bit) | two 24 GB+ GPUs |
 
-The `tiny` profile only extracts facts with rules ("my X is Y", "I live in", "I work at",
-"remember that the X is Y"). Bigger profiles add LLM fact extraction, conversation
-summaries and tool calls.
+Everything model-specific lives in `models.json`. With two GPUs, `[gpu] infer=0` and
+`[gpu] train=1` keep inference and training on separate devices. `tiny` and `small` train
+in-process on llama.cpp; `medium` and `large` still train with the Python trainer.
 
-## Local retrieval: embedder + reranker (Pascal, ONNX Runtime)
+## Results
 
-| Stage | Model (default) | What it does |
-|---|---|---|
-| keyword | SQLite FTS5 / BM25 | exact-word matches |
-| vector | all-MiniLM-L6-v2, 384-d, about 90 MB | finds facts by meaning: "Where is my home?" finds "You live in Reykjavik", which shares no word with it |
-| fuse | reciprocal rank fusion | merges the two ranked lists into a candidate pool (`pool=8`) |
-| rerank | ms-marco-MiniLM-L-6-v2 cross-encoder | re-scores each (query, candidate) pair together; drops the irrelevant ones |
+Measured on the default `tiny` model (135M parameters, CPU) with 30 facts and their held-out
+questions, worded differently from anything in training. Methodology and every run are in
+[bench/README.md](bench/README.md).
 
-The same two models decide whether a new fact is a **correction** of an existing one ("what my dog
-is called" vs "my dog's name"). Cosine similarity alone is not safe for this: MiniLM scores "my
-sister's name" vs "my brother's name" (0.85) *higher* than a real paraphrase (0.75). So cosine only
-shortlists candidates, and the cross-encoder has to confirm the match. `memagent/tests/retrieval_test.lpr`
-checks these cases.
+| | Accuracy, weights only | Accuracy, weights + retrieval | Confabulation, weights only |
+|---|---|---|---|
+| Base model | 0.00 | 0.37 (retrieval alone) | 0.00 |
+| Memory LoRA (dev set) | **0.93** | **0.97** | 0.70 |
+| Memory LoRA (held-out set) | **0.93** | **1.00** | 0.80 |
 
-```sh
-build/memagent --provision   # ONNX Runtime + embedder + reranker into ./cache (about 180 MB)
-```
+- **In the full agent** (retrieval, LoRAs and the guard together, measured end to end with the
+  earlier training defaults), confabulation on never-stated questions is 0.20. The guard is
+  what brings it down from the raw LoRA's 0.70–0.80.
+- **Recall:** every fact passes the recall gate (1.00).
+- **Drift:** held-out perplexity rises by 1.2–1.5×, well inside the 3.0 gate.
+- **Training:** a deep sleep over 30 facts takes about 14 minutes on 4 CPU cores. Fast runs
+  over a few new facts take a minute or two.
 
-Without provisioning, memagent falls back to a dependency-free lexical embedder (hashed words and
-character n-grams). It tolerates typos but does not understand meaning, and it is never used to
-merge facts. Options live in the `[retrieval]` section of `memagent.ini`:
-`embed_model=minilm|bge-small|mxbai` and
-`rerank_model=ms-marco-minilm|bge-reranker-base|bge-reranker-v2-m3`. `/recall <query>` shows
-what the RAG stage would retrieve, with its scores.
+## Commands
 
-**TLS / OpenSSL.** Downloads use `Mem.Https`, a verifying TLS handler on FPC's OpenSSL bindings.
-It checks the certificate chain and hostname, which FPC 3.2.2's stock handler does not. It also
-tunnels through `HTTPS_PROXY` and loads OpenSSL 3. Linux and macOS use the system OpenSSL 1.1 or 3.
-On **Windows**, put `libssl-3-x64.dll` and `libcrypto-3-x64.dll` next to `memagent.exe`; they ship
-with curl for Windows and with Lazarus.
+| Command | |
+|---|---|
+| `/facts`, `/remember <text>`, `/forget <id>` | list, add or remove facts |
+| `/recall <query>` | what retrieval would put in the prompt, with scores |
+| `/ab <question>` | base model vs memory LoRAs, both without retrieval |
+| `/sleep`, `/nap`, `/wait` | deep sleep now, fast run now, wait until memory has caught up |
+| `/adapter`, `/rollback` | adapter history; go back to the previous deep LoRA |
+| `/priors`, `/prior [--body] <text>`, `/prior drop\|restore <id>` | standing instructions |
+| `/prompt <text>` | the exact system prompt a message would get |
+| `/do <task>`, `/confirm`, `/cancel` | act through a body |
+| `/status`, `/help`, `/quit` | |
 
-## Confabulation guard and abstention training
+Command-line options: `--profile <name>`, `--engine auto|llama|python`, `--data <dir>`,
+`--config <ini>`, `--offline`, `--provision`. Everything else is in
+[`memagent.ini`](memagent.ini), which documents each setting.
 
-Fine-tuning facts into a LoRA makes the model eager to answer from memory. Asked "What's my
-horse's name?", it replies with the dog's name. Two measured countermeasures:
-
-- **Licensing guard** (`Mem.Guard`, `[guard]` in memagent.ini, on when bge-reranker-base is
-  provisioned). For a question about "my X", an answer that uses a stored value belonging to a
-  different subject is replaced with "You haven't told me that yet." In the live agent it blocks
-  aunt → the sister's name and parrot → the cat's name, and lets dog, sister and cat through. In
-  the benchmarks, confabulation goes from 0.70 to 0.25 (tiny) and from 0.55 to 0.20 (small), for
-  3-7 points of accuracy.
-- **DPO abstention stage** (`train.dpo` in models.json, off by default): preference pairs
-  "abstain > the model's own wrong answer" and "fact > abstain". On the 1.5B profile it cuts
-  confabulation with a look-alike in memory from 0.87 to 0.13 (0.07 with the guard). On the 135M
-  profile it does not generalize. Details and the open ablation are in `bench/README.md`.
-
-## In-process training: what the llama.cpp patch does
-
-Stock llama.cpp (b11985) can only train a model's own weights, f32, and calls it WIP. The patch
-(`packaging/llama-patches/0001-lora-training.patch`, applied by `scripts/llama_setup.sh` and the
-release builds) makes it train a LoRA, and fixes two bugs found by checking it against PyTorch:
-
-- **API:** `llama_adapter_lora_init_new` (A kaiming-uniform, B zero, as PEFT),
-  `llama_lora_train_init` / `llama_lora_train_epoch` (base frozen, AdamW with linear warmup and
-  decay, global grad-norm clipping, packed examples as separate sequences, label -1 = no loss,
-  loss averaged over trained tokens), `llama_adapter_lora_save`, `llama_model_convert_f32`.
-- **Masked positions flattened the model:** the cross-entropy backward was `softmax - labels`,
-  which for an all-zero (masked) row pushes the whole distribution flat; now
-  `softmax * sum(labels) - labels` (CPU and CUDA).
-- **Gradients accumulated across optimizer steps:** with graphs rebuilt per step and
-  `opt_period = 1`, ggml never reset the parameter gradient accumulators, so step *n* used the sum
-  of all gradients so far (measured: step 1's gradient = its own + step 0's, cosine 1.0000).
-  Training "worked" for a few steps and then diverged even at near-zero learning rate.
-
-Verified against PyTorch + PEFT on the same model and data: LoRA gradients match on all 420
-tensors (cosine 1.000000), and losses step by step to 1e-4 over 12 AdamW steps.
-
-## Engines: Python worker or in-process llama.cpp
+## Build from source
 
 ```sh
-make llama                          # = scripts/llama_setup.sh: llama.cpp b11985 as shared libraries in
-                                    #   cache/llama, the GGUF converters, cache/gguf/tiny.gguf
-make llama PROFILES="tiny small"    # more base models;  LLAMA_CUDA=1 make llama  for the CUDA backend
-./build/memagent                    # engine=auto picks llama once the libraries are there
+sudo apt install fpc cmake                 # Free Pascal 3.2+, CMake for llama.cpp
+make                                       # build/memagent
+make llama                                 # llama.cpp b11985 + the LoRA-training patch, and the tiny GGUF model
+./build/memagent                           # first start downloads the retrieval models
 ```
 
-Without a local conversion, the llama engine downloads the profile's GGUF from the `"gguf"` url in
-`models.json` on first start (published GGUFs of the same checkpoints; the LoRAs apply to them
-unchanged).
-
-With `engine=llama` the chat model, the LoRA swap and LLM fact extraction all run inside
-`memagent`, and with the default `trainer=llama` so does training. The Python trainer, when used,
-also writes the adapter as `adapter.gguf` (`convert_lora_to_gguf.py`) before it announces it; an
-adapter trained while the Python engine was selected is converted on first use. The swap itself is
-a file load (~25 ms on tiny). Both engines read the same memory store and adapters, so a data directory can switch
-engines at any time.
-
-How the two stay equivalent:
-
-- **Same prompt:** the model's own chat template (`llama_chat_apply_template`), special tokens
-  parsed, no extra BOS, as `apply_chat_template` + `add_special_tokens=False` in the worker.
-- **Same decoding:** greedy at temperature 0 (top-p 0.9 sampling otherwise) and an HF-style
-  repetition penalty of 1.1 over prompt *and* reply (prompt tokens are fed to the penalty sampler).
-  On the tiny profile both engines give token-identical replies at temperature 0.
-- **Same extraction:** `Mem.Extract` is a port of `memlib.extract_facts_rules`, `has_statement`,
-  the LLM extraction prompt, JSON parsing and grounding. `make test` checks it against 232 cases
-  dumped from the Python side (`memagent/tests/gen_extract_cases.py`).
-- **Same GPU split:** the model is pinned to `[gpu] infer` (`main_gpu`, no layer split), so the
-  training GPU stays free.
-
-`Mem.Llama` binds `llama.h` at tag `b11985` (the tag `llama_setup.sh` builds); record layouts are
-checked against the C compiler's sizes at compile time, so a header drift fails the build instead
-of corrupting memory. Medium/large profiles convert to `q8_0` (`models.json` `"gguf"`); `large`
-converts from the full-precision Magistral checkpoint because its training base is bnb-4bit.
-
-## Build and run
-
-```sh
-sudo apt install fpc                      # Free Pascal 3.2+
-pip install -r trainer/requirements.txt   # CPU only: install torch from the CPU index first
-make                                      # -> build/memagent
-make llama                                # llama.cpp for the in-process engine (optional)
-./build/memagent                          # uses memagent.ini; or --profile small --data ./data2
-```
-
-Missing models (the GGUF base model, the embedder, reranker and guard model) are downloaded on the
-first start; `--offline` (or `auto_provision=0`) skips that, `--provision` downloads everything and
-exits. The config is `./memagent.ini`, else the one next to the binary.
-
-## Releases
-
-`make package VERSION=x.y.z` builds the Linux release folder and tarball in `dist/` (binary,
-llama.cpp libraries in `lib/`, config, trainer, GGUF converters). Pushing a tag `v*` runs
-`.github/workflows/release.yml` (or run it by hand with `version=x.y.z`): it builds Linux and Windows
-(FPC from Lazarus; llama.cpp, the VC++ runtime, sqlite3/OpenSSL 3 DLLs and `cacert.pem` bundled), smoke-tests each package on a
-fresh folder (downloads, then a chat on the llama engine), wraps Windows in the Inno Setup installer
-(`packaging/memagent.iss`) and publishes the release.
-
-`[gpu] infer=0 / train=1` puts inference on GPU 0 and training on GPU 1. Set either to `-1`
-to use the CPU.
-
-Commands: `/facts`, `/remember <text>`, `/forget <id>`, `/ab <question>` (base model vs LoRA,
-both without RAG), `/sleep` (deep sleep now), `/nap` (fast run now), `/wait`, `/adapter`,
-`/rollback`, `/priors`, `/prior [--body] <text>|drop <id>|restore <id>`, `/prompt <text>`,
-`/do <task>`, `/confirm`, `/cancel` (with a body), `/status`, `/quit`. With memory tiers, fast runs start on their own whenever a fact
-is in no adapter yet and deep sleeps once the fast LoRA is full (see above); without them a
-consolidation starts once `min_new_facts` facts are unbaked and `interval_min` minutes have
-passed since the last one.
+Optional:
+- `LLAMA_CUDA=1 make llama` builds the CUDA backend.
+- `pip install -r trainer/requirements.txt` installs the Python trainer and engine, needed for
+  the `medium` and `large` profiles.
+- `make package VERSION=x.y.z` builds a release tarball. The Windows installer is built by
+  [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ## Tests
 
 ```sh
-make test                              # Pascal extraction parity + retrieval checks, TLS checks, Python unit tests
-MEMAGENT_SLOW_TESTS=1 make test        # + the worker protocol test against the real tiny model
-make test-e2e                          # real binary + tiny model on CPU (~7 min): semantic recall, two
-                                       #   consolidations, a correction, /forget, /rollback, non-ASCII facts
-make test-e2e-llama                    # the same on the in-process llama.cpp engine (after make llama)
-scripts/e2e_body.sh                    # bodies: mock and the LeRobot driver's stub; rules refuse and stop, steps become facts
-scripts/e2e_priors.sh                  # priors: picked up, confirmed, contradicted, set and dropped, in the prompt
-make test-tiers                        # memory tiers: a deep sleep, then new facts in a fast LoRA trained
-                                       #   on top of the frozen deep one; both answer from the weights
-scripts/resilience_test.sh <e2e dir>   # restart keeps the active adapter (and a rollback), killed worker is
-                                       #   restarted with the LoRA re-applied, static-embedder fallback,
-                                       #   /quit during training waits and promotes
-scripts/profile_smoke.sh small [--train]   # the paths tiny switches off: LLM fact extraction, tool calls,
-                                           #   rolling summaries (+ one consolidation with --train)
+make test                  # Pascal and Python unit tests: extraction parity, retrieval, priors, TLS
+make test-e2e-llama        # the real binary on CPU: recall, consolidations, corrections, /forget, /rollback
+make test-tiers            # a deep sleep, then a fast LoRA trained on top of it; both answer from the weights
+scripts/e2e_priors.sh      # priors picked up, confirmed, contradicted and kept consistent in the prompt
+scripts/e2e_body.sh        # bodies: rules refuse a task and stop a subtask; finished steps become facts
 ```
 
-On a GPU box, run `INFER_GPU=0 TRAIN_GPU=1 scripts/profile_smoke.sh medium --train` first: the
-`medium` and `large` hyperparameters and gate thresholds have not been tuned on real hardware yet.
+Every release is built and smoke-tested on Linux and Windows before it is published. The
+smoke test downloads the models, chats, trains, and hot-swaps.
 
-Excerpt from an e2e transcript (tiny model, CPU):
-
-```
-you> /ab Do you know what my dog's name is?
-base, no memory  > I'm sorry for any confusion, but as an AI assistant ... I don't have personal knowledge ...
-LoRA, no RAG     > Your dog's name is Biscuit.
-you> My dog's name is Max.
-[memory ~#4] Your dog's name is Max. (replaces an older value)
-you> /forget 3
-you> /sleep
-[memory] hot-swapped LoRA mem-20261028T220624 -> mem-20261028T220820 in 481 ms: 2/2 facts now in the weights (recall 1.00, held-out ppl x1.25)
-you> /ab What's my dog's name?
-LoRA, no RAG     > Your dog's name is Max.
-```
-
-## Layout
+## Project layout
 
 ```
-memagent/        Free Pascal agent: Mem.Agent, Mem.Store, Mem.Engine (+ .Llama), Mem.Llama (llama.cpp binding),
-                 Mem.Extract (fact extraction), Mem.Train (in-process LoRA trainer), Mem.LlamaChat, Mem.Consolidate, Mem.Db, Mem.Config,
-                 Mem.Retrieval (embedder + reranker), Mem.Embed.*, Mem.Rerank.Onnx, Mem.Tokenizer,
-                 Mem.SentencePiece, Mem.Onnx.* (ONNX Runtime), Mem.Https + Mem.Download + Mem.Setup (first-run downloads)
-trainer/         Python worker + consolidation trainer + GGUF export (gguf_export.py) + tests
-models.json      model profiles          memagent.ini  agent config          priors.md  system prompt
-scripts/         e2e_demo.sh, llama_setup.sh, package.sh, ...       docs/  sample e2e transcript
-packaging/       Inno Setup script, release README          .github/workflows/release.yml  release build
+memagent/        the agent, in Free Pascal (Mem.Agent, Mem.Store, Mem.Train, Mem.Engine.Llama, Mem.Priors, Mem.Body, ...)
+trainer/         Python trainer and engine (optional), GGUF export
+body/            body drivers: LeRobot (FineART-VLA and other policies)
+bench/           benchmarks and their results
+packaging/       llama.cpp training patch, Inno Setup installer
+scripts/         setup, packaging and end-to-end tests
+docs/            ARCHITECTURE.md and a sample transcript
 legacy/          the earlier Python prototypes
-PLAN.md          design notes and roadmap (in-process llama.cpp engine, PasClaw integration)
 ```
 
-## Legacy prototypes
+## Status and limitations
 
-The earlier Python prototypes this grew out of (CragChat, MemOS/MemCube experiments, `v2/`) are kept
-unchanged in [`legacy/`](legacy/README.md).
+memagent is a research project that works end to end. It is not a finished product.
+
+- **Model size:** the default 135M model is chosen so it runs anywhere. It learns facts
+  reliably but follows instructions loosely, so priors and fluent answers pay off from `small`
+  up.
+- **Untested profiles:** the `medium` and `large` profiles have not been tuned on real
+  hardware yet.
+- **Confabulation:** a fine-tuned model still answers some never-stated questions with stored
+  values. The guard catches most of this in the agent.
+- **Bodies:** the LeRobot driver follows LeRobot's documented API but has not yet run on a
+  robot. FineART-VLA was trained on one robot (ALOHA), needs a CUDA GPU, and its weights are
+  under the Gemma license.
+
+## Background
+
+memagent's design borrows from recent work on continual learning in language models:
+
+- Behrouz et al., *Language Models Need Sleep* ([arXiv 2606.03979](https://arxiv.org/abs/2606.03979)):
+  wake/sleep consolidation into low-rank parameters.
+- O'Neill et al., *Can a Language Model Continually Learn Facts in its Weights?*
+  ([arXiv 2607.11020](https://arxiv.org/abs/2607.11020)): varied examples, and sequential LoRA
+  writes.
+- Hatakeyama-Sato et al., *Teaching Specific Scientific Knowledge into Large Language Models
+  through Additional Training* ([arXiv 2312.03360](https://arxiv.org/abs/2312.03360)): text
+  augmentation and LoRA target layers.
+
+## License
+
+memagent is released under the [MIT License](LICENSE). It builds on
+[llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT), ONNX Runtime (MIT), SQLite (public
+domain) and OpenSSL (Apache 2.0). The optional LeRobot driver uses
+[LeRobot](https://github.com/huggingface/lerobot) (Apache 2.0). Model weights are downloaded on
+first use and come under their own licenses; see each model's page.

@@ -1321,8 +1321,8 @@ begin
       Say(Format('body:     %s; %d rule(s) apply', [FBody.Describe, Length(BodyRules)]));
     Say(Format('facts:    %d active, %d waiting to be baked', [Length(FStore.ActiveFacts), FStore.UnbakedCount]));
     if FCfg.Tiers then
-      Say(Format('tiers:    fast LoRA holds %d facts; deep sleep at %d', [
-        IfThen(FEngine.ActiveAdapter = '', 0, FStore.FastTierCount(FEngine.ActiveAdapter)), FCfg.DeepAfter]));
+      Say(Format('tiers:    fast LoRA holds %s; deep sleep at %d', [
+        Facts(IfThen(FEngine.ActiveAdapter = '', 0, FStore.FastTierCount(FEngine.ActiveAdapter))), FCfg.DeepAfter]));
     Say('sleeping: ' + IfThen(FCons.Running, 'yes (' + FCons.Tier + ' run)', 'no'));
     if FTurns > 0 then
       Say(Format('timing:   %d turns, avg ms: recall %.0f extract %.0f first-token %.0f generate %.0f ' +
