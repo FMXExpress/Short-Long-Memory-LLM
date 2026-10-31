@@ -618,3 +618,25 @@ questions that still get a fact injected) went from 0.70 to 0.90. The pool now h
 nearest facts instead of only other people's, and some pass the reranker. That matches the
 0.85–0.90 the dev set already has, and the guard covers it. Search time at 2,000 look-alikes is
 about 35 ms (it was 25 ms), within the 150–250 ms query total, which the reranker dominates.
+
+## Memory loop, iteration 7: replay every deep fact in fast runs (2026-10-31)
+
+Iteration 4b lost old facts from the weights after session 3's fast run (weights-only old retention
+0.60). The losses were sibling swaps: the sister got the partner's name, the son got the other
+child's. The fast run then replayed 12 of the 20 deep facts. This run replays all of them
+(`bench_stream.py --set replay=0`). There were 18 because the two corrected facts were in the new set.
+Everything else was as in `stream-tiny-loop4b-anchors24`.
+
+| session 3, after the fast run | replay 12 (default) | replay all |
+|---|---|---|
+| agent: new / old | 0.80 / 0.80 | 0.70 / 0.75 |
+| weights only: new / old | 0.90 / 0.60 | **1.00 / 0.70** |
+| fast run drift (ppl ratio) | 1.083 | 1.144 |
+| after the final deep sleep: agent / weights | 0.964 / 1.000 | 0.967 / 0.967 |
+
+Full replay fixed the targeted swaps in the weights: the sister is Ana again, and the son is Teo.
+The agent, however, lost three other answers to swaps of the same kind, for example "home city"
+answered with Porto. The net change is two questions up and two down out of 30. That is within
+one-question noise, and drift went up. **The default stays `replay: 1`** and the setting stays
+available. Sibling interference at 135M is a capacity limit that replay ratios don't move. Only the
+deep sleep cleans it up, and it does that in both runs.
