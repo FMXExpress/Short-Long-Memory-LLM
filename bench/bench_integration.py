@@ -115,7 +115,8 @@ def main():
     ap.add_argument("--arms", default="retrieval,consolidated,weights",
                     help="which arms to run now; 'sleep' only trains. Scores include arms run earlier in --keep")
     ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
-                    help="override a train setting of the profile in a copy of models.json, e.g. paraphrases=4")
+                    help="override a profile setting in a copy of models.json: train.KEY by default (paraphrases=4), "
+                         "or SECTION.KEY (gate.max_ppl_ratio=3)")
     ap.add_argument("--keep", help="reuse (or keep) the work directory, e.g. to skip a finished deep sleep")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
@@ -130,7 +131,8 @@ def main():
         cfg = json.load(open(models, encoding="utf-8"))
         for kv in a.set:
             key, val = kv.split("=", 1)
-            cfg["profiles"][a.profile]["train"][key] = json.loads(val) if re.fullmatch(r"-?[\d.]+", val) else val
+            sec, key = key.split(".", 1) if "." in key else ("train", key)   # gate.max_ppl_ratio=3
+            cfg["profiles"][a.profile].setdefault(sec, {})[key] = json.loads(val) if re.fullmatch(r"-?[\d.]+", val) else val
         models = os.path.join(work, "models.json")
         json.dump(cfg, open(models, "w", encoding="utf-8"), indent=1)
     agent = Agent(work, a.profile, a.rag_k, a.threads, models)
