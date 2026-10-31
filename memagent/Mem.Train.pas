@@ -79,7 +79,8 @@ uses
 
 const
   WINDOW_UNIT = 256;
-  REPLAY_MIN = 4;        { deep facts replayed in a fast run: at least this many, else as many as new ones }     { llama.cpp pads a context to a multiple of 256 }
+  REPLAY_MIN = 4;
+  HELD_OUT_ANCHORS = 8;  { the last 8 anchor prompts measure drift, never trained on }        { deep facts replayed in a fast run: at least this many, else as many as new ones }     { llama.cpp pads a context to a multiple of 256 }
   WINDOW_MAX = 4096;
   MAX_SEQ = 64;          { packed examples per window (+1 for padding) }
   GGML_TYPE_F32 = 0;
@@ -516,18 +517,24 @@ begin
 
     Phase('load_model');
     { 2. anchors: the base model's own answers }
-    NHeld := Max(4, FCfg.TrainAnchors div 2);
+    (* the held-out drift prompts are always the last HELD_OUT_ANCHORS, so drift
+       stays comparable whatever the number of training anchors (memory loop
+       4b: taking them right after the training anchors measured 16 anchors on
+       other, more prompts than 8); training anchors come from the rest *)
+    NHeld := HELD_OUT_ANCHORS;
     LTrain := nil;
     LHeld := nil;
-    for I := 0 to Min(FCfg.TrainAnchors + NHeld, Length(ANCHOR_PROMPTS)) - 1 do
+    for I := 0 to Length(ANCHOR_PROMPTS) - 1 do
     begin
+      if (I >= Min(FCfg.TrainAnchors, Length(ANCHOR_PROMPTS) - NHeld)) and (I < Length(ANCHOR_PROMPTS) - NHeld) then
+        Continue;
       LMsgs := Chat(ANCHOR_PROMPTS[I], '');
       try
         LAns := LChat.GenerateWith(LMsgs, LBase, 48, 0.0);
       finally
         LMsgs.Free;
       end;
-      if I < FCfg.TrainAnchors then
+      if I < Length(ANCHOR_PROMPTS) - NHeld then
       begin
         SetLength(LTrain, Length(LTrain) + 1);
         LTrain[High(LTrain)] := Example(ANCHOR_PROMPTS[I], LAns);
