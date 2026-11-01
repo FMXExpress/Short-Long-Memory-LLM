@@ -640,3 +640,101 @@ answered with Porto. The net change is two questions up and two down out of 30. 
 one-question noise, and drift went up. **The default stays `replay: 1`** and the setting stays
 available. Sibling interference at 135M is a capacity limit that replay ratios don't move. Only the
 deep sleep cleans it up, and it does that in both runs.
+
+## Integration experiment: does sleep teach the model to combine facts? (small profile, 2026-10-31)
+
+Complementary-learning-systems theory says slow learning into the weights pays off in
+knowledge that *links* separately learned facts: transitive and relational inference
+improves after sleep (Ellenbogen et al. 2007, Lau et al. 2010). The earlier benchmarks
+only ask one stored fact back, which is what retrieval is best at. This one asks
+questions that need two facts together:
+
+- **Facts.** 112 facts from `gen_integration.py`:
+  - 16 "My sister's name is Ana." facts.
+  - 48 attribute facts about those people (city, job, pet).
+  - 48 attribute facts about strangers. Half of them share a value with a relative.
+- **Questions.** 96 questions, 24 of each type:
+  - direct: "Where does Ana live?"
+  - bridge: "Which city does my sister live in?"
+  - inverse: "Which of my relatives is a nurse?"
+  - verify: "Is my sister the one whose city is Lisbon?"
+- **Runner.** `bench_integration.py` runs the real `memagent` and splits every score by
+  whether retrieval put all the facts a question needs into the prompt (found / missed).
+
+**Retrieval only** (qwen2.5-1.5B, rag_k 3), all 96 questions:
+
+| type | correct | retrieval found every needed fact |
+|---|---|---|
+| direct | 24/24 | 100% |
+| bridge | 3/24 | 12.5% |
+| inverse | 7/24 | 0% |
+| verify | 10/24 (12 is chance) | 83% |
+
+Retrieval cannot do a two-hop question: the question names "my sister", so it finds
+"Your sister's name is Ana", but not "Ana's city is Lisbon". In 15 of the 24 bridge
+questions the model then picked the wrong stored value ("Hana lives in Bologna", but
+Bologna is Sofia's city): a **binding error**, the right kind of item attached to the
+wrong person.
+
+**Two bugs this found, both fixed:**
+
+- *Subject merge corrupted memory.* Merging duplicate subjects treated "Tomas's job" as
+  a duplicate of "Tomas's city", and "my grandpa's name" as a duplicate of "my grandma's
+  name". 14 of 112 facts were superseded. `DistinctSubjects` in `Mem.Guard` now vetoes
+  a merge when the owner or the attribute differs: 112/112 facts are kept.
+- *The guard licensed bound-to-someone-else answers.* The guard checked that the value
+  was stored, not whose it was. The new binding check (`Unbound` in `Mem.Guard`) blocks
+  an answer whose value is stored only under other owners. Offline, on the
+  retrieval-arm answers, wrong stored values dropped from 17 to 8. It blocked 9 answers,
+  none of them correct. The facts and held-out guard benchmarks are unchanged.
+- The rule extractor also dropped third-person facts ("Ana's city is Lisbon."). It has a
+  named-possessive rule now, in Python and Pascal, and passes 710/710 extract cases.
+
+**Deep sleep could not learn 112 facts within the drift gate.** Each sleep took about
+70 min on 4 CPU cores:
+
+| sleep | recall | drift (ppl ratio) | gate (0.7 / 1.5) |
+|---|---|---|---|
+| lr 3e-4 (profile default), 3 paraphrases | 0.37 | 1.47 | rejected: recall |
+| lr 1e-3, 24 anchors | 0.93 | 2.07 | rejected: drift |
+| same, gate drift raised to 3 for this experiment only | 0.93 | 2.07 | promoted |
+
+All 71 recall failures in the first sleep were binding errors, and so were all 8 in the
+second. The weights learned the values (the items) before they learned whose value is
+whose (the bindings). That is the associative-deficit pattern in human memory: item
+memory is learned fast, relational binding is learned slowly. It also shows the
+stability–plasticity dilemma on a small model: learning the bindings costs too much
+drift.
+
+**Retrieval plus the deep LoRA**, the 53 questions it finished before the 2-hour task
+limit stopped it (direct, bridge, and the first 5 inverse questions; no verify):
+
+| type | retrieval only | retrieval + deep LoRA |
+|---|---|---|
+| direct | 24/24 | 23/24 |
+| bridge | 3/24 | 1/24 |
+| inverse (5) | 2/5 | 4/5 |
+| all 53 | 29 | 28 |
+
+- **No integration gain.** Bridge got worse, not better. The one new bridge hit ("Your
+  cousin's city is Lisbon") sits beside two new "You haven't told me that yet." answers.
+- **The inverse gains are mostly not real.** The answers list several people, and the
+  scorer accepts any list that contains the right name. Two of the four mix in a
+  stranger or an invented relation ("Priya's cousin's name is Lucia").
+- **The drift is visible in the answers.** 33 of 53 answers run on and invent new
+  "User: / Assistant:" turns until the token limit. They average 563 characters,
+  against 25 for retrieval only. The model lost its turn format: that is what a drift
+  ratio of 2.07 looks like. Each answer took about 2.2 min, against 26 s. The
+  weights-only arm did not run.
+
+**Verdict for the 1.5B profile.** On CPU, consolidation cannot buy integration within a
+usable drift budget. The binding errors that sink retrieval on two-hop questions are
+the same errors the weights make. The gains that are real came from the store and the
+guard (subject-merge veto, binding check). The deep tier stays a backup for facts
+retrieval misses, not a way to reason across facts. The decisive version of this
+experiment needs a model large enough to learn the bindings at drift ≤ 1.5, which means
+a GPU.
+
+Results: `results/integration-small-partial.json` (the 53 paired answers, the sleep
+manifest, timings) and `results/integration-small-retrieval-answers.json` (all 96
+retrieval-only answers).
