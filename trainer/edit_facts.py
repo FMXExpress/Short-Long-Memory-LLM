@@ -40,7 +40,10 @@ from consolidate import read_facts  # noqa: E402
 
 DEV = "cpu"   # set in main: the model's device
 
-PREFIXES = ["", "Okay. ", "By the way, ", "Note: ", "I see. "]
+# never an empty prefix: Qwen has no BOS token, so a subject at position 0 sits on the
+# attention-sink activation, which is huge and nearly the same for every name (the first
+# 112-fact run averaged it into every key: 37 answers gave another person's value)
+PREFIXES = ["So, ", "Okay. ", "By the way, ", "Note: ", "I see. "]
 
 
 def log(*a):
@@ -126,7 +129,7 @@ def subjects_from_facts(tok, facts, n_questions):
                 s["items"].append(it)
     for s in subs.values():
         lead = s["name"][0].upper() + s["name"][1:]
-        s["essence"] = make_item(tok, f"{lead} is", None, s["core"])
+        s["essence"] = make_item(tok, f"Note: {lead} is", None, s["core"], 6)
     return subs
 
 
