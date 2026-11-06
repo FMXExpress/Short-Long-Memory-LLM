@@ -1,0 +1,17 @@
+{
+ "note": "Ordinary chat lines that state no durable fact: rule extraction should store nothing from them (bench/bench_extract.py --chatter). A false positive becomes a wrong memory, trained into the weights.",
+ "lines": [
+  "I love you.", "I love it!", "I hate it when that happens.", "I hate it so much.",
+  "I drive to work most days.", "I play it safe usually.", "I use it all the time.",
+  "I'm learning a lot from you.", "I'm a bit tired today.", "I'm a little confused.",
+  "I'm training for it, slowly.", "I moved to the next question.", "I speak too fast sometimes.",
+  "I support that idea.", "I have a question.", "I have a few questions for you.",
+  "I take the point.", "We're meeting in an hour.", "I'm going on holiday in July, any tips?",
+  "Call me later.", "I graduated from that phase.", "I'm 100 percent sure.", "I'm a fan of that answer.",
+  "My mom lives in the moment.", "I grew up fast.", "I was born ready.", "I have two questions.",
+  "Thanks, that helps a lot.", "Can you explain that again?", "What do you think about Rust?",
+  "Tell me a joke.", "That's interesting.", "Let's talk about something else.", "Good night!",
+  "I think so.", "I'm not sure about that.", "I like this conversation.", "I'm happy with that.",
+  "I really love this song.", "I use a lot of emojis."
+ ]
+}

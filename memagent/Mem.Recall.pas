@@ -6,6 +6,12 @@ unit Mem.Recall;
      stage 2  the cross-encoder re-scores each (query, candidate) pair and
               drops the ones below rerank_min (Mem.Retrieval)
 
+   Facts about someone the question does not name ("my manager's employer"
+   for "Who is my employer?") rank after all others, in both stages. Measured
+   (bench/README.md, memory loop 6): with 800 such look-alikes stored, the
+   right fact otherwise left the candidate pool for 7 of 60 questions, and a
+   bigger pool did not bring it back.
+
    Facts are matched as "subject: text" (FactDoc). *)
 
 {$mode objfpc}{$H+}
@@ -13,7 +19,7 @@ unit Mem.Recall;
 interface
 
 uses
-  SysUtils, DateUtils, Mem.Config, Mem.Store, Mem.Retrieval;
+  SysUtils, DateUtils, Mem.Config, Mem.Store, Mem.Retrieval, Mem.Guard;
 
 type
   TRecallTiming = record
@@ -81,6 +87,33 @@ begin
     Result := ACfg.StaticMinSimilarity;
 end;
 
+{ stable: facts about someone the question does not name go last }
+procedure OwnersLast(const AQuery: string; var A: TFactArray);
+var
+  LMine, LOther: TFactArray;
+  I, N, M: Integer;
+begin
+  SetLength(LMine, Length(A));
+  SetLength(LOther, Length(A));
+  N := 0;
+  M := 0;
+  for I := 0 to High(A) do
+    if ForeignOwner(AQuery, A[I].Subject) then
+    begin
+      LOther[M] := A[I];
+      Inc(M);
+    end
+    else
+    begin
+      LMine[N] := A[I];
+      Inc(N);
+    end;
+  for I := 0 to N - 1 do
+    A[I] := LMine[I];
+  for I := 0 to M - 1 do
+    A[N + I] := LOther[I];
+end;
+
 function MsBetween(AFrom: TDateTime): Double;
 begin
   Result := MilliSecondsBetween(Now, AFrom);
@@ -101,7 +134,7 @@ begin
   ATiming.EmbedMs := MsBetween(T);
   T := Now;
   AFacts := AStore.HybridFacts(AQuery, LVec, ARet.EmbedderId, ACfg.RetrievalPool, MinCosFor(ACfg, ARet),
-    ACfg.RagIncludeBaked);
+    ACfg.RagIncludeBaked, @ForeignOwner);
   AMsgs := AStore.HybridMessages(AQuery, LVec, ARet.EmbedderId, ABeforeId, ACfg.RetrievalPool,
     MinCosFor(ACfg, ARet));
   ATiming.SearchMs := MsBetween(T);
@@ -122,6 +155,7 @@ begin
     end;
   SetLength(AFacts, N);
   SortFacts(AFacts);
+  OwnersLast(AQuery, AFacts);
   SetLength(LDocs, Length(AMsgs));
   for I := 0 to High(AMsgs) do
     LDocs[I] := AMsgs[I].Content;

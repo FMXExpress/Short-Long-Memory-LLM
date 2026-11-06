@@ -437,7 +437,7 @@ index 33ad784..4edd174 100644
              copy_experts.reset();
              ggml_opt_eval(opt_ctx, result);
              if (callback) {
-@@ -3992,6 +4041,110 @@ void llama_context::opt_epoch(
+@@ -3992,6 +4041,111 @@ void llama_context::opt_epoch(
      llama_batch_free(batch);
  }
  
@@ -542,6 +542,7 @@ index 33ad784..4edd174 100644
 +    llama_model_quantize_params p = llama_model_quantize_default_params();
 +    p.ftype   = LLAMA_FTYPE_ALL_F32;
 +    p.nthread = nthread;
++    p.allow_requantize = true;   // a q8_0 base (the small profile's download) dequantizes to f32
 +    return (int32_t) llama_model_quantize(fname_inp, fname_out, &p);
 +}
 +

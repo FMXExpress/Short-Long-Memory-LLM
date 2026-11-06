@@ -28,6 +28,8 @@ type
     Score: Double;    { fused rank score, then the rerank score when reranked }
   end;
   TFactArray = array of TFactRec;
+  { True when a fact (by its subject) should rank after the others for this query }
+  TForeignFunc = function(const AQuery, ASubject: string): Boolean;
 
   TMsgRec = record
     Id: Int64;
@@ -84,8 +86,10 @@ type
     procedure SetMessageVector(AId: Int64; const AVec: TVector; const AModel: string);
     function PendingVectors(const AModel: string): TPendingVectors;
     function SubjectVectors(const AModel: string): TSubjectArray;
+    (* AForeign, when set, moves the facts it flags behind the others in both
+       the keyword and the vector list (each searched 4x deeper), before fusion *)
     function HybridFacts(const AQuery: string; const AQVec: TVector; const AModel: string;
-      APool: Integer; AMinCos: Single; AIncludeBaked: Boolean): TFactArray;
+      APool: Integer; AMinCos: Single; AIncludeBaked: Boolean; AForeign: TForeignFunc = nil): TFactArray;
     function HybridMessages(const AQuery: string; const AQVec: TVector; const AModel: string;
       ABeforeId: Int64; APool: Integer; AMinCos: Single): TMsgArray;
     function ActiveFacts: TFactArray;
@@ -590,21 +594,70 @@ begin
 end;
 
 function TMemStore.HybridFacts(const AQuery: string; const AQVec: TVector; const AModel: string;
-  APool: Integer; AMinCos: Single; AIncludeBaked: Boolean): TFactArray;
+  APool: Integer; AMinCos: Single; AIncludeBaked: Boolean; AForeign: TForeignFunc): TFactArray;
 var
   LFts, LRec: TFactArray;
-  LIds: array of Int64;
-  LScan, LFused: TScoredArray;
-  I: Integer;
+  LIds, LBack: array of Int64;
+  LScan, LFused, LKeep, LLate: TScoredArray;
+  I, N, Depth: Integer;
 begin
-  LFts := SearchFacts(AQuery, APool, AIncludeBaked);
-  SetLength(LIds, Length(LFts));
+  Depth := APool;
+  if Assigned(AForeign) then
+    Depth := 4 * APool;
+  LFts := SearchFacts(AQuery, Depth, AIncludeBaked);
+  LIds := nil;
+  LBack := nil;
   for I := 0 to High(LFts) do
-    LIds[I] := LFts[I].Id;
+    if Assigned(AForeign) and AForeign(AQuery, LFts[I].Subject) then
+    begin
+      SetLength(LBack, Length(LBack) + 1);
+      LBack[High(LBack)] := LFts[I].Id;
+    end
+    else
+    begin
+      SetLength(LIds, Length(LIds) + 1);
+      LIds[High(LIds)] := LFts[I].Id;
+    end;
+  for I := 0 to High(LBack) do
+  begin
+    SetLength(LIds, Length(LIds) + 1);
+    LIds[High(LIds)] := LBack[I];
+  end;
+  if Length(LIds) > APool then
+    SetLength(LIds, APool);
   LScan := nil;
   if Length(AQVec) > 0 then
+  begin
     LScan := ScanVectors(FDb.Query('SELECT id, emb FROM facts WHERE superseded = 0 AND forgotten = 0' +
-      ' AND (? OR baked_in = '''') AND emb_model = ?', [AIncludeBaked, AModel]), AQVec, APool);
+      ' AND (? OR baked_in = '''') AND emb_model = ?', [AIncludeBaked, AModel]), AQVec, Depth);
+    if Assigned(AForeign) then
+    begin
+      (* above the cosine floor: the query's own facts in rank order, then
+         the foreign ones; the cut back to APool keeps fusion unchanged when
+         nothing is foreign *)
+      LKeep := nil;
+      LLate := nil;
+      for I := 0 to High(LScan) do
+        if LScan[I].Cos >= AMinCos then
+          if AForeign(AQuery, FactSubject(LScan[I].Id)) then
+          begin
+            SetLength(LLate, Length(LLate) + 1);
+            LLate[High(LLate)] := LScan[I];
+          end
+          else
+          begin
+            SetLength(LKeep, Length(LKeep) + 1);
+            LKeep[High(LKeep)] := LScan[I];
+          end;
+      N := Length(LKeep);
+      SetLength(LKeep, N + Length(LLate));
+      for I := 0 to High(LLate) do
+        LKeep[N + I] := LLate[I];
+      if Length(LKeep) > APool then
+        SetLength(LKeep, APool);
+      LScan := LKeep;
+    end;
+  end;
   LFused := Fuse(LIds, LScan, AMinCos, APool);
   SetLength(Result, Length(LFused));
   for I := 0 to High(LFused) do

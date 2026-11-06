@@ -8,7 +8,12 @@ program bench_retrieval;
    Per configuration: hit@1 / hit@3 (the right fact among the first 1 / rag_k=3
    injected), MRR, wrong@1 (another fact ranked first: interference), noise
    (unknown questions that still get a fact injected) and latency per query.
-   filler_facts adds synthetic facts to measure how search time scales. *)
+   filler_facts adds synthetic facts to measure how search time scales.
+   BENCH_FILLER=personal makes them look-alikes instead: facts about other
+   people with the same shapes as the user's ("my neighbor's dog's name",
+   "Tom's favorite band", "my sister's car"), which is what a long-lived
+   memory fills up with and what retrieval has to rank below the right
+   fact. *)
 
 {$mode objfpc}{$H+}
 
@@ -24,6 +29,21 @@ type
   end;
 
 const
+  FillOwners: array[0..39] of string = ('my neighbor''s', 'my cousin''s', 'my colleague''s', 'my aunt''s',
+    'my uncle''s', 'my sister''s', 'my brother''s', 'my son''s', 'my daughter''s', 'my partner''s',
+    'my manager''s', 'my roommate''s', 'my landlord''s', 'my grandmother''s', 'my grandfather''s',
+    'my niece''s', 'my nephew''s', 'my best friend''s', 'my mentor''s', 'my coach''s',
+    'Tom''s', 'Aisha''s', 'Kenji''s', 'Lucia''s', 'Marek''s', 'Nadia''s', 'Oskar''s', 'Priti''s',
+    'Rafael''s', 'Selin''s', 'Tariq''s', 'Uma''s', 'Viktor''s', 'Wren''s', 'Ximena''s', 'Yusuf''s',
+    'Zara''s', 'Bruno''s', 'Chloe''s', 'Dmitri''s');
+  FillAttrs: array[0..19] of string = ('dog''s name', 'cat''s name', 'hometown', 'favorite color',
+    'favorite food', 'favorite band', 'favorite book', 'car', 'job title', 'birthday', 'doctor', 'gym',
+    'laptop', 'allergy', 'native language', 'bike', 'employer', 'blood type', 'running goal', 'city');
+  FillValues: array[0..23] of string = ('Pepper', 'Juniper', 'Marlow', 'Odessa', 'Quito', 'violet',
+    'paella', 'Coldplay', 'Emma', 'Subaru', 'architect', 'June 9th', 'Dr. Haines', 'Peak Fitness',
+    'MacBook Air', 'peanuts', 'Greek', 'Comet', 'Lumen Corp', 'A positive', 'a triathlon', 'Ghent',
+    'Harbor', 'saffron');
+
   Modes: array[0..4] of TMode = (
     (Name: 'fts'; Embed: 'off'; Rerank: 'off'; RerankModel: ''; RerankMin: 0),
     (Name: 'static+fts'; Embed: 'static'; Rerank: 'off'; RerankModel: ''; RerankMin: 0),
@@ -36,6 +56,7 @@ var
   Facts, Unknown: TJSONArray;
   CacheDir: string;
   Filler, FillerMsgs: Integer;
+  Personal: Boolean;
   Sweep: Boolean;
 
 type
@@ -126,13 +147,14 @@ var
   LFacts: TFactArray;
   LMsgs: TMsgArray;
   LTiming: TRecallTiming;
+  LSubj, LVal, LText: string;
   Mrr, TSum, ESum, SSum, RSum: Double;
   Lat: array of Double;
   T, TLoad: TDateTime;
   Q: string;
 begin
   Cfg := TMemConfig.Create;
-  Cfg.RetrievalPool := 8;
+  Cfg.RetrievalPool := StrToIntDef(GetEnvironmentVariable('BENCH_POOL'), 8);
   Cfg.RagK := 3;
   Cfg.RagIncludeBaked := True;
   Cfg.MinSimilarity := 0.25;
@@ -175,6 +197,21 @@ begin
     end;
     for I := 1 to Filler do
     begin
+      if Personal then
+      begin
+        (* owner x attribute covers 800 distinct subjects; past that the
+           owners repeat with a number, "my colleague's (2) car" *)
+        LSubj := FillOwners[(I - 1) mod Length(FillOwners)];
+        if (I - 1) div (Length(FillOwners) * Length(FillAttrs)) > 0 then
+          LSubj := LSubj + Format(' (%d)', [(I - 1) div (Length(FillOwners) * Length(FillAttrs)) + 1]);
+        LSubj := LSubj + ' ' + FillAttrs[((I - 1) div Length(FillOwners)) mod Length(FillAttrs)];
+        LVal := FillValues[(I * 7) mod Length(FillValues)];
+        LText := StringReplace(LSubj, 'my ', 'your ', []) + ' is ' + LVal + '.';
+        LText := UpperCase(Copy(LText, 1, 1)) + Copy(LText, 2, MaxInt);
+        F := TJSONObject.Create(['subject', LSubj, 'value', LVal, 'text', LText, 'kind', 'personal',
+          'confidence', 0.9]);
+      end
+      else
       F := TJSONObject.Create(['subject', Format('filler topic %d', [I]), 'value', Format('item%d', [I]),
         'text', Format('Note %d: the shipment of crate %d goes to warehouse %d on day %d.', [I, I * 7, I mod 13, I mod 28]),
         'kind', 'world', 'confidence', 0.9]);
@@ -222,6 +259,13 @@ begin
             Rank := K + 1;
             Break;
           end;
+        if (GetEnvironmentVariable('BENCH_DEBUG') = '1') and ((Rank = 0) or (Rank > Cfg.RagK)) then
+        begin
+          Write(Format('  miss (rank %d): %s ->', [Rank, Q]));
+          for K := 0 to Min(2, High(LFacts)) do
+            Write(' | ', LFacts[K].Subject);
+          WriteLn;
+        end;
         if Rank = 1 then Inc(Hit1);
         if (Rank >= 1) and (Rank <= Cfg.RagK) then Inc(Hit3);
         if Rank > 0 then Mrr := Mrr + 1 / Rank;
@@ -285,6 +329,7 @@ begin
   Filler := StrToIntDef(ParamStr(3), 0);
   FillerMsgs := StrToIntDef(ParamStr(4), 0);
   Sweep := GetEnvironmentVariable('BENCH_SWEEP') = '1';
+  Personal := GetEnvironmentVariable('BENCH_FILLER') = 'personal';
   Facts := Data.Arrays['facts'];
   Unknown := Data.Arrays['unknown'];
   WriteLn(Format('%d facts (+%d filler facts, +%d filler messages), %d test questions, %d unknown',

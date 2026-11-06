@@ -78,8 +78,9 @@ uses
   StrUtils, Mem.Db, Mem.Llama, Mem.LlamaChat, Mem.Extract, Mem.Examples;
 
 const
-  WINDOW_UNIT = 256;
-  REPLAY_MIN = 4;        { deep facts replayed in a fast run: at least this many, else as many as new ones }     { llama.cpp pads a context to a multiple of 256 }
+  WINDOW_UNIT = 256;     { llama.cpp pads a context to a multiple of 256 }
+  REPLAY_MIN = 4;        { deep facts replayed in a fast run: at least this many }
+  HELD_OUT_ANCHORS = 8;  { the last 8 anchor prompts measure drift, never trained on }
   WINDOW_MAX = 4096;
   MAX_SEQ = 64;          { packed examples per window (+1 for padding) }
   GGML_TYPE_F32 = 0;
@@ -233,6 +234,15 @@ var
   LSL: TStringList;
   LSteps: Int64;
   LWindow, LTotal, LLongest: Integer;
+  LPerFact, LBatch: Integer;
+  LPhases: TJSONObject;     { seconds per phase: where a run's time goes }
+  LMark: TDateTime;
+
+  procedure Phase(const AName: string);
+  begin
+    LPhases.Add(AName, RoundTo(SecondSpan(Now, LMark), -1));
+    LMark := Now;
+  end;
 
   function Chat(const AQuestion, AAnswer: string): TJSONArray;
   begin
@@ -421,6 +431,8 @@ var
 
 begin
   LT0 := Now;
+  LMark := LT0;
+  LPhases := TJSONObject.Create;
   LFacts := nil;
   FMaxSeq := MAX_SEQ;
   LPriors := FCfg.Priors;
@@ -453,9 +465,11 @@ begin
     LReplay[I] := LReplay[J];
     LReplay[J] := LAll[0];
   end;
-  SetLength(LReplay, Min(Length(LReplay), Max(REPLAY_MIN, Length(LFacts))));
+  if FCfg.TrainReplay > 0 then
+    SetLength(LReplay, Min(Length(LReplay), Max(REPLAY_MIN, FCfg.TrainReplay * Length(LFacts))));
   if Length(LFacts) = 0 then
   begin
+    LPhases.Free;
     Finish(3, TJSONObject.Create(['reason', 'no active facts', 'trainer', 'llama', 'tier', FTier]));
     Exit;
   end;
@@ -483,6 +497,7 @@ begin
       raise ELlama.Create('could not move ' + LTmp + ' into place');
   end;
 
+  Phase('facts');
   LModel := LlamaLoadModel(F32, FCfg.TrainGpu, -1);
   LAdapter := nil;
   LDeep := nil;
@@ -501,19 +516,26 @@ begin
       LBase[0] := LDeep;
     end;
 
+    Phase('load_model');
     { 2. anchors: the base model's own answers }
-    NHeld := Max(4, FCfg.TrainAnchors div 2);
+    (* the held-out drift prompts are always the last HELD_OUT_ANCHORS, so drift
+       stays comparable whatever the number of training anchors (memory loop
+       4b: taking them right after the training anchors measured 16 anchors on
+       other, more prompts than 8); training anchors come from the rest *)
+    NHeld := HELD_OUT_ANCHORS;
     LTrain := nil;
     LHeld := nil;
-    for I := 0 to Min(FCfg.TrainAnchors + NHeld, Length(ANCHOR_PROMPTS)) - 1 do
+    for I := 0 to Length(ANCHOR_PROMPTS) - 1 do
     begin
+      if (I >= Min(FCfg.TrainAnchors, Length(ANCHOR_PROMPTS) - NHeld)) and (I < Length(ANCHOR_PROMPTS) - NHeld) then
+        Continue;
       LMsgs := Chat(ANCHOR_PROMPTS[I], '');
       try
         LAns := LChat.GenerateWith(LMsgs, LBase, 48, 0.0);
       finally
         LMsgs.Free;
       end;
-      if I < FCfg.TrainAnchors then
+      if I < Length(ANCHOR_PROMPTS) - NHeld then
       begin
         SetLength(LTrain, Length(LTrain) + 1);
         LTrain[High(LTrain)] := Example(ANCHOR_PROMPTS[I], LAns);
@@ -525,6 +547,7 @@ begin
       end;
     end;
 
+    Phase('anchors');
     { the fact examples; the last question of each fact is its probe }
     SetLength(LProbeQ, Length(LFacts));
     for I := 0 to High(LFacts) do
@@ -542,10 +565,18 @@ begin
       end;
     for I := 0 to High(LFacts) do
     begin
-      if FCfg.TrainExamples = 'varied' then
-        LQAs := VariedExamples(LFacts, I, FCfg.TrainParaphrases, @Rand)
+      (* a replayed fact is already in the frozen deep LoRA: it is there so the
+         new adapter learns to leave it alone, which a short reminder does.
+         Training costs ~0.64 s per example pass on tiny, all in the windows
+         (memory loop 3), so full sets for replayed facts doubled a fast run *)
+      if I < NNew then
+        LPerFact := FCfg.TrainParaphrases
       else
-        LQAs := TemplateExamples(LFacts[I], FCfg.TrainParaphrases);
+        LPerFact := Max(2, FCfg.TrainParaphrases div 3);
+      if FCfg.TrainExamples = 'varied' then
+        LQAs := VariedExamples(LFacts, I, LPerFact, @Rand)
+      else
+        LQAs := TemplateExamples(LFacts[I], LPerFact);
       for J := 0 to High(LQAs) do
       begin
         SetLength(LTrain, Length(LTrain) + 1);
@@ -566,9 +597,16 @@ begin
       Inc(LTotal, Length(LTrain[I].Tokens));
       LLongest := Max(LLongest, Length(LTrain[I].Tokens));
     end;
-    LWindow := Max(LLongest, Round(FCfg.TrainBatch * LTotal / Max(1, Length(LTrain))));
+    (* max_windows: the optimizer steps per epoch stop growing with the facts;
+       more examples share each step instead (memory loop 4: drift tracks the
+       number of steps, and steps grew with every fact) *)
+    LBatch := FCfg.TrainBatch;
+    if FCfg.TrainMaxWindows > 0 then
+      LBatch := Max(LBatch, (Length(LTrain) + FCfg.TrainMaxWindows - 1) div FCfg.TrainMaxWindows);
+    LWindow := Max(LLongest, Round(LBatch * LTotal / Max(1, Length(LTrain))));
     LWindow := Min(WINDOW_MAX, Max(WINDOW_UNIT, ((LWindow + WINDOW_UNIT - 1) div WINDOW_UNIT) * WINDOW_UNIT));
 
+    Phase('examples');
     { 3. a fresh LoRA, trained }
     LAdapter := llama_adapter_lora_init_new(LModel, FCfg.LoraRank, FCfg.LoraAlpha,
       PAnsiChar(FCfg.LoraTargets), 1234);
@@ -605,10 +643,12 @@ begin
       raise ELlama.Create('llama_lora_train_init failed (see llama.log)');
     { B = 0: the fresh adapter changes nothing, so this is the model before
       the run (the base, or base + deep for a fast run) }
+    Phase('setup');
     LBaseLoss := Epoch(LHeldPack, False);
     Log(Format('[consolidate] %d windows of %d tokens per epoch, base held-out loss %.4f',
       [LPack.Windows, LWindow, LBaseLoss]));
     LLoss := 0;
+    Phase('eval_before');
     for LEpoch := 1 to FCfg.TrainEpochs do
     begin
       if LEpoch > 1 then
@@ -616,11 +656,13 @@ begin
       LLoss := Epoch(LPack, True);
       Log(Format('[consolidate] epoch %d/%d loss=%.4f', [LEpoch, FCfg.TrainEpochs, LLoss]));
     end;
+    Phase('train');
     LAfterLoss := Epoch(LHeldPack, False);
     LPplRatio := Ppl(LAfterLoss) / Ppl(LBaseLoss);
     llama_free(LCtx);
     LCtx := nil;
 
+    Phase('eval_after');
     { 4. the gate: each fact from the weights alone }
     LPassed := TJSONArray.Create;
     LProbes := TJSONArray.Create;
@@ -652,6 +694,7 @@ begin
       LProbes.Add(TJSONObject.Create(['id', LFacts[I].Id, 'question', LProbeQ[I], 'answer', LAns, 'ok', LGateOk]));
       Log(Format('[probe] %s #%d %s -> %s', [StrUtils.IfThen(LGateOk, 'PASS', 'FAIL'), LFacts[I].Id, LProbeQ[I], LAns]));
     end;
+    Phase('probes');
     LRecall := (LPassed.Count + NReplayPassed) / Length(LFacts);
     Log(Format('[consolidate] recall=%.2f heldout_ppl_ratio=%.3f', [LRecall, LPplRatio]));
 
@@ -673,6 +716,9 @@ begin
     LMetrics.Add('seconds', RoundTo(SecondSpan(Now, LT0), -1));
     LMetrics.Add('device', LDevice);
     LMetrics.Add('trainer', 'llama');
+    LMetrics.Add('phases', LPhases);
+    LPhases := nil;
+    Log('[consolidate] phases (s): ' + TJSONObject(LMetrics.Find('phases')).AsJSON);
     LGateOk := (LRecall >= FCfg.GateMinRecall) and (LPplRatio <= FCfg.GateMaxPplRatio);
     LMetrics.Add('gate_ok', LGateOk);
     if not LGateOk then
@@ -724,6 +770,7 @@ begin
     LMetrics.Add('passed_fact_ids', LPassed);
     Finish(0, LMetrics);
   finally
+    LPhases.Free;
     if LCtx <> nil then
       llama_free(LCtx);
     LChat.Free;

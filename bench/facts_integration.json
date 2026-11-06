@@ -1,0 +1,1631 @@
+{
+ "about": "Builds bench/facts_integration.json: facts that only answer a question together.",
+ "facts": [
+  {
+   "say": "Emil's city is Riga.",
+   "value": "Riga",
+   "kind": "attribute"
+  },
+  {
+   "say": "Otto's pet is a chinchilla.",
+   "value": "chinchilla",
+   "kind": "stranger"
+  },
+  {
+   "say": "Otto's city is Malmo.",
+   "value": "Malmo",
+   "kind": "stranger"
+  },
+  {
+   "say": "Sofia's city is Bologna.",
+   "value": "Bologna",
+   "kind": "attribute"
+  },
+  {
+   "say": "Bruno's city is Lisbon.",
+   "value": "Lisbon",
+   "kind": "stranger"
+  },
+  {
+   "say": "My son's name is Ana.",
+   "value": "Ana",
+   "kind": "person"
+  },
+  {
+   "say": "Yusuf's pet is a dachshund.",
+   "value": "dachshund",
+   "kind": "attribute"
+  },
+  {
+   "say": "Rafael's city is Zagreb.",
+   "value": "Zagreb",
+   "kind": "stranger"
+  },
+  {
+   "say": "Pavel's city is Krakow.",
+   "value": "Krakow",
+   "kind": "stranger"
+  },
+  {
+   "say": "Marek's city is Zagreb.",
+   "value": "Zagreb",
+   "kind": "attribute"
+  },
+  {
+   "say": "My grandma's name is Nils.",
+   "value": "Nils",
+   "kind": "person"
+  },
+  {
+   "say": "Priya's pet is a beagle.",
+   "value": "beagle",
+   "kind": "attribute"
+  },
+  {
+   "say": "Leo's job is pilot.",
+   "value": "pilot",
+   "kind": "attribute"
+  },
+  {
+   "say": "Greta's job is translator.",
+   "value": "translator",
+   "kind": "attribute"
+  },
+  {
+   "say": "Nils's job is jeweler.",
+   "value": "jeweler",
+   "kind": "attribute"
+  },
+  {
+   "say": "My nephew's name is Marek.",
+   "value": "Marek",
+   "kind": "person"
+  },
+  {
+   "say": "Ana's pet is a gecko.",
+   "value": "gecko",
+   "kind": "attribute"
+  },
+  {
+   "say": "Yusuf's job is chemist.",
+   "value": "chemist",
+   "kind": "attribute"
+  },
+  {
+   "say": "Mia's pet is a poodle.",
+   "value": "poodle",
+   "kind": "attribute"
+  },
+  {
+   "say": "Jonas's city is Dublin.",
+   "value": "Dublin",
+   "kind": "stranger"
+  },
+  {
+   "say": "My cousin's name is Lucia.",
+   "value": "Lucia",
+   "kind": "person"
+  },
+  {
+   "say": "Dana's pet is a iguana.",
+   "value": "iguana",
+   "kind": "attribute"
+  },
+  {
+   "say": "My boss's name is Leo.",
+   "value": "Leo",
+   "kind": "person"
+  },
+  {
+   "say": "Greta's city is Porto.",
+   "value": "Porto",
+   "kind": "attribute"
+  },
+  {
+   "say": "Marek's job is carpenter.",
+   "value": "carpenter",
+   "kind": "attribute"
+  },
+  {
+   "say": "Rosa's city is Bergen.",
+   "value": "Bergen",
+   "kind": "stranger"
+  },
+  {
+   "say": "Bruno's pet is a beagle.",
+   "value": "beagle",
+   "kind": "stranger"
+  },
+  {
+   "say": "Rosa's pet is a rabbit.",
+   "value": "rabbit",
+   "kind": "stranger"
+  },
+  {
+   "say": "My mother's name is Mia.",
+   "value": "Mia",
+   "kind": "person"
+  },
+  {
+   "say": "Tomas's city is Lyon.",
+   "value": "Lyon",
+   "kind": "stranger"
+  },
+  {
+   "say": "My daughter's name is Ines.",
+   "value": "Ines",
+   "kind": "person"
+  },
+  {
+   "say": "Sofia's job is beekeeper.",
+   "value": "beekeeper",
+   "kind": "attribute"
+  },
+  {
+   "say": "Marek's pet is a tortoise.",
+   "value": "tortoise",
+   "kind": "attribute"
+  },
+  {
+   "say": "Ines's city is Valencia.",
+   "value": "Valencia",
+   "kind": "attribute"
+  },
+  {
+   "say": "Jonas's pet is a gecko.",
+   "value": "gecko",
+   "kind": "stranger"
+  },
+  {
+   "say": "Tomas's job is plumber.",
+   "value": "plumber",
+   "kind": "stranger"
+  },
+  {
+   "say": "Ana's city is Bergen.",
+   "value": "Bergen",
+   "kind": "attribute"
+  },
+  {
+   "say": "Amara's pet is a ferret.",
+   "value": "ferret",
+   "kind": "stranger"
+  },
+  {
+   "say": "Ines's pet is a canary.",
+   "value": "canary",
+   "kind": "attribute"
+  },
+  {
+   "say": "Otto's job is chemist.",
+   "value": "chemist",
+   "kind": "stranger"
+  },
+  {
+   "say": "Nadia's job is librarian.",
+   "value": "librarian",
+   "kind": "stranger"
+  },
+  {
+   "say": "Leo's pet is a corgi.",
+   "value": "corgi",
+   "kind": "attribute"
+  },
+  {
+   "say": "Ines's job is locksmith.",
+   "value": "locksmith",
+   "kind": "attribute"
+  },
+  {
+   "say": "Hana's pet is a rabbit.",
+   "value": "rabbit",
+   "kind": "attribute"
+  },
+  {
+   "say": "Elif's job is glassblower.",
+   "value": "glassblower",
+   "kind": "stranger"
+  },
+  {
+   "say": "Greta's pet is a goldfish.",
+   "value": "goldfish",
+   "kind": "attribute"
+  },
+  {
+   "say": "Lena's pet is a tortoise.",
+   "value": "tortoise",
+   "kind": "stranger"
+  },
+  {
+   "say": "Lena's city is Porto.",
+   "value": "Porto",
+   "kind": "stranger"
+  },
+  {
+   "say": "Arno's pet is a canary.",
+   "value": "canary",
+   "kind": "stranger"
+  },
+  {
+   "say": "Dana's job is firefighter.",
+   "value": "firefighter",
+   "kind": "attribute"
+  },
+  {
+   "say": "Elif's city is Graz.",
+   "value": "Graz",
+   "kind": "stranger"
+  },
+  {
+   "say": "My friend's name is Greta.",
+   "value": "Greta",
+   "kind": "person"
+  },
+  {
+   "say": "Lucia's pet is a hamster.",
+   "value": "hamster",
+   "kind": "attribute"
+  },
+  {
+   "say": "Nils's pet is a hedgehog.",
+   "value": "hedgehog",
+   "kind": "attribute"
+  },
+  {
+   "say": "Bruno's job is translator.",
+   "value": "translator",
+   "kind": "stranger"
+  },
+  {
+   "say": "My father's name is Priya.",
+   "value": "Priya",
+   "kind": "person"
+  },
+  {
+   "say": "Vera's city is Tallinn.",
+   "value": "Tallinn",
+   "kind": "stranger"
+  },
+  {
+   "say": "Lucia's city is Lisbon.",
+   "value": "Lisbon",
+   "kind": "attribute"
+  },
+  {
+   "say": "Rafael's job is jeweler.",
+   "value": "jeweler",
+   "kind": "stranger"
+  },
+  {
+   "say": "Rafael's pet is a corgi.",
+   "value": "corgi",
+   "kind": "stranger"
+  },
+  {
+   "say": "Nils's city is Lyon.",
+   "value": "Lyon",
+   "kind": "attribute"
+  },
+  {
+   "say": "Amara's job is translator.",
+   "value": "translator",
+   "kind": "stranger"
+  },
+  {
+   "say": "My partner's name is Sofia.",
+   "value": "Sofia",
+   "kind": "person"
+  },
+  {
+   "say": "Leo's city is Malmo.",
+   "value": "Malmo",
+   "kind": "attribute"
+  },
+  {
+   "say": "My uncle's name is Tara.",
+   "value": "Tara",
+   "kind": "person"
+  },
+  {
+   "say": "Rosa's job is architect.",
+   "value": "architect",
+   "kind": "stranger"
+  },
+  {
+   "say": "Zoe's job is librarian.",
+   "value": "librarian",
+   "kind": "attribute"
+  },
+  {
+   "say": "My grandpa's name is Zoe.",
+   "value": "Zoe",
+   "kind": "person"
+  },
+  {
+   "say": "Tomas's pet is a hamster.",
+   "value": "hamster",
+   "kind": "stranger"
+  },
+  {
+   "say": "Sam's pet is a goldfish.",
+   "value": "goldfish",
+   "kind": "stranger"
+  },
+  {
+   "say": "Sam's job is chemist.",
+   "value": "chemist",
+   "kind": "stranger"
+  },
+  {
+   "say": "Mia's job is nurse.",
+   "value": "nurse",
+   "kind": "attribute"
+  },
+  {
+   "say": "Lena's job is dentist.",
+   "value": "dentist",
+   "kind": "stranger"
+  },
+  {
+   "say": "Emil's job is plumber.",
+   "value": "plumber",
+   "kind": "attribute"
+  },
+  {
+   "say": "My aunt's name is Dana.",
+   "value": "Dana",
+   "kind": "person"
+  },
+  {
+   "say": "Omar's job is pilot.",
+   "value": "pilot",
+   "kind": "stranger"
+  },
+  {
+   "say": "Hana's city is Graz.",
+   "value": "Graz",
+   "kind": "attribute"
+  },
+  {
+   "say": "Ivo's city is Porto.",
+   "value": "Porto",
+   "kind": "stranger"
+  },
+  {
+   "say": "Ivo's job is locksmith.",
+   "value": "locksmith",
+   "kind": "stranger"
+  },
+  {
+   "say": "Pavel's job is surveyor.",
+   "value": "surveyor",
+   "kind": "stranger"
+  },
+  {
+   "say": "Sam's city is Malmo.",
+   "value": "Malmo",
+   "kind": "stranger"
+  },
+  {
+   "say": "Arno's job is firefighter.",
+   "value": "firefighter",
+   "kind": "stranger"
+  },
+  {
+   "say": "Vera's pet is a hedgehog.",
+   "value": "hedgehog",
+   "kind": "stranger"
+  },
+  {
+   "say": "Mia's city is Tallinn.",
+   "value": "Tallinn",
+   "kind": "attribute"
+  },
+  {
+   "say": "My sister's name is Hana.",
+   "value": "Hana",
+   "kind": "person"
+  },
+  {
+   "say": "Arno's city is Lyon.",
+   "value": "Lyon",
+   "kind": "stranger"
+  },
+  {
+   "say": "Omar's city is Tallinn.",
+   "value": "Tallinn",
+   "kind": "stranger"
+  },
+  {
+   "say": "Tara's city is Krakow.",
+   "value": "Krakow",
+   "kind": "attribute"
+  },
+  {
+   "say": "Jonas's job is baker.",
+   "value": "baker",
+   "kind": "stranger"
+  },
+  {
+   "say": "Ana's job is glassblower.",
+   "value": "glassblower",
+   "kind": "attribute"
+  },
+  {
+   "say": "My brother's name is Yusuf.",
+   "value": "Yusuf",
+   "kind": "person"
+  },
+  {
+   "say": "Zoe's pet is a axolotl.",
+   "value": "axolotl",
+   "kind": "attribute"
+  },
+  {
+   "say": "Sofia's pet is a ferret.",
+   "value": "ferret",
+   "kind": "attribute"
+  },
+  {
+   "say": "Elif's pet is a gecko.",
+   "value": "gecko",
+   "kind": "stranger"
+  },
+  {
+   "say": "Omar's pet is a beagle.",
+   "value": "beagle",
+   "kind": "stranger"
+  },
+  {
+   "say": "Dana's city is Utrecht.",
+   "value": "Utrecht",
+   "kind": "attribute"
+  },
+  {
+   "say": "My niece's name is Emil.",
+   "value": "Emil",
+   "kind": "person"
+  },
+  {
+   "say": "Priya's city is Dublin.",
+   "value": "Dublin",
+   "kind": "attribute"
+  },
+  {
+   "say": "Zoe's city is Oslo.",
+   "value": "Oslo",
+   "kind": "attribute"
+  },
+  {
+   "say": "Hana's job is surveyor.",
+   "value": "surveyor",
+   "kind": "attribute"
+  },
+  {
+   "say": "Tara's pet is a chinchilla.",
+   "value": "chinchilla",
+   "kind": "attribute"
+  },
+  {
+   "say": "Nadia's city is Zagreb.",
+   "value": "Zagreb",
+   "kind": "stranger"
+  },
+  {
+   "say": "Lucia's job is architect.",
+   "value": "architect",
+   "kind": "attribute"
+  },
+  {
+   "say": "Emil's pet is a parrot.",
+   "value": "parrot",
+   "kind": "attribute"
+  },
+  {
+   "say": "Nadia's pet is a parrot.",
+   "value": "parrot",
+   "kind": "stranger"
+  },
+  {
+   "say": "Pavel's pet is a goldfish.",
+   "value": "goldfish",
+   "kind": "stranger"
+  },
+  {
+   "say": "Tara's job is dentist.",
+   "value": "dentist",
+   "kind": "attribute"
+  },
+  {
+   "say": "Ivo's pet is a poodle.",
+   "value": "poodle",
+   "kind": "stranger"
+  },
+  {
+   "say": "Yusuf's city is Ghent.",
+   "value": "Ghent",
+   "kind": "attribute"
+  },
+  {
+   "say": "Amara's city is Utrecht.",
+   "value": "Utrecht",
+   "kind": "stranger"
+  },
+  {
+   "say": "Vera's job is beekeeper.",
+   "value": "beekeeper",
+   "kind": "stranger"
+  },
+  {
+   "say": "Priya's job is baker.",
+   "value": "baker",
+   "kind": "attribute"
+  }
+ ],
+ "questions": {
+  "direct": [
+   {
+    "type": "direct",
+    "q": "Where does Zoe live?",
+    "accept": [
+     "Oslo"
+    ],
+    "needs": [
+     "Zoe's city is Oslo."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Marek do for work?",
+    "accept": [
+     "carpenter"
+    ],
+    "needs": [
+     "Marek's job is carpenter."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Mia live?",
+    "accept": [
+     "Tallinn"
+    ],
+    "needs": [
+     "Mia's city is Tallinn."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Ines do for work?",
+    "accept": [
+     "locksmith"
+    ],
+    "needs": [
+     "Ines's job is locksmith."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Tara live?",
+    "accept": [
+     "Krakow"
+    ],
+    "needs": [
+     "Tara's city is Krakow."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Dana live?",
+    "accept": [
+     "Utrecht"
+    ],
+    "needs": [
+     "Dana's city is Utrecht."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Mia do for work?",
+    "accept": [
+     "nurse"
+    ],
+    "needs": [
+     "Mia's job is nurse."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Marek have?",
+    "accept": [
+     "tortoise"
+    ],
+    "needs": [
+     "Marek's pet is a tortoise."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Sofia have?",
+    "accept": [
+     "ferret"
+    ],
+    "needs": [
+     "Sofia's pet is a ferret."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Lucia do for work?",
+    "accept": [
+     "architect"
+    ],
+    "needs": [
+     "Lucia's job is architect."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Nils have?",
+    "accept": [
+     "hedgehog"
+    ],
+    "needs": [
+     "Nils's pet is a hedgehog."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Dana have?",
+    "accept": [
+     "iguana"
+    ],
+    "needs": [
+     "Dana's pet is a iguana."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Zoe have?",
+    "accept": [
+     "axolotl"
+    ],
+    "needs": [
+     "Zoe's pet is a axolotl."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Ana live?",
+    "accept": [
+     "Bergen"
+    ],
+    "needs": [
+     "Ana's city is Bergen."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Nils live?",
+    "accept": [
+     "Lyon"
+    ],
+    "needs": [
+     "Nils's city is Lyon."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Tara do for work?",
+    "accept": [
+     "dentist"
+    ],
+    "needs": [
+     "Tara's job is dentist."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Sofia do for work?",
+    "accept": [
+     "beekeeper"
+    ],
+    "needs": [
+     "Sofia's job is beekeeper."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Hana do for work?",
+    "accept": [
+     "surveyor"
+    ],
+    "needs": [
+     "Hana's job is surveyor."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Emil live?",
+    "accept": [
+     "Riga"
+    ],
+    "needs": [
+     "Emil's city is Riga."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Priya have?",
+    "accept": [
+     "beagle"
+    ],
+    "needs": [
+     "Priya's pet is a beagle."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Yusuf do for work?",
+    "accept": [
+     "chemist"
+    ],
+    "needs": [
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What pet does Ana have?",
+    "accept": [
+     "gecko"
+    ],
+    "needs": [
+     "Ana's pet is a gecko."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Ana do for work?",
+    "accept": [
+     "glassblower"
+    ],
+    "needs": [
+     "Ana's job is glassblower."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Ines live?",
+    "accept": [
+     "Valencia"
+    ],
+    "needs": [
+     "Ines's city is Valencia."
+    ]
+   }
+  ],
+  "bridge": [
+   {
+    "type": "bridge",
+    "q": "What pet does my partner keep?",
+    "accept": [
+     "ferret"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's pet is a ferret."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my boss live in?",
+    "accept": [
+     "Malmo"
+    ],
+    "needs": [
+     "My boss's name is Leo.",
+     "Leo's city is Malmo."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What pet does my grandpa keep?",
+    "accept": [
+     "axolotl"
+    ],
+    "needs": [
+     "My grandpa's name is Zoe.",
+     "Zoe's pet is a axolotl."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my sister live in?",
+    "accept": [
+     "Graz"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's city is Graz."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What pet does my grandma keep?",
+    "accept": [
+     "hedgehog"
+    ],
+    "needs": [
+     "My grandma's name is Nils.",
+     "Nils's pet is a hedgehog."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What pet does my brother keep?",
+    "accept": [
+     "dachshund"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's pet is a dachshund."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my brother live in?",
+    "accept": [
+     "Ghent"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's city is Ghent."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What pet does my niece keep?",
+    "accept": [
+     "parrot"
+    ],
+    "needs": [
+     "My niece's name is Emil.",
+     "Emil's pet is a parrot."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my father do for a living?",
+    "accept": [
+     "baker"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Priya's job is baker."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my cousin live in?",
+    "accept": [
+     "Lisbon"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Lucia's city is Lisbon."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my uncle do for a living?",
+    "accept": [
+     "dentist"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's job is dentist."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my nephew live in?",
+    "accept": [
+     "Zagreb"
+    ],
+    "needs": [
+     "My nephew's name is Marek.",
+     "Marek's city is Zagreb."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my mother do for a living?",
+    "accept": [
+     "nurse"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Mia's job is nurse."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my friend do for a living?",
+    "accept": [
+     "translator"
+    ],
+    "needs": [
+     "My friend's name is Greta.",
+     "Greta's job is translator."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my boss do for a living?",
+    "accept": [
+     "pilot"
+    ],
+    "needs": [
+     "My boss's name is Leo.",
+     "Leo's job is pilot."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What pet does my father keep?",
+    "accept": [
+     "beagle"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Priya's pet is a beagle."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my friend live in?",
+    "accept": [
+     "Porto"
+    ],
+    "needs": [
+     "My friend's name is Greta.",
+     "Greta's city is Porto."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my aunt live in?",
+    "accept": [
+     "Utrecht"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Dana's city is Utrecht."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my aunt do for a living?",
+    "accept": [
+     "firefighter"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Dana's job is firefighter."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my nephew do for a living?",
+    "accept": [
+     "carpenter"
+    ],
+    "needs": [
+     "My nephew's name is Marek.",
+     "Marek's job is carpenter."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my uncle live in?",
+    "accept": [
+     "Krakow"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's city is Krakow."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my cousin do for a living?",
+    "accept": [
+     "architect"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Lucia's job is architect."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my mother live in?",
+    "accept": [
+     "Tallinn"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Mia's city is Tallinn."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my niece live in?",
+    "accept": [
+     "Riga"
+    ],
+    "needs": [
+     "My niece's name is Emil.",
+     "Emil's city is Riga."
+    ]
+   }
+  ],
+  "inverse": [
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a glassblower?",
+    "accept": [
+     "Ana",
+     "son"
+    ],
+    "needs": [
+     "Ana's job is glassblower.",
+     "My son's name is Ana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a pilot?",
+    "accept": [
+     "Leo",
+     "boss"
+    ],
+    "needs": [
+     "Leo's job is pilot.",
+     "My boss's name is Leo."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a chinchilla?",
+    "accept": [
+     "Tara",
+     "uncle"
+    ],
+    "needs": [
+     "Tara's pet is a chinchilla.",
+     "My uncle's name is Tara."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a nurse?",
+    "accept": [
+     "Mia",
+     "mother"
+    ],
+    "needs": [
+     "Mia's job is nurse.",
+     "My mother's name is Mia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a beagle?",
+    "accept": [
+     "Priya",
+     "father"
+    ],
+    "needs": [
+     "Priya's pet is a beagle.",
+     "My father's name is Priya."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Valencia?",
+    "accept": [
+     "Ines",
+     "daughter"
+    ],
+    "needs": [
+     "Ines's city is Valencia.",
+     "My daughter's name is Ines."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a dachshund?",
+    "accept": [
+     "Yusuf",
+     "brother"
+    ],
+    "needs": [
+     "Yusuf's pet is a dachshund.",
+     "My brother's name is Yusuf."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a poodle?",
+    "accept": [
+     "Mia",
+     "mother"
+    ],
+    "needs": [
+     "Mia's pet is a poodle.",
+     "My mother's name is Mia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Zagreb?",
+    "accept": [
+     "Marek",
+     "nephew"
+    ],
+    "needs": [
+     "Marek's city is Zagreb.",
+     "My nephew's name is Marek."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Utrecht?",
+    "accept": [
+     "Dana",
+     "aunt"
+    ],
+    "needs": [
+     "Dana's city is Utrecht.",
+     "My aunt's name is Dana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Oslo?",
+    "accept": [
+     "Zoe",
+     "grandpa"
+    ],
+    "needs": [
+     "Zoe's city is Oslo.",
+     "My grandpa's name is Zoe."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Bologna?",
+    "accept": [
+     "Sofia",
+     "partner"
+    ],
+    "needs": [
+     "Sofia's city is Bologna.",
+     "My partner's name is Sofia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a chemist?",
+    "accept": [
+     "Yusuf",
+     "brother"
+    ],
+    "needs": [
+     "Yusuf's job is chemist.",
+     "My brother's name is Yusuf."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a tortoise?",
+    "accept": [
+     "Marek",
+     "nephew"
+    ],
+    "needs": [
+     "Marek's pet is a tortoise.",
+     "My nephew's name is Marek."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a jeweler?",
+    "accept": [
+     "Nils",
+     "grandma"
+    ],
+    "needs": [
+     "Nils's job is jeweler.",
+     "My grandma's name is Nils."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a locksmith?",
+    "accept": [
+     "Ines",
+     "daughter"
+    ],
+    "needs": [
+     "Ines's job is locksmith.",
+     "My daughter's name is Ines."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Malmo?",
+    "accept": [
+     "Leo",
+     "boss"
+    ],
+    "needs": [
+     "Leo's city is Malmo.",
+     "My boss's name is Leo."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a gecko?",
+    "accept": [
+     "Ana",
+     "son"
+    ],
+    "needs": [
+     "Ana's pet is a gecko.",
+     "My son's name is Ana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a ferret?",
+    "accept": [
+     "Sofia",
+     "partner"
+    ],
+    "needs": [
+     "Sofia's pet is a ferret.",
+     "My partner's name is Sofia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Krakow?",
+    "accept": [
+     "Tara",
+     "uncle"
+    ],
+    "needs": [
+     "Tara's city is Krakow.",
+     "My uncle's name is Tara."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Dublin?",
+    "accept": [
+     "Priya",
+     "father"
+    ],
+    "needs": [
+     "Priya's city is Dublin.",
+     "My father's name is Priya."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Tallinn?",
+    "accept": [
+     "Mia",
+     "mother"
+    ],
+    "needs": [
+     "Mia's city is Tallinn.",
+     "My mother's name is Mia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives has a goldfish?",
+    "accept": [
+     "Greta",
+     "friend"
+    ],
+    "needs": [
+     "Greta's pet is a goldfish.",
+     "My friend's name is Greta."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Porto?",
+    "accept": [
+     "Greta",
+     "friend"
+    ],
+    "needs": [
+     "Greta's city is Porto.",
+     "My friend's name is Greta."
+    ]
+   }
+  ],
+  "verify": [
+   {
+    "type": "verify",
+    "q": "Is my friend the one whose city is Porto? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My friend's name is Greta.",
+     "Greta's city is Porto."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my son the one whose job is chemist? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My son's name is Ana.",
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my daughter the one whose city is Valencia? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My daughter's name is Ines.",
+     "Ines's city is Valencia."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my mother the one whose city is Valencia? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Ines's city is Valencia."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my grandma the one whose job is baker? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My grandma's name is Nils.",
+     "Priya's job is baker."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my aunt the one whose job is librarian? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Zoe's job is librarian."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my grandma the one whose city is Malmo? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My grandma's name is Nils.",
+     "Leo's city is Malmo."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my cousin the one whose job is architect? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Lucia's job is architect."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my nephew the one whose pet is tortoise? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My nephew's name is Marek.",
+     "Marek's pet is a tortoise."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's job is beekeeper."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Mia's job is nurse."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my niece the one whose pet is parrot? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My niece's name is Emil.",
+     "Emil's pet is a parrot."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my daughter the one whose job is locksmith? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My daughter's name is Ines.",
+     "Ines's job is locksmith."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my boss the one whose job is pilot? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My boss's name is Leo.",
+     "Leo's job is pilot."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my father the one whose pet is tortoise? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Marek's pet is a tortoise."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my aunt the one whose city is Utrecht? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Dana's city is Utrecht."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my friend the one whose job is firefighter? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My friend's name is Greta.",
+     "Dana's job is firefighter."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's job is dentist."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My niece's name is Emil.",
+     "Nils's job is jeweler."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my partner the one whose pet is ferret? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's pet is a ferret."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my grandpa the one whose pet is axolotl? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My grandpa's name is Zoe.",
+     "Zoe's pet is a axolotl."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my sister the one whose pet is rabbit? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's pet is a rabbit."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my brother the one whose pet is dachshund? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's pet is a dachshund."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my uncle the one whose pet is beagle? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Priya's pet is a beagle."
+    ]
+   }
+  ]
+ }
+}

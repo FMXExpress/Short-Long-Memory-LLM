@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.join(REPO, "trainer"))
 import memlib  # noqa: E402
 
 texts = [
-    "My dog's name is Biscuit.", "Hi, my name is Ada Lovelace and I like math.",
+    "Ana's city is Lisbon.", "Tom's car is a green Volvo.", "Mary Jane's birthday is on May 3.", "It's cold is all.",
+    "Today's plan is rest.", "Ana's kids are Leo and Mia.",     "My dog's name is Biscuit.", "Hi, my name is Ada Lovelace and I like math.",
     "The wifi password is tulip42.", "Remember that the wifi password is tulip42.",
     "I live in Reykjavik", "I work at Zorblax Industries.", "What is my dog's name?", "Hello there",
     "My dentist appointment is on Friday.", "My car is a green Volvo.", "My bike is called Rocket.",
@@ -27,6 +28,9 @@ texts = [
     "Remember, my gate code is 1234 because I forget", "My mother is called an Annie",
     "My favourite band is \"The Cure\".", "  ", "", "Ok cool thanks a lot", "Good morning! My boss is Priya.",
 ]
+natural = json.load(open(os.path.join(REPO, "bench", "facts_natural.json"), encoding="utf-8"))
+texts += [f["say"] for split in ("dev", "heldout") for f in natural[split]]
+texts += json.load(open(os.path.join(REPO, "bench", "chatter.json"), encoding="utf-8"))["lines"]
 for name in ("facts.json", "facts_heldout.json"):
     data = json.load(open(os.path.join(REPO, "bench", name), encoding="utf-8"))
     texts += [f["say"] for f in data["facts"]]

@@ -150,8 +150,10 @@ def main():
             out.append(msgs + [{"role": "assistant", "content": ans}])
         return out
     n_anc = tr["anchors"]
-    anchors = self_answers(memlib.ANCHOR_PROMPTS[:n_anc])
-    heldout = self_answers(memlib.ANCHOR_PROMPTS[n_anc:n_anc + max(4, n_anc // 2)])
+    # the last 8 prompts measure drift whatever the number of training anchors (Mem.Train)
+    n_held = 8
+    anchors = self_answers(memlib.ANCHOR_PROMPTS[:min(n_anc, len(memlib.ANCHOR_PROMPTS) - n_held)])
+    heldout = self_answers(memlib.ANCHOR_PROMPTS[-n_held:])
     base_heldout_loss = memlib.mean_loss(model, tok, heldout, tr["max_len"])
 
     extra = memlib.name_questions if tr.get("name_questions") else None

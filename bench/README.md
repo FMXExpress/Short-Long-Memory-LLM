@@ -364,3 +364,377 @@ answers every held-out question. Interference 0.075 vs 0.050 is one question.
 
 `tiny` now trains with `examples: varied`, 12 examples per fact, adapters on
 `v_proj, o_proj, gate_proj, up_proj` (run C). The other profiles keep templates until measured.
+
+## Memory loop, iteration 1: extraction coverage (2026-10-31)
+
+A fact that is never stored can't be retrieved or trained, so the first thing to measure is how
+many facts get stored at all. The old benchmark's "extraction 1.00" came from facts written to fit
+the rules ("my X is Y"). `bench/facts_natural.json` holds 40 dev and 40 held-out facts phrased the
+way people say them ("I'm allergic to peanuts", "My son Leo just turned seven"), all written
+before any tuning. `bench/chatter.json` holds 40 chat lines that state no durable fact, to catch
+false memories. Both are scored by `build/bench_extract`, which runs the Pascal extractor the agent
+uses.
+
+| rule extractor (tiny profile) | dev coverage | held-out coverage | junk facts from chat |
+|---|---|---|---|
+| before | 0.225 | 0.250 | 0/40 |
+| + 28 rules from the dev misses | 1.000 | 0.675 | 19/40 |
+| **+ value checks (adopted)** | **1.000** | **0.650** | **0/40** |
+
+- **New rules** (`memlib.EXTRA_RULES`, generated into `memagent/Mem.ExtractRules.inc`): pets and
+  people with names, allergies, birthplace, job, diet, car, moves, likes and dislikes, what to call
+  me, languages, instruments, training goals, devices, teams, schools, counts of children and
+  siblings, age, where relatives live, commutes, upcoming events, things being learned, weekly
+  habits, coffee and tea, where I grew up, a partner's job. Also: "my son Leo …" (a relation and
+  a name), "my birthday's on …", and "I've been working at …".
+- **Value checks:**
+  - Without them, 19 of 40 chat lines became facts ("I love you" → "You love you."; "I moved
+    to the next question" → "You live in next question.").
+  - Every new rule now rejects a value that starts with a pronoun or filler word.
+  - Rules for names and places (birthplace, moves, names, teams, schools, cars, devices)
+    require a proper noun.
+- **Honesty about held-out:** rules were written only from dev misses. Phrasings seen only in
+  the held-out set ("I've got a …", "we call our …", "I can't stand …", "I turned 41") were left
+  out on purpose, and they make up most of the 14 held-out misses. That is the generalization
+  limit of a rule extractor. The `small` profile and up add LLM extraction on top, which a later
+  iteration should measure on the same sets.
+- **No regressions:** the original benchmark facts still extract 30/30 and 20/20. The Pascal and
+  Python extractors agree on all 698 parity cases, now including the natural and chatter sets.
+
+## Memory loop, iteration 2: memory over time (2026-10-31)
+
+`python3 bench/bench_stream.py` drives the real binary through sessions:
+- each session tells it 10 facts; the last session also corrects two earlier ones
+- `/nap` trains the fast LoRA, then a checkpoint asks one held-out question per fact so far,
+  plus 6 never-stated questions, twice: through the full agent and from the weights alone
+  (`/weights`)
+- `/sleep` runs a deep sleep, and a final checkpoint follows the last one
+
+Accuracy is split into the latest session's facts ("new") and earlier ones ("old", retention).
+
+**Baseline** (v0.3.0 defaults, 30 facts, 3 sessions, `stream-tiny-baseline.json`):
+
+| checkpoint | facts | full agent: new / old | weights only: new / old | confabulation, agent / weights |
+|---|---|---|---|---|
+| session 1 | 10 | 0.60 / – | 0.80 / – | 0.00 / 1.00 |
+| session 2 | 20 | 0.90 / 0.90 | 1.00 / 1.00 | 0.17 / 0.33 |
+| session 3 (+2 corrections) | 30 | 0.60 / 0.75 | 0.80 / 0.75 | 0.50 / 0.50 |
+| after the final deep sleep | 30 | – / 0.93 | – / 1.00 | 0.17 / 0.67 |
+
+Findings:
+1. **The full agent scored below the weights alone** at three of four checkpoints. The main
+   cause is the guard withholding right answers, in 4 to 6 questions per checkpoint: "Who is my
+   employer?" (the fact is "where I work"), "Who is my boss?" ("my manager"), "What is my girl
+   called?" ("my daughter"). No word matched, and the cross-encoder scored the pairs under its
+   threshold.
+2. **"Fast" runs are not fast:** 645 s and 841 s, against 634 s for a deep sleep over 20 facts.
+   They train the new facts plus an equal replay sample, with two adapters in the graph.
+3. **A wasted deep sleep:** `/sleep` right after the first run rebuilt the same 10 facts (341 s).
+4. **Retention holds:** old-fact accuracy from the weights stays at 1.00 through session 2, and
+   every fast run kept all of its replayed facts.
+
+**Fix 1, guard synonyms:** `Mem.Guard` matches words that name the same thing in a question
+about the user (work/employer/company/salary, boss/manager, girl/daughter, boy/son,
+mother/mom/mum, father/dad, partner/wife/husband/…, kid/child, home/live/house, car/vehicle).
+Re-scored offline (`build/bench_guard`) on the recorded memory-benchmark answers:
+
+| | correct answers withheld | confabulation, LoRA → with guard |
+|---|---|---|
+| dev, before | 3–4 | 0.70 → 0.25 |
+| dev, after | 0 | 0.70 → 0.25 |
+| held-out, before / after | 0 / 0 | 0.80 → 0.25 / 0.80 → 0.25 |
+
+None of the look-alikes the guard blocks (horse/dog, aunt/sister, stepmother/mother,
+parrot/cat) shares a group.
+
+**Fix 2:** a deep sleep is skipped when the deep LoRA already holds every fact (nothing in the
+fast tier, nothing forgotten or changed).
+
+## Memory loop, iteration 3: what training time is spent on (2026-10-31)
+
+Per-phase timings (now in every adapter's `manifest.json` under `phases`) for a deep sleep over
+10 facts and a fast run over 10 new facts:
+
+| run | total | training | anchors | probes | other |
+|---|---|---|---|---|---|
+| deep sleep, 10 facts | 365 s | 326 s (89%) | 28 s | 8 s | ~4 s |
+| fast run, 10 new + 10 replayed | 675 s | 634 s (94%) | 24 s | 12 s | ~4 s |
+
+There is no large fixed overhead: cost is examples × epochs, about 0.64 s per example pass on
+tiny (4 cores). A fast run cost twice a deep sleep of the same size because its replayed facts
+got full example sets, although they are already in the frozen deep LoRA and are there only so
+the new adapter learns to leave them alone. Replayed facts now get `max(2, per_fact div 3)`
+examples (4 on tiny).
+
+Verified on the stream benchmark (`stream-tiny-loop3.json`, together with the iteration 2 fixes):
+
+| | baseline | loop 3 |
+|---|---|---|
+| total training | 3825 s | 3077 s (−20%) |
+| fast runs | 645 s, 841 s | 495 s, 561 s |
+| weights only, old facts at session 3 | 0.75 | 0.80 |
+| weights only, after the final deep sleep | 1.00 | 1.00 |
+| full agent: session 1 / session 3 / final | 0.60 / 0.70 / 0.93 | 0.70 / 0.80 / 0.97 |
+
+Retention is unchanged or better, and the full agent gains 3–10 points from the guard fix.
+Confabulation moved by one question; 6 never-stated questions per checkpoint make each one
+0.17.
+
+**Drift grows with memory.** Deep-sleep drift was 1.27×, 1.41× and 1.76× at 10, 20 and 30 facts,
+identical in both runs because training is deterministic. At that rate the 3.0 gate would start
+rejecting deep sleeps around 60–80 facts, and memory would stop updating. The anchor set is
+fixed at 8 examples while fact examples grow to 360. That is the next iteration.
+
+## Memory loop, iteration 4a: retrieval of facts already in the weights (2026-10-31)
+
+Several wrong full-agent answers in the stream baseline came from retrieval putting a misleading
+fact in the prompt, while the weights alone were right. `rag_include_baked=1` was chosen when the
+LoRA was much weaker (+15 points then). With the stronger varied-example LoRA, does leaving baked
+facts out of retrieval help?
+
+| full agent, `stream-tiny-loop3` vs `stream-tiny-loop4a-nobaked` | session 1 | session 2 | session 3 | final |
+|---|---|---|---|---|
+| baked facts retrieved (default) | 0.70 | 0.90 | 0.80 | 0.967 |
+| baked facts left out | 0.70 | 0.95 | 0.867 | 0.933 |
+
+The difference is a few questions in each direction (+1, +2, −1), and weights-only scores are
+identical because training is deterministic. **Inconclusive: the default stays.** Retrieving
+baked facts is also the safety net for a fact the weights lose.
+
+## Memory loop, iteration 4b: drift against the number of anchors (2026-10-31)
+
+Drift (perplexity ratio on general text) is what the gate rejects, and it grew with memory. Two
+ways to bring it down, both on the 30-fact dev set (`memory-tiny-llama-G*`, `-H*`):
+
+- **Fewer, larger training steps** (`max_windows=16`): rejected. Drift went from 1.49 to 1.83, and
+  confabulation from the weights rose to 0.90.
+- **More general-text anchors in training.** The first try reported 16 anchors as drift 1.09, but
+  that measurement was flawed. The held-out drift prompts were whatever anchors were left over, so
+  they changed with the anchor count. Both trainers now hold out a fixed set (the last 8 of the
+  32 anchor prompts) and train on the first `anchors` of the other 24 (commit a6ad994):
+
+| anchors | accuracy LoRA / +RAG | interference | confab. (weights) | drift | recall | train s |
+|---|---|---|---|---|---|---|
+| 8 (old default) | 0.933 / 0.967 | 0.050 | 0.70 | 1.39 | 1.00 | 1074 |
+| 16 | 0.917 / 0.983 | 0.033 | 0.70 | 1.22 | 1.00 | 1147 |
+| **24** | 0.917 / 0.967 | 0.067 | 0.70 | **1.01** | 1.00 | 1137 |
+
+Drift goes down steadily with more anchors, to almost none at 24. Accuracy and interference move
+by one question at most, and the run takes about 6% longer. **Tiny now trains with 24 anchors.**
+
+Held-out facts (`memory-tiny-llama-heldout-anchors{8,24}.json`), never used for tuning:
+
+| anchors | accuracy LoRA / +RAG | interference | confab. (weights) | drift | train s |
+|---|---|---|---|---|---|
+| 8 | 0.925 / 1.000 | 0.075 | 0.80 | 1.25 | 733 |
+| 24 | 0.925 / 0.975 | 0.025 | 0.80 | **0.96** | 819 |
+
+Same picture: drift goes from 1.25 to 0.96 with the same accuracy, LoRA alone.
+
+Stream benchmark (`stream-tiny-loop4b-anchors24.json`). It hit the 2-hour run limit during the
+final question round, so the final checkpoint has 28 of 30 facts and no unknown questions.
+Every training run had finished:
+
+| | deep drift at 10 / 20 / 30 facts | fast drift, sessions 2 / 3 | agent accuracy, checkpoints 1–4 | weights, old facts after session 3 | train s |
+|---|---|---|---|---|---|
+| 8 anchors (`loop3`) | 1.27 / 1.41 / **1.76** | 1.01 / 1.37 | 0.70 / 0.90 / 0.80 / 0.967 | 0.80 | 3077 |
+| 24 anchors | 1.01 / 1.05 / **1.12** | 1.04 / 1.08 | 0.70 / 0.95 / 0.80 / 0.964 | 0.60 | 4784 |
+
+(The two rows measure drift on different held-out prompts: loop3 predates the fixed set. What
+compares is the growth: +0.49 across 20 more facts before, +0.11 now.) Drift no longer climbs
+toward the 3.0 gate as memory grows, and the agent's accuracy is unchanged. Two costs to watch:
+
+- With the fast LoRA stacked on the deep one after session 3, the weights alone kept 12 of 20
+  earlier facts instead of 16. The full agent was unaffected (0.80 both times), and the deep
+  sleep restored all of them (1.00).
+- Training time rose 55%. Part of that is the extra anchor examples. Part of it is that the
+  retrieval benchmarks of iteration 6 ran on the same CPU during this run, so this number is not
+  clean.
+
+## Memory loop, iteration 5: confabulation that gets past the guard (2026-10-31)
+
+In the stream baseline (`stream-tiny-loop3`), the full agent still answered 4 of 6 never-stated
+questions with a stored value after session 3. The guard only checks questions about "my X", and
+4 of those 5 leaks had no "my": "Which school did I go to?" got Teo, "What motorbike do I own?" got
+Rocket. The fifth was "When is my partner's birthday?" getting March 3rd, which was licensed
+because "birthday" matched the user's own birthday.
+
+**Owner rule (applied).** When the question names an owner ("my partner's birthday"), a word
+match only licenses facts about the same owner. Offline on six recorded answer sets (dev and
+held-out, `bench_guard`): no correct answer blocked on any set, and LoRA confabulation after the
+guard 0.20 to 0.15 on the newest dev set. The other sets are unchanged.
+
+**Guarding every question: rejected.** The guard was widened to any question, using its content
+words as the subject ("What do I drive?" gives "drive"). That cut confabulation after the guard
+from 0.20 to 0.10, but blocked 12 of 60 correct dev answers. A paraphrase shares no word with its
+fact ("Who am I dating?" against "my partner's name"), and licensing has to come from a model:
+
+- bge-reranker scores those real paraphrases 0.000 to 0.027 and the look-alikes 0.0006 to 0.004.
+  No threshold separates them.
+- Licensing a fact only when retrieval ranks it first for the question (minilm cosine) keeps
+  100 of 107 correct uses, but stops just 3 of 13 confabulations. The rest are true nearest
+  neighbours: motorbike gets the bike, high school gets the university, garage code gets the
+  office door code. The closest stored fact is the wrong one, and nothing lexical or rank-based
+  sees that.
+
+What is left is a model's knowledge boundary, which SFT negatives and DPO did not teach at 135M
+(above). The candidates are the larger profiles, or answering such near-miss questions with the
+stored fact named ("You told me your bike is Rocket; you haven't mentioned a motorbike"). The
+second one changes the answer style and needs its own benchmark.
+
+## Memory loop, iteration 6: retrieval when memory fills up with look-alikes (2026-10-31)
+
+The earlier scale test (profiling round) only timed retrieval, and its filler facts were about
+shipping crates, which share nothing with personal facts. A long-lived memory fills up with facts
+about other people that have the user's own shapes. `BENCH_FILLER=personal` generates those:
+40 owners ("my neighbor's", "Tom's") times 20 attributes ("dog's name", "employer", "favorite
+band"). Production configuration (MiniLM + FTS + ms-marco, pool 8, rag_k 3), dev facts:
+
+| look-alikes stored | hit@1 | hit@3 | wrong@1 | hit@1 | hit@3 | wrong@1 |
+|---|---|---|---|---|---|---|
+| | **before** | | | **after** | | |
+| 0 | 0.900 | 0.967 | 0.067 | 0.900 | 0.967 | 0.067 |
+| 100 | 0.883 | 0.950 | 0.083 | | | |
+| 800 | 0.783 | 0.883 | 0.200 | 0.883 | 0.967 | 0.100 |
+| 2,000 | 0.733 | 0.833 | 0.233 | 0.867 | **0.967** | 0.117 |
+
+Every miss was rank 0: the right fact never reached the 8-candidate pool. "Who is my employer?"
+got "my manager's employer", "my neighbor's employer" and so on. A bigger pool did not help
+(16 and 32 both gave hit@3 0.833 at 800), because ms-marco ranks the other people's facts higher.
+
+**Owner-aware search (applied).** A fact whose subject names an owner the question does not
+mention (`Mem.Guard.ForeignOwner`: "my manager's employer" for "Who is my employer?"; a
+possessive followed by "name", as in "my partner's name", is the fact's topic and not an owner)
+ranks after the others:
+
+1. The keyword list and the vector list are each searched 4 times deeper.
+2. Foreign-owner facts move to the end of each list, and each list is cut back to the pool size
+   before rank fusion. With nothing foreign, fusion is exactly as before. A first version that
+   moved them after fusion changed the fusion itself and lost a question at 0 fillers.
+3. After reranking, they move to the end again.
+
+Held-out facts: hit@3 0.975 before and after, at 0 and 2,000 look-alikes. At 2,000, noise (unknown
+questions that still get a fact injected) went from 0.70 to 0.90. The pool now holds the user's own
+nearest facts instead of only other people's, and some pass the reranker. That matches the
+0.85–0.90 the dev set already has, and the guard covers it. Search time at 2,000 look-alikes is
+about 35 ms (it was 25 ms), within the 150–250 ms query total, which the reranker dominates.
+
+## Memory loop, iteration 7: replay every deep fact in fast runs (2026-10-31)
+
+Iteration 4b lost old facts from the weights after session 3's fast run (weights-only old retention
+0.60). The losses were sibling swaps: the sister got the partner's name, the son got the other
+child's. The fast run then replayed 12 of the 20 deep facts. This run replays all of them
+(`bench_stream.py --set replay=0`). There were 18 because the two corrected facts were in the new set.
+Everything else was as in `stream-tiny-loop4b-anchors24`.
+
+| session 3, after the fast run | replay 12 (default) | replay all |
+|---|---|---|
+| agent: new / old | 0.80 / 0.80 | 0.70 / 0.75 |
+| weights only: new / old | 0.90 / 0.60 | **1.00 / 0.70** |
+| fast run drift (ppl ratio) | 1.083 | 1.144 |
+| after the final deep sleep: agent / weights | 0.964 / 1.000 | 0.967 / 0.967 |
+
+Full replay fixed the targeted swaps in the weights: the sister is Ana again, and the son is Teo.
+The agent, however, lost three other answers to swaps of the same kind, for example "home city"
+answered with Porto. The net change is two questions up and two down out of 30. That is within
+one-question noise, and drift went up. **The default stays `replay: 1`** and the setting stays
+available. Sibling interference at 135M is a capacity limit that replay ratios don't move. Only the
+deep sleep cleans it up, and it does that in both runs.
+
+## Integration experiment: does sleep teach the model to combine facts? (small profile, 2026-10-31)
+
+Complementary-learning-systems theory says slow learning into the weights pays off in
+knowledge that *links* separately learned facts: transitive and relational inference
+improves after sleep (Ellenbogen et al. 2007, Lau et al. 2010). The earlier benchmarks
+only ask one stored fact back, which is what retrieval is best at. This one asks
+questions that need two facts together:
+
+- **Facts.** 112 facts from `gen_integration.py`:
+  - 16 "My sister's name is Ana." facts.
+  - 48 attribute facts about those people (city, job, pet).
+  - 48 attribute facts about strangers. Half of them share a value with a relative.
+- **Questions.** 96 questions, 24 of each type:
+  - direct: "Where does Ana live?"
+  - bridge: "Which city does my sister live in?"
+  - inverse: "Which of my relatives is a nurse?"
+  - verify: "Is my sister the one whose city is Lisbon?"
+- **Runner.** `bench_integration.py` runs the real `memagent` and splits every score by
+  whether retrieval put all the facts a question needs into the prompt (found / missed).
+
+**Retrieval only** (qwen2.5-1.5B, rag_k 3), all 96 questions:
+
+| type | correct | retrieval found every needed fact |
+|---|---|---|
+| direct | 24/24 | 100% |
+| bridge | 3/24 | 12.5% |
+| inverse | 7/24 | 0% |
+| verify | 10/24 (12 is chance) | 83% |
+
+Retrieval cannot do a two-hop question: the question names "my sister", so it finds
+"Your sister's name is Ana", but not "Ana's city is Lisbon". In 15 of the 24 bridge
+questions the model then picked the wrong stored value ("Hana lives in Bologna", but
+Bologna is Sofia's city): a **binding error**, the right kind of item attached to the
+wrong person.
+
+**Two bugs this found, both fixed:**
+
+- *Subject merge corrupted memory.* Merging duplicate subjects treated "Tomas's job" as
+  a duplicate of "Tomas's city", and "my grandpa's name" as a duplicate of "my grandma's
+  name". 14 of 112 facts were superseded. `DistinctSubjects` in `Mem.Guard` now vetoes
+  a merge when the owner or the attribute differs: 112/112 facts are kept.
+- *The guard licensed bound-to-someone-else answers.* The guard checked that the value
+  was stored, not whose it was. The new binding check (`Unbound` in `Mem.Guard`) blocks
+  an answer whose value is stored only under other owners. Offline, on the
+  retrieval-arm answers, wrong stored values dropped from 17 to 8. It blocked 9 answers,
+  none of them correct. The facts and held-out guard benchmarks are unchanged.
+- The rule extractor also dropped third-person facts ("Ana's city is Lisbon."). It has a
+  named-possessive rule now, in Python and Pascal, and passes 710/710 extract cases.
+
+**Deep sleep could not learn 112 facts within the drift gate.** Each sleep took about
+70 min on 4 CPU cores:
+
+| sleep | recall | drift (ppl ratio) | gate (0.7 / 1.5) |
+|---|---|---|---|
+| lr 3e-4 (profile default), 3 paraphrases | 0.37 | 1.47 | rejected: recall |
+| lr 1e-3, 24 anchors | 0.93 | 2.07 | rejected: drift |
+| same, gate drift raised to 3 for this experiment only | 0.93 | 2.07 | promoted |
+
+All 71 recall failures in the first sleep were binding errors, and so were all 8 in the
+second. The weights learned the values (the items) before they learned whose value is
+whose (the bindings). That is the associative-deficit pattern in human memory: item
+memory is learned fast, relational binding is learned slowly. It also shows the
+stability–plasticity dilemma on a small model: learning the bindings costs too much
+drift.
+
+**Retrieval plus the deep LoRA**, the 53 questions it finished before the 2-hour task
+limit stopped it (direct, bridge, and the first 5 inverse questions; no verify):
+
+| type | retrieval only | retrieval + deep LoRA |
+|---|---|---|
+| direct | 24/24 | 23/24 |
+| bridge | 3/24 | 1/24 |
+| inverse (5) | 2/5 | 4/5 |
+| all 53 | 29 | 28 |
+
+- **No integration gain.** Bridge got worse, not better. The one new bridge hit ("Your
+  cousin's city is Lisbon") sits beside two new "You haven't told me that yet." answers.
+- **The inverse gains are mostly not real.** The answers list several people, and the
+  scorer accepts any list that contains the right name. Two of the four mix in a
+  stranger or an invented relation ("Priya's cousin's name is Lucia").
+- **The drift is visible in the answers.** 33 of 53 answers run on and invent new
+  "User: / Assistant:" turns until the token limit. They average 563 characters,
+  against 25 for retrieval only. The model lost its turn format: that is what a drift
+  ratio of 2.07 looks like. Each answer took about 2.2 min, against 26 s. The
+  weights-only arm did not run.
+
+**Verdict for the 1.5B profile.** On CPU, consolidation cannot buy integration within a
+usable drift budget. The binding errors that sink retrieval on two-hop questions are
+the same errors the weights make. The gains that are real came from the store and the
+guard (subject-merge veto, binding check). The deep tier stays a backup for facts
+retrieval misses, not a way to reason across facts. The decisive version of this
+experiment needs a model large enough to learn the bindings at drift ≤ 1.5, which means
+a GPU.
+
+Results: `results/integration-small-partial.json` (the 53 paired answers, the sleep
+manifest, timings) and `results/integration-small-retrieval-answers.json` (all 96
+retrieval-only answers).
