@@ -400,7 +400,7 @@ def main():
     facts = read_facts(os.path.join(a.data, "memory.db"))
     global DEV
     # float32 everywhere: the solve divides by small eigenvalues of C
-    tok, model, _ = memlib.load_base({**prof, "dtype": "float32"})
+    tok, model, _ = memlib.load_base({**prof, "dtype": "float32", "quant": "none"})   # edits need full weights
     DEV = model.device
     model.eval()
     for p in model.parameters():
