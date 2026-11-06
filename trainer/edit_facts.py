@@ -183,28 +183,35 @@ def compute_target(model, tok, layer, s, steps, lr, kl_w, wd, clamp):
     rows = torch.arange(len(items) + 1)
     hook = AddAt(model.model.layers[layer])
     hook.rows, hook.pos = rows, pos
+    # logits only where they are scored: every position over a 152k vocabulary is GBs
+    tgt = lab[:, 1:]
+    rows_t, cols_t = (tgt != -100).nonzero(as_tuple=True)
+    tgt_ids = tgt[rows_t, cols_t]
+    e_row, e_last = len(items), len(ess.ids) - 1
+
+    def run():
+        h = model.model(input_ids=ids, attention_mask=att).last_hidden_state
+        lp = torch.log_softmax(model.lm_head(h[rows_t, cols_t]).float(), -1)
+        ess_lp = F.log_softmax(model.lm_head(h[e_row, e_last]).float(), -1)
+        return lp, ess_lp
     with torch.no_grad():
-        out = model(input_ids=ids, attention_mask=att)
+        _, ess_ref = run()
         h0 = hook.h.mean(0)
-        e_last = len(ess.ids) - 1
-        ess_ref = F.log_softmax(out.logits[-1, e_last].float(), -1)
     delta = torch.zeros(h0.shape, requires_grad=True)
     opt = torch.optim.Adam([delta], lr=lr)
     max_norm = clamp * h0.norm()
     nll = float("nan")
+    step = 0
     for step in range(steps):
         hook.delta = delta
-        out = model(input_ids=ids, attention_mask=att)
-        logits = out.logits[:-1, :-1].float()
-        tgt = lab[:-1, 1:]
-        mask = tgt != -100
-        lp = torch.log_softmax(logits, -1).gather(-1, tgt.clamp(min=0).unsqueeze(-1)).squeeze(-1)
-        per = -(lp * mask).sum(1) / mask.sum(1).clamp(min=1)
+        lp, ess_lp = run()
+        tok_nll = -lp.gather(-1, tgt_ids.unsqueeze(-1)).squeeze(-1)
+        per = torch.zeros(len(items)).index_add(0, rows_t, tok_nll) / \
+            torch.zeros(len(items)).index_add(0, rows_t, torch.ones_like(tok_nll)).clamp(min=1)
         nll_t = per.mean()
-        ess_lp = F.log_softmax(out.logits[-1, e_last].float(), -1)
         kl = F.kl_div(ess_lp, ess_ref, log_target=True, reduction="sum")
         loss = nll_t + kl_w * kl + wd * delta.norm() ** 2 / h0.norm() ** 2
-        nll = float(nll_t)
+        nll = float(nll_t.detach())
         if nll < 0.03:
             break
         opt.zero_grad()
@@ -246,12 +253,17 @@ def subject_keys(model, tok, layers, out_layer, subs):
     return {l: torch.stack(v) for l, v in keys.items()}, torch.stack(cur)
 
 
-def covariance(model, tok, layers, n_tokens, cache_dir, profile):
-    """C_l = E[k k^T] of the down_proj inputs over general text (wikitext-103), cached."""
+def cov_path(cache_dir, profile, l):
+    return os.path.join(cache_dir, f"{profile}-L{l}.pt")
+
+
+def covariance(model, tok, layers, n_tokens, cache_dir, profile, load=True):
+    """C_l = E[k k^T] of the down_proj inputs over general text (wikitext-103), cached.
+    load=False only makes sure the cache exists (each C is 320 MB at 1.5B)."""
     import torch
-    paths = {l: os.path.join(cache_dir, f"{profile}-L{l}.pt") for l in layers}
+    paths = {l: cov_path(cache_dir, profile, l) for l in layers}
     if all(os.path.exists(p) for p in paths.values()):
-        return {l: torch.load(p) for l, p in paths.items()}
+        return {l: torch.load(p) for l, p in paths.items()} if load else None
     from datasets import load_dataset
     os.makedirs(cache_dir, exist_ok=True)
     texts = [x["text"] for x in load_dataset("Salesforce/wikitext", "wikitext-103-raw-v1",
@@ -290,7 +302,8 @@ def covariance(model, tok, layers, n_tokens, cache_dir, profile):
     for l in layers:
         out[l] = acc[l] / count
         torch.save(out[l], paths[l])
-    return out
+        del acc[l]
+    return out if load else None
 
 
 # ---------------------------------------------------------------- export
@@ -404,7 +417,8 @@ def main():
     phases["anchors"] = round(time.time() - t, 1)
 
     t = time.time()
-    C = covariance(model, tok, layers, a.cov_tokens, os.path.join(memlib.REPO_DIR, "cache", "edit-cov"), prof["name"])
+    covariance(model, tok, layers, a.cov_tokens, os.path.join(memlib.REPO_DIR, "cache", "edit-cov"), prof["name"],
+               load=False)
     phases["covariance"] = round(time.time() - t, 1)
 
     # 1. targets
@@ -426,7 +440,9 @@ def main():
         K, cur = subject_keys(model, tok, layers, out_layer, subs)
         R = (Z - cur) / (len(layers) - i)                      # n x d
         Kl = K[l].T                                            # m x n
-        A = a.lam * C[l] + Kl @ Kl.T
+        C = torch.load(cov_path(os.path.join(memlib.REPO_DIR, "cache", "edit-cov"), prof["name"], l))
+        A = a.lam * C + Kl @ Kl.T
+        del C
         X = torch.linalg.solve(A, Kl)                          # m x n
         dW = R.T @ X.T                                         # d x m
         model.model.layers[l].mlp.down_proj.weight.add_(dW)
