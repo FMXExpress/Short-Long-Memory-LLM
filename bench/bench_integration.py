@@ -7,6 +7,10 @@ that hold the same facts:
   consolidated  the same store after a deep sleep (/sleep): retrieval + deep LoRA + guard
   weights     the consolidated model with no retrieval and no guard (/weights)
 
+--memory DIR --name edited adds two arms from a data dir prepared elsewhere (e.g. an
+edited-facts LoRA from trainer/edit_facts.py --activate): "edited" (retrieval + that
+LoRA + guard) and "edited-weights" (/weights).
+
 Each question type is scored per arm, and split by whether retrieval put every fact the
 question needs into the prompt (/recall, top rag_k). If the LoRA only helps where
 retrieval misses, the weights are a backup for retrieval; if it helps on bridge and
@@ -19,6 +23,7 @@ never retrievable as chat history in another.
   python3 bench/bench_integration.py --profile small --out bench/results/integration-small.json
 """
 import argparse
+import glob
 import json
 import os
 import re
@@ -118,6 +123,8 @@ def main():
                     help="override a profile setting in a copy of models.json: train.KEY by default (paraphrases=4), "
                          "or SECTION.KEY (gate.max_ppl_ratio=3)")
     ap.add_argument("--keep", help="reuse (or keep) the work directory, e.g. to skip a finished deep sleep")
+    ap.add_argument("--memory", help="a prepared data dir with an active LoRA: runs arms NAME and NAME-weights")
+    ap.add_argument("--name", default="edited", help="arm name for --memory")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     a = ap.parse_args()
@@ -191,10 +198,21 @@ def main():
             answers[arm] = {inp[len(prefix):]: answer_text(out) for inp, out in blocks(txt)}
             json.dump(answers[arm], open(os.path.join(work, f"answers-{arm}.json"), "w"))
 
+    if a.memory:
+        for arm, prefix in ((a.name, ""), (a.name + "-weights", "/weights ")):
+            if not ({arm, "memory"} & set(arms)):
+                continue
+            da = os.path.join(work, "arm-" + arm)
+            shutil.rmtree(da, ignore_errors=True)
+            shutil.copytree(a.memory, da)
+            txt, res["seconds"][arm] = agent.run(da, [prefix + q["q"] for q in qs], "arm-" + arm)
+            answers[arm] = {inp[len(prefix):]: answer_text(out) for inp, out in blocks(txt)}
+            json.dump(answers[arm], open(os.path.join(work, f"answers-{arm}.json"), "w"))
+
     # answers from earlier stages (--keep): each arm can run in its own call
-    for arm in ("retrieval", "consolidated", "weights"):
-        path = os.path.join(work, f"answers-{arm}.json")
-        if arm not in answers and os.path.exists(path):
+    for path in sorted(glob.glob(os.path.join(work, "answers-*.json"))):
+        arm = os.path.basename(path)[8:-5]
+        if arm not in answers:
             answers[arm] = json.load(open(path))
     secs_path = os.path.join(work, "seconds.json")
     if os.path.exists(secs_path):
@@ -230,7 +248,6 @@ def main():
 
 
 def glob_manifests(data):
-    import glob
     out = []
     for man in sorted(glob.glob(os.path.join(data, "adapters", "*", "manifest.json"))):
         out.append(json.load(open(man)))
