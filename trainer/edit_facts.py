@@ -475,7 +475,7 @@ def main():
     adapter_id = "edit-" + dt.datetime.now().strftime("%Y%m%dT%H%M%S")
     path = os.path.abspath(os.path.join(a.data, "adapters", adapter_id))
     deltas = {l: (model.model.layers[l].mlp.down_proj.weight.detach() - orig[l]) for l in layers}
-    rank = save_lora(path, deltas, prof["base"])
+    rank = save_lora(path, deltas, prof["base"], rank=len(subs))   # each layer's dW has rank <= subjects
     to_gguf(path, prof["base"])
     phases["export"] = round(time.time() - t, 1)
     manifest = {"id": adapter_id, "path": path, "profile": prof["name"], "base": prof["base"], "tier": "deep",
