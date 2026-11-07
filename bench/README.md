@@ -1000,3 +1000,25 @@ the guard too, and the judge withheld the reply (p 0.87). Statements now skip th
   negative (0.95) is near the 0.97 bar. A larger set should confirm them.
 - **Speed:** about 32 s per judgement on 4 CPU cores. One judgement per new fact that has a
   candidate, so it is affordable on a GPU and slow on a CPU.
+
+### The yes/no habit: the fix, not yet measured
+
+**The problem.** After deep sleep, models answer yes/no questions with a fact sentence:
+"Is my friend the one whose city is Porto? Answer yes or no." gets "Your friend's city is
+Porto." Verify fell to 0/24 at 1.5B and 5/24 at 24B. Every training example had one form,
+question → fact sentence, so that is the form the model learned to give.
+
+**The fix** (both trainers, `memlib` and `Mem.Examples` / `Mem.Train`):
+- **Varied examples for every profile.** Small, medium and large now use them, as tiny
+  already did. Each fact becomes a full answer, a short answer, the value asked from the
+  other side, yes/no checks, fill in the blank, two facts together, and "It's <value>."
+- **Short yes/no examples.** On even rounds the yes/no checks take the form users ask in:
+  "Is Ana's city Lisbon? Answer yes or no." → "Yes.", and "Is Ana's city Porto? …" → "No.",
+  using another fact's value of the same attribute when there is one.
+- **Yes/no anchors.** Six general yes/no prompts ("Is Paris the capital of France? Answer
+  yes or no.") come first among the anchors, answered by the base model itself, so every
+  profile rehearses answering yes or no. The eight held-out drift prompts are unchanged.
+
+**Not measured.** The GPU rerun of deep sleep at 1.5B, 4B and 24B, with the sleep and
+weights arms of the integration benchmark, has not been done. Until it is, the effect on
+verify scores, and on drift and recall, is unknown.
