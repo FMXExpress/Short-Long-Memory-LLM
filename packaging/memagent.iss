@@ -52,6 +52,7 @@ Source: "{#SrcDir}\memagent.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist uni
 
 [Icons]
 Name: "{group}\memagent"; Filename: "{app}\memagent.exe"; WorkingDir: "{app}"
+Name: "{group}\memagent (best settings for this PC)"; Filename: "{app}\run.cmd"; WorkingDir: "{app}"
 Name: "{group}\memagent settings (memagent.ini)"; Filename: "{app}\memagent.ini"
 Name: "{group}\Read me"; Filename: "{app}\README.md"
 Name: "{group}\Uninstall memagent"; Filename: "{uninstallexe}"

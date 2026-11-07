@@ -824,6 +824,16 @@ build:
 
 It needs no training and costs about 70 ms per extra hop. It is now the default.
 
+The GPU-trained 1.5B memory in the agent, two hops, rebuilt binding-guard build:
+
+| Arm | direct | bridge | inverse | verify | all |
+|---|---|---|---|---|---|
+| retrieval | 24 | 12 | 6 | 16 | **58/96** |
+| retrieval + GPU deep sleep | 24 | 4 | 4 | 0 | 32/96 |
+
+At 1.5B the trained memory makes the agent worse. Its fact-sentence answers fail verify, and
+the guard withheld 40 of them. So the 1.5B presets do not train in the background.
+
 ### What changed because of this
 
 | Change | Why |
@@ -832,7 +842,8 @@ It needs no training and costs about 70 ms per extra hop. It is now the default.
 | Large profile trains 2 epochs at lr 2e-4 | 8 epochs at 5e-4 learned every fact and drifted ×16, so the gate would have thrown away every deep sleep |
 | Medium gate allows drift up to 1.5 | Its best run, the top score of the day (77/96), drifted 1.39 and failed the old 1.3 limit |
 | The agent warns after two rejected runs in a row | It names drift (lower epochs or lr) or recall (raise epochs or wordings), so rejected background training no longer wastes compute unnoticed |
-| `scripts/run.sh` picks a preset from CPU, RAM and GPUs | See the README quick start |
+| `scripts/run.sh` (Linux) and `run.cmd` / `run.ps1` (Windows) pick a preset from CPU, RAM and GPUs | See the README quick start |
+| 1.5B presets do not train in the background | Trained memory scored 32/96 against 58/96 for retrieval in the agent |
 
 ### One-shot presets: what is measured and what is not
 
@@ -848,4 +859,5 @@ It needs no training and costs about 70 ms per extra hop. It is now the default.
 - Two GPUs, and hours of continuous background training. The next test streams facts in
   while the trainer loops, and tracks answers and drift.
 
-**Not covered:** `scripts/run.sh` is Linux-only; Windows users run the release installer.
+**Windows:** `run.ps1` is written for Windows PowerShell 5.1. It was not run in this session.
+The release workflow dry-runs it on a Windows runner for every pull request.
