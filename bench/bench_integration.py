@@ -67,7 +67,7 @@ def answer_text(raw):
         for p in ("pal> ", "weights> "):
             if line.startswith(p):
                 line = line[len(p):]
-        if line.startswith("[") or not line.strip():
+        if re.match(r"\[[a-z]", line) or not line.strip():   # status lines, not a "[7 May 2023]" answer
             continue
         keep.append(line)
     return " ".join(keep).strip()
