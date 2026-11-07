@@ -1,0 +1,1141 @@
+{
+ "label": "integration: retrieval, 2 hops + derived facts, small (1.5B), 112 facts",
+ "profile": "small",
+ "settings": [],
+ "rag_k": 3,
+ "hops": 2,
+ "derive": true,
+ "all_facts": false,
+ "n_facts": 112,
+ "n_questions": 96,
+ "seconds": {
+  "remember": 5.0892333984375,
+  "recall": 19.736217975616455,
+  "retrieval": 2384.230245113373
+ },
+ "work": "/home/user/benchint-derive",
+ "stored": 160,
+ "coverage": {
+  "direct": 1.0,
+  "bridge": 1.0,
+  "inverse": 0.667,
+  "verify": 0.792
+ },
+ "accuracy": {
+  "all": {
+   "retrieval": "78/96 = 0.812"
+  },
+  "bridge": {
+   "retrieval": "22/24 = 0.917"
+  },
+  "bridge / found": {
+   "retrieval": "22/24 = 0.917"
+  },
+  "direct": {
+   "retrieval": "24/24 = 1.000"
+  },
+  "direct / found": {
+   "retrieval": "24/24 = 1.000"
+  },
+  "inverse": {
+   "retrieval": "13/24 = 0.542"
+  },
+  "inverse / found": {
+   "retrieval": "10/16 = 0.625"
+  },
+  "inverse / missed": {
+   "retrieval": "3/8 = 0.375"
+  },
+  "verify": {
+   "retrieval": "19/24 = 0.792"
+  },
+  "verify / found": {
+   "retrieval": "15/19 = 0.789"
+  },
+  "verify / missed": {
+   "retrieval": "4/5 = 0.800"
+  }
+ },
+ "answers": [
+  {
+   "type": "direct",
+   "q": "Where does Zoe live?",
+   "accept": [
+    "Oslo"
+   ],
+   "covered": true,
+   "recalled": "fact #139 cos 0.72  rerank 0.9980  Zoe's city is Oslo.\n  fact #91  cos 0.49  rerank 0.0244  Your grandpa's name is Zoe.\n  fact #126 cos 0.53  rerank 0.0708  Zoe's pet is a axolotl.\n  fact #90  cos 0.56  rerank 0.0195  Zoe's job is librarian.\n  fact #140 cos 0.58  rerank 0.9886  Your grandpa Zoe's city is Oslo.\n  fact #127 cos 0.00  rerank 0.0083  Your grandpa Zoe's pet is a axolotl.",
+   "retrieval": "Oslo.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Marek do for work?",
+   "accept": [
+    "carpenter"
+   ],
+   "covered": true,
+   "recalled": "fact #29  cos 0.75  rerank 0.9991  Marek's job is carpenter.\n  fact #17  cos 0.55  rerank 0.0753  Your nephew's name is Marek.\n  fact #39  cos 0.63  rerank 0.0332  Marek's pet is a tortoise.\n  fact #10  cos 0.62  rerank 0.0300  Marek's city is Zagreb.\n  fact #30  cos 0.66  rerank 0.9903  Your nephew Marek's job is carpenter.\n  fact #18  cos 0.49  rerank 0.0053  Your nephew Marek's city is Zagreb.",
+   "retrieval": "Marek is a carpenter.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Mia live?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": "fact #111 cos 0.61  rerank 0.9924  Mia's city is Tallinn.\n  fact #34  cos 0.56  rerank 0.0147  Your mother's name is Mia.\n  fact #22  cos 0.52  rerank 0.0363  Mia's pet is a poodle.\n  fact #96  cos 0.56  rerank 0.0106  Mia's job is nurse.\n  fact #112 cos 0.54  rerank 0.9796  Your mother Mia's city is Tallinn.\n  fact #97  cos 0.00  rerank 0.0012  Your mother Mia's job is nurse.",
+   "retrieval": "Tallinn.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Ines do for work?",
+   "accept": [
+    "locksmith"
+   ],
+   "covered": true,
+   "recalled": "fact #54  cos 0.63  rerank 0.9980  Ines's job is locksmith.\n  fact #37  cos 0.37  rerank 0.0499  Your daughter's name is Ines.\n  fact #48  cos 0.35  rerank 0.0121  Ines's pet is a canary.\n  fact #41  cos 0.38  rerank 0.0098  Ines's city is Valencia.\n  fact #55  cos 0.48  rerank 0.9302  Your daughter Ines's job is locksmith.\n  fact #49  cos 0.00  rerank 0.0010  Your daughter Ines's pet is a canary.",
+   "retrieval": "Ines is a locksmith.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Tara live?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": true,
+   "recalled": "fact #118 cos 0.66  rerank 0.9966  Tara's city is Krakow.\n  fact #88  cos 0.54  rerank 0.0610  Your uncle's name is Tara.\n  fact #143 cos 0.60  rerank 0.0868  Tara's pet is a chinchilla.\n  fact #152 cos 0.56  rerank 0.0242  Tara's job is dentist.\n  fact #119 cos 0.56  rerank 0.9869  Your uncle Tara's city is Krakow.\n  fact #144 cos 0.47  rerank 0.0106  Your uncle Tara's pet is a chinchilla.",
+   "retrieval": "Krakow.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Dana live?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": true,
+   "recalled": "fact #132 cos 0.60  rerank 0.9947  Dana's city is Utrecht.\n  fact #100 cos 0.54  rerank 0.0329  Your aunt's name is Dana.\n  fact #25  cos 0.53  rerank 0.1188  Dana's pet is a iguana.\n  fact #62  cos 0.54  rerank 0.0167  Dana's job is firefighter.\n  fact #133 cos 0.54  rerank 0.9758  Your aunt Dana's city is Utrecht.\n  fact #101 cos 0.39  rerank 0.0149  Your aunt Dana's pet is a iguana.",
+   "retrieval": "Dana lives in Utrecht.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Mia do for work?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": true,
+   "recalled": "fact #96  cos 0.76  rerank 0.9978  Mia's job is nurse.\n  fact #34  cos 0.55  rerank 0.0111  Your mother's name is Mia.\n  fact #22  cos 0.51  rerank 0.0075  Mia's pet is a poodle.\n  fact #111 cos 0.50  rerank 0.0026  Mia's city is Tallinn.\n  fact #97  cos 0.71  rerank 0.9566  Your mother Mia's job is nurse.\n  fact #112 cos 0.00  rerank 0.0006  Your mother Mia's city is Tallinn.",
+   "retrieval": "Mia is a nurse.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Marek have?",
+   "accept": [
+    "tortoise"
+   ],
+   "covered": true,
+   "recalled": "fact #39  cos 0.80  rerank 0.9998  Marek's pet is a tortoise.\n  fact #10  cos 0.65  rerank 0.1687  Marek's city is Zagreb.\n  fact #17  cos 0.59  rerank 0.0240  Your nephew's name is Marek.\n  fact #29  cos 0.57  rerank 0.0174  Marek's job is carpenter.\n  fact #40  cos 0.71  rerank 0.9996  Your nephew Marek's pet is a tortoise.\n  fact #18  cos 0.00  rerank 0.0068  Your nephew Marek's city is Zagreb.",
+   "retrieval": "Marek has a tortoise as his pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Sofia have?",
+   "accept": [
+    "ferret"
+   ],
+   "covered": true,
+   "recalled": "fact #128 cos 0.76  rerank 0.9998  Sofia's pet is a ferret.\n  fact #4   cos 0.55  rerank 0.1172  Sofia's city is Bologna.\n  fact #83  cos 0.44  rerank 0.0106  Your partner's name is Sofia.\n  fact #38  cos 0.55  rerank 0.0101  Sofia's job is beekeeper.\n  fact #129 cos 0.60  rerank 0.9995  Your partner Sofia's pet is a ferret.\n  fact #84  cos 0.00  rerank 0.0034  Your partner Sofia's city is Bologna.",
+   "retrieval": "Sofia has a ferret.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Lucia do for work?",
+   "accept": [
+    "architect"
+   ],
+   "covered": true,
+   "recalled": "fact #146 cos 0.81  rerank 0.9987  Lucia's job is architect.\n  fact #24  cos 0.52  rerank 0.0160  Your cousin's name is Lucia.\n  fact #68  cos 0.57  rerank 0.0292  Lucia's pet is a hamster.\n  fact #76  cos 0.61  rerank 0.0123  Lucia's city is Lisbon.\n  fact #147 cos 0.65  rerank 0.9815  Your cousin Lucia's job is architect.\n  fact #69  cos 0.00  rerank 0.0032  Your cousin Lucia's pet is a hamster.",
+   "retrieval": "Lucia is an architect.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Nils have?",
+   "accept": [
+    "hedgehog"
+   ],
+   "covered": true,
+   "recalled": "fact #70  cos 0.78  rerank 0.9998  Nils's pet is a hedgehog.\n  fact #80  cos 0.60  rerank 0.0530  Nils's city is Lyon.\n  fact #11  cos 0.47  rerank 0.0228  Your grandma's name is Nils.\n  fact #15  cos 0.49  rerank 0.0159  Nils's job is jeweler.\n  fact #71  cos 0.59  rerank 0.9995  Your grandma Nils's pet is a hedgehog.\n  fact #16  cos 0.00  rerank 0.0030  Your grandma Nils's job is jeweler.",
+   "retrieval": "Nils has a hedgehog as his pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Dana have?",
+   "accept": [
+    "iguana"
+   ],
+   "covered": true,
+   "recalled": "fact #25  cos 0.73  rerank 0.9999  Dana's pet is a iguana.\n  fact #62  cos 0.58  rerank 0.0162  Dana's job is firefighter.\n  fact #100 cos 0.53  rerank 0.0031  Your aunt's name is Dana.\n  fact #132 cos 0.47  rerank 0.0018  Dana's city is Utrecht.\n  fact #101 cos 0.59  rerank 0.9996  Your aunt Dana's pet is a iguana.\n  fact #133 cos 0.00  rerank 0.0013  Your aunt Dana's city is Utrecht.",
+   "retrieval": "Dana has an iguana.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Zoe have?",
+   "accept": [
+    "axolotl"
+   ],
+   "covered": true,
+   "recalled": "fact #126 cos 0.78  rerank 0.9998  Zoe's pet is a axolotl.\n  fact #90  cos 0.54  rerank 0.0198  Zoe's job is librarian.\n  fact #91  cos 0.50  rerank 0.0048  Your grandpa's name is Zoe.\n  fact #139 cos 0.54  rerank 0.0029  Zoe's city is Oslo.\n  fact #127 cos 0.62  rerank 0.9995  Your grandpa Zoe's pet is a axolotl.\n  fact #140 cos 0.00  rerank 0.0018  Your grandpa Zoe's city is Oslo.",
+   "retrieval": "Zoe has an axolotl as her pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Ana live?",
+   "accept": [
+    "Bergen"
+   ],
+   "covered": true,
+   "recalled": "fact #45  cos 0.60  rerank 0.9745  Ana's city is Bergen.\n  fact #6   cos 0.57  rerank 0.0126  Your son's name is Ana.\n  fact #19  cos 0.51  rerank 0.0514  Ana's pet is a gecko.\n  fact #121 cos 0.49  rerank 0.0063  Ana's job is glassblower.\n  fact #46  cos 0.00  rerank 0.8456  Your son Ana's city is Bergen.\n  fact #122 cos 0.00  rerank 0.0007  Your son Ana's job is glassblower.",
+   "retrieval": "Ana lives in Bergen.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Nils live?",
+   "accept": [
+    "Lyon"
+   ],
+   "covered": true,
+   "recalled": "fact #80  cos 0.71  rerank 0.9972  Nils's city is Lyon.\n  fact #11  cos 0.53  rerank 0.0984  Your grandma's name is Nils.\n  fact #70  cos 0.55  rerank 0.1624  Nils's pet is a hedgehog.\n  fact #15  cos 0.62  rerank 0.0553  Nils's job is jeweler.\n  fact #81  cos 0.54  rerank 0.9803  Your grandma Nils's city is Lyon.\n  fact #71  cos 0.00  rerank 0.0164  Your grandma Nils's pet is a hedgehog.",
+   "retrieval": "Lyon",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Tara do for work?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": true,
+   "recalled": "fact #152 cos 0.72  rerank 0.9991  Tara's job is dentist.\n  fact #88  cos 0.54  rerank 0.0307  Your uncle's name is Tara.\n  fact #143 cos 0.59  rerank 0.0095  Tara's pet is a chinchilla.\n  fact #118 cos 0.59  rerank 0.0056  Tara's city is Krakow.\n  fact #153 cos 0.60  rerank 0.9867  Your uncle Tara's job is dentist.\n  fact #119 cos 0.00  rerank 0.0017  Your uncle Tara's city is Krakow.",
+   "retrieval": "Tara works as a dentist.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Sofia do for work?",
+   "accept": [
+    "beekeeper"
+   ],
+   "covered": true,
+   "recalled": "fact #38  cos 0.70  rerank 0.9988  Sofia's job is beekeeper.\n  fact #83  cos 0.44  rerank 0.0635  Your partner's name is Sofia.\n  fact #128 cos 0.50  rerank 0.0180  Sofia's pet is a ferret.\n  fact #4   cos 0.58  rerank 0.0177  Sofia's city is Bologna.\n  fact #85  cos 0.59  rerank 0.9869  Your partner Sofia's job is beekeeper.\n  fact #84  cos 0.48  rerank 0.0188  Your partner Sofia's city is Bologna.",
+   "retrieval": "Sofia is a beekeeper.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Hana do for work?",
+   "accept": [
+    "surveyor"
+   ],
+   "covered": true,
+   "recalled": "fact #141 cos 0.74  rerank 0.9990  Hana's job is surveyor.\n  fact #113 cos 0.52  rerank 0.0181  Your sister's name is Hana.\n  fact #56  cos 0.55  rerank 0.0117  Hana's pet is a rabbit.\n  fact #104 cos 0.59  rerank 0.0038  Hana's city is Graz.\n  fact #142 cos 0.64  rerank 0.9785  Your sister Hana's job is surveyor.\n  fact #114 cos 0.44  rerank 0.0020  Your sister Hana's pet is a rabbit.",
+   "retrieval": "Hana's job is surveyor.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Emil live?",
+   "accept": [
+    "Riga"
+   ],
+   "covered": true,
+   "recalled": "fact #1   cos 0.61  rerank 0.9980  Emil's city is Riga.\n  fact #134 cos 0.52  rerank 0.1503  Your niece's name is Emil.\n  fact #148 cos 0.50  rerank 0.2149  Emil's pet is a parrot.\n  fact #99  cos 0.49  rerank 0.0438  Emil's job is plumber.\n  fact #135 cos 0.58  rerank 0.9863  Your niece Emil's city is Riga.\n  fact #136 cos 0.00  rerank 0.0036  Your niece Emil's job is plumber.",
+   "retrieval": "Riga",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Priya have?",
+   "accept": [
+    "beagle"
+   ],
+   "covered": true,
+   "recalled": "fact #12  cos 0.82  rerank 0.9999  Priya's pet is a beagle.\n  fact #137 cos 0.48  rerank 0.0653  Priya's city is Dublin.\n  fact #73  cos 0.49  rerank 0.0259  Your father's name is Priya.\n  fact #159 cos 0.48  rerank 0.0166  Priya's job is baker.\n  fact #74  cos 0.69  rerank 0.9996  Your father Priya's pet is a beagle.\n  fact #160 cos 0.00  rerank 0.0090  Your father Priya's job is baker.",
+   "retrieval": "Priya has a beagle.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Yusuf do for work?",
+   "accept": [
+    "chemist"
+   ],
+   "covered": true,
+   "recalled": "fact #21  cos 0.76  rerank 0.9991  Yusuf's job is chemist.\n  fact #123 cos 0.53  rerank 0.0217  Your brother's name is Yusuf.\n  fact #155 cos 0.51  rerank 0.0199  Yusuf's city is Ghent.\n  fact #7   cos 0.55  rerank 0.0178  Yusuf's pet is a dachshund.\n  fact #125 cos 0.64  rerank 0.9875  Your brother Yusuf's job is chemist.\n  fact #156 cos 0.00  rerank 0.0025  Your brother Yusuf's city is Ghent.",
+   "retrieval": "Yusuf is a chemist.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Ana have?",
+   "accept": [
+    "gecko"
+   ],
+   "covered": true,
+   "recalled": "fact #19  cos 0.74  rerank 0.9998  Ana's pet is a gecko.\n  fact #45  cos 0.48  rerank 0.0041  Ana's city is Bergen.\n  fact #6   cos 0.52  rerank 0.0049  Your son's name is Ana.\n  fact #121 cos 0.40  rerank 0.0014  Ana's job is glassblower.\n  fact #20  cos 0.00  rerank 0.9993  Your son Ana's pet is a gecko.\n  fact #46  cos 0.00  rerank 0.0006  Your son Ana's city is Bergen.",
+   "retrieval": "Ana has a gecko.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Ana do for work?",
+   "accept": [
+    "glassblower"
+   ],
+   "covered": true,
+   "recalled": "fact #121 cos 0.62  rerank 0.9985  Ana's job is glassblower.\n  fact #6   cos 0.53  rerank 0.0117  Your son's name is Ana.\n  fact #19  cos 0.46  rerank 0.0040  Ana's pet is a gecko.\n  fact #45  cos 0.41  rerank 0.0017  Ana's city is Bergen.\n  fact #122 cos 0.53  rerank 0.9477  Your son Ana's job is glassblower.\n  fact #20  cos 0.00  rerank 0.0005  Your son Ana's pet is a gecko.",
+   "retrieval": "Ana is a glassblower.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Ines live?",
+   "accept": [
+    "Valencia"
+   ],
+   "covered": true,
+   "recalled": "fact #41  cos 0.58  rerank 0.9973  Ines's city is Valencia.\n  fact #37  cos 0.48  rerank 0.0726  Your daughter's name is Ines.\n  fact #48  cos 0.49  rerank 0.4447  Ines's pet is a canary.\n  fact #54  cos 0.42  rerank 0.0167  Ines's job is locksmith.\n  fact #42  cos 0.50  rerank 0.9584  Your daughter Ines's city is Valencia.\n  fact #49  cos 0.38  rerank 0.0650  Your daughter Ines's pet is a canary.",
+   "retrieval": "Valencia.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my partner keep?",
+   "accept": [
+    "ferret"
+   ],
+   "covered": true,
+   "recalled": "fact #129 cos 0.62  rerank 0.9941  Your partner Sofia's pet is a ferret.\n  fact #83  cos 0.31  rerank 0.0013  Your partner's name is Sofia.\n  fact #128 cos 0.69  rerank 0.9891  Sofia's pet is a ferret.\n  fact #85  cos 0.33  rerank 0.0005  Your partner Sofia's job is beekeeper.\n  fact #84  cos 0.00  rerank 0.0003  Your partner Sofia's city is Bologna.\n  fact #53  cos 0.52  rerank 0.0522  Your boss Leo's pet is a corgi.",
+   "retrieval": "Sofia keeps a ferret as her pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my boss live in?",
+   "accept": [
+    "Malmo"
+   ],
+   "covered": true,
+   "recalled": "fact #87  cos 0.66  rerank 0.9995  Your boss Leo's city is Malmo.\n  fact #108 cos 0.62  rerank 0.7110  Sam's city is Malmo.\n  fact #26  cos 0.30  rerank 0.0165  Your boss's name is Leo.\n  fact #86  cos 0.68  rerank 0.9896  Leo's city is Malmo.\n  fact #53  cos 0.27  rerank 0.0067  Your boss Leo's pet is a corgi.\n  fact #27  cos 0.28  rerank 0.0035  Your boss Leo's job is pilot.",
+   "retrieval": "Malmo.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my grandpa keep?",
+   "accept": [
+    "axolotl"
+   ],
+   "covered": true,
+   "recalled": "fact #127 cos 0.59  rerank 0.9980  Your grandpa Zoe's pet is a axolotl.\n  fact #91  cos 0.43  rerank 0.0154  Your grandpa's name is Zoe.\n  fact #126 cos 0.65  rerank 0.9329  Zoe's pet is a axolotl.\n  fact #140 cos 0.37  rerank 0.0028  Your grandpa Zoe's city is Oslo.\n  fact #139 cos 0.00  rerank 0.0001  Zoe's city is Oslo.\n  fact #92  cos 0.40  rerank 0.0011  Your grandpa Zoe's job is librarian.",
+   "retrieval": "Your grandpa keeps an axolotl.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my sister live in?",
+   "accept": [
+    "Graz"
+   ],
+   "covered": true,
+   "recalled": "fact #115 cos 0.58  rerank 0.9995  Your sister Hana's city is Graz.\n  fact #63  cos 0.53  rerank 0.8511  Elif's city is Graz.\n  fact #113 cos 0.36  rerank 0.0132  Your sister's name is Hana.\n  fact #104 cos 0.69  rerank 0.9768  Hana's city is Graz.\n  fact #142 cos 0.36  rerank 0.0027  Your sister Hana's job is surveyor.\n  fact #114 cos 0.34  rerank 0.0016  Your sister Hana's pet is a rabbit.",
+   "retrieval": "Graz.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my grandma keep?",
+   "accept": [
+    "hedgehog"
+   ],
+   "covered": true,
+   "recalled": "fact #71  cos 0.59  rerank 0.9992  Your grandma Nils's pet is a hedgehog.\n  fact #11  cos 0.36  rerank 0.0074  Your grandma's name is Nils.\n  fact #70  cos 0.59  rerank 0.9811  Nils's pet is a hedgehog.\n  fact #81  cos 0.34  rerank 0.0056  Your grandma Nils's city is Lyon.\n  fact #36  cos 0.00  rerank 0.0002  Tomas's city is Lyon.\n  fact #16  cos 0.27  rerank 0.0023  Your grandma Nils's job is jeweler.",
+   "retrieval": "Nils keeps a hedgehog as his pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my brother keep?",
+   "accept": [
+    "dachshund"
+   ],
+   "covered": true,
+   "recalled": "fact #124 cos 0.56  rerank 0.9985  Your brother Yusuf's pet is a dachshund.\n  fact #123 cos 0.30  rerank 0.0018  Your brother's name is Yusuf.\n  fact #7   cos 0.72  rerank 0.9900  Yusuf's pet is a dachshund.\n  fact #156 cos 0.28  rerank 0.0011  Your brother Yusuf's city is Ghent.\n  fact #155 cos 0.00  rerank 0.0002  Yusuf's city is Ghent.\n  fact #125 cos 0.26  rerank 0.0004  Your brother Yusuf's job is chemist.",
+   "retrieval": "Yusuf keeps a dachshund.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my brother live in?",
+   "accept": [
+    "Ghent"
+   ],
+   "covered": true,
+   "recalled": "fact #156 cos 0.55  rerank 0.9995  Your brother Yusuf's city is Ghent.\n  fact #155 cos 0.51  rerank 0.5603  Yusuf's city is Ghent.\n  fact #123 cos 0.36  rerank 0.0111  Your brother's name is Yusuf.\n  fact #124 cos 0.55  rerank 0.3446  Your brother Yusuf's pet is a dachshund.\n  fact #125 cos 0.29  rerank 0.0030  Your brother Yusuf's job is chemist.\n  fact #3   cos 0.00  rerank 0.0139  Otto's city is Malmo.",
+   "retrieval": "Ghent.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my niece keep?",
+   "accept": [
+    "parrot"
+   ],
+   "covered": true,
+   "recalled": "fact #149 cos 0.61  rerank 0.9994  Your niece Emil's pet is a parrot.\n  fact #134 cos 0.33  rerank 0.0109  Your niece's name is Emil.\n  fact #148 cos 0.58  rerank 0.9805  Emil's pet is a parrot.\n  fact #135 cos 0.00  rerank 0.0045  Your niece Emil's city is Riga.\n  fact #136 cos 0.31  rerank 0.0030  Your niece Emil's job is plumber.\n  fact #17  cos 0.27  rerank 0.0002  Your nephew's name is Marek.",
+   "retrieval": "Your niece keeps a parrot.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my father do for a living?",
+   "accept": [
+    "baker"
+   ],
+   "covered": true,
+   "recalled": "fact #160 cos 0.49  rerank 0.0394  Your father Priya's job is baker.\n  fact #73  cos 0.29  rerank 0.0010  Your father's name is Priya.\n  fact #74  cos 0.47  rerank 0.6357  Your father Priya's pet is a beagle.\n  fact #138 cos 0.34  rerank 0.0005  Your father Priya's city is Dublin.",
+   "retrieval": "He is a baker.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my cousin live in?",
+   "accept": [
+    "Lisbon"
+   ],
+   "covered": true,
+   "recalled": "fact #77  cos 0.59  rerank 0.9996  Your cousin Lucia's city is Lisbon.\n  fact #76  cos 0.00  rerank 0.1414  Lucia's city is Lisbon.\n  fact #24  cos 0.43  rerank 0.0763  Your cousin's name is Lucia.\n  fact #69  cos 0.51  rerank 0.5451  Your cousin Lucia's pet is a hamster.\n  fact #147 cos 0.39  rerank 0.0232  Your cousin Lucia's job is architect.\n  fact #3   cos 0.00  rerank 0.0031  Otto's city is Malmo.",
+   "retrieval": "Lisbon.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my uncle do for a living?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": true,
+   "recalled": "fact #153 cos 0.52  rerank 0.3344  Your uncle Tara's job is dentist.\n  fact #88  cos 0.36  rerank 0.0061  Your uncle's name is Tara.\n  fact #144 cos 0.57  rerank 0.5472  Your uncle Tara's pet is a chinchilla.\n  fact #119 cos 0.33  rerank 0.0024  Your uncle Tara's city is Krakow.\n  fact #9   cos 0.44  rerank 0.0002  Pavel's city is Krakow.\n  fact #17  cos 0.27  rerank 0.0002  Your nephew's name is Marek.",
+   "retrieval": "He is a dentist.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my nephew live in?",
+   "accept": [
+    "Zagreb"
+   ],
+   "covered": true,
+   "recalled": "fact #18  cos 0.61  rerank 0.9997  Your nephew Marek's city is Zagreb.\n  fact #8   cos 0.57  rerank 0.2985  Rafael's city is Zagreb.\n  fact #17  cos 0.38  rerank 0.0804  Your nephew's name is Marek.\n  fact #10  cos 0.69  rerank 0.9905  Marek's city is Zagreb.\n  fact #30  cos 0.35  rerank 0.0234  Your nephew Marek's job is carpenter.\n  fact #40  cos 0.31  rerank 0.0203  Your nephew Marek's pet is a tortoise.",
+   "retrieval": "Zagreb.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my mother do for a living?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": true,
+   "recalled": "fact #97  cos 0.47  rerank 0.0835  Your mother Mia's job is nurse.\n  fact #34  cos 0.26  rerank 0.0008  Your mother's name is Mia.\n  fact #112 cos 0.48  rerank 0.2338  Your mother Mia's city is Tallinn.\n  fact #35  cos 0.28  rerank 0.0005  Your mother Mia's pet is a poodle.",
+   "retrieval": "Mia works as a nurse.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my friend do for a living?",
+   "accept": [
+    "translator"
+   ],
+   "covered": true,
+   "recalled": "fact #65  cos 0.43  rerank 0.0142  Your friend Greta's job is translator.\n  fact #64  cos 0.00  rerank 0.0004  Your friend's name is Greta.\n  fact #67  cos 0.48  rerank 0.5618  Your friend Greta's pet is a goldfish.\n  fact #66  cos 0.00  rerank 0.0003  Your friend Greta's city is Porto.\n  fact #105 cos 0.47  rerank 0.0004  Ivo's city is Porto.",
+   "retrieval": "Greta is a translator.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my boss do for a living?",
+   "accept": [
+    "pilot"
+   ],
+   "covered": true,
+   "recalled": "fact #27  cos 0.44  rerank 0.0185  Your boss Leo's job is pilot.\n  fact #26  cos 0.34  rerank 0.0033  Your boss's name is Leo.\n  fact #87  cos 0.49  rerank 0.3140  Your boss Leo's city is Malmo.\n  fact #53  cos 0.30  rerank 0.0010  Your boss Leo's pet is a corgi.",
+   "retrieval": "He pilots airplanes.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my father keep?",
+   "accept": [
+    "beagle"
+   ],
+   "covered": true,
+   "recalled": "fact #74  cos 0.55  rerank 0.9970  Your father Priya's pet is a beagle.\n  fact #73  cos 0.26  rerank 0.0015  Your father's name is Priya.\n  fact #12  cos 0.69  rerank 0.9727  Priya's pet is a beagle.\n  fact #138 cos 0.00  rerank 0.0004  Your father Priya's city is Dublin.\n  fact #160 cos 0.26  rerank 0.0003  Your father Priya's job is baker.\n  fact #7   cos 0.47  rerank 0.0173  Yusuf's pet is a dachshund.",
+   "retrieval": "Priya keeps a beagle.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my friend live in?",
+   "accept": [
+    "Porto"
+   ],
+   "covered": true,
+   "recalled": "fact #66  cos 0.61  rerank 0.9993  Your friend Greta's city is Porto.\n  fact #28  cos 0.54  rerank 0.8002  Greta's city is Porto.\n  fact #64  cos 0.32  rerank 0.0019  Your friend's name is Greta.\n  fact #65  cos 0.54  rerank 0.2915  Your friend Greta's job is translator.\n  fact #67  cos 0.28  rerank 0.0005  Your friend Greta's pet is a goldfish.\n  fact #77  cos 0.49  rerank 0.2861  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my aunt live in?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": true,
+   "recalled": "fact #133 cos 0.57  rerank 0.9997  Your aunt Dana's city is Utrecht.\n  fact #157 cos 0.56  rerank 0.7799  Amara's city is Utrecht.\n  fact #100 cos 0.38  rerank 0.0061  Your aunt's name is Dana.\n  fact #132 cos 0.56  rerank 0.9776  Dana's city is Utrecht.\n  fact #102 cos 0.37  rerank 0.0025  Your aunt Dana's job is firefighter.\n  fact #101 cos 0.00  rerank 0.0020  Your aunt Dana's pet is a iguana.",
+   "retrieval": "Utrecht.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my aunt do for a living?",
+   "accept": [
+    "firefighter"
+   ],
+   "covered": true,
+   "recalled": "fact #102 cos 0.55  rerank 0.3729  Your aunt Dana's job is firefighter.\n  fact #100 cos 0.38  rerank 0.0036  Your aunt's name is Dana.\n  fact #101 cos 0.51  rerank 0.4452  Your aunt Dana's pet is a iguana.\n  fact #133 cos 0.34  rerank 0.0027  Your aunt Dana's city is Utrecht.\n  fact #157 cos 0.49  rerank 0.0003  Amara's city is Utrecht.\n  fact #136 cos 0.52  rerank 0.0003  Your niece Emil's job is plumber.",
+   "retrieval": "Her job is firefighter.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my nephew do for a living?",
+   "accept": [
+    "carpenter"
+   ],
+   "covered": true,
+   "recalled": "fact #30  cos 0.57  rerank 0.6896  Your nephew Marek's job is carpenter.\n  fact #17  cos 0.29  rerank 0.0242  Your nephew's name is Marek.\n  fact #18  cos 0.57  rerank 0.6999  Your nephew Marek's city is Zagreb.\n  fact #40  cos 0.31  rerank 0.0180  Your nephew Marek's pet is a tortoise.\n  fact #136 cos 0.43  rerank 0.0009  Your niece Emil's job is plumber.",
+   "retrieval": "Marek is a carpenter.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my uncle live in?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": true,
+   "recalled": "fact #119 cos 0.59  rerank 0.9997  Your uncle Tara's city is Krakow.\n  fact #9   cos 0.58  rerank 0.3633  Pavel's city is Krakow.\n  fact #88  cos 0.38  rerank 0.0204  Your uncle's name is Tara.\n  fact #118 cos 0.66  rerank 0.9899  Tara's city is Krakow.\n  fact #153 cos 0.35  rerank 0.0026  Your uncle Tara's job is dentist.\n  fact #144 cos 0.33  rerank 0.0024  Your uncle Tara's pet is a chinchilla.",
+   "retrieval": "Krakow.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my cousin do for a living?",
+   "accept": [
+    "architect"
+   ],
+   "covered": true,
+   "recalled": "fact #147 cos 0.53  rerank 0.5172  Your cousin Lucia's job is architect.\n  fact #24  cos 0.29  rerank 0.0156  Your cousin's name is Lucia.\n  fact #69  cos 0.52  rerank 0.7966  Your cousin Lucia's pet is a hamster.\n  fact #77  cos 0.31  rerank 0.0089  Your cousin Lucia's city is Lisbon.\n  fact #102 cos 0.46  rerank 0.0002  Your aunt Dana's job is firefighter.",
+   "retrieval": "Lucia is an architect.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my mother live in?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": "fact #112 cos 0.60  rerank 0.9997  Your mother Mia's city is Tallinn.\n  fact #111 cos 0.68  rerank 0.6444  Mia's city is Tallinn.\n  fact #34  cos 0.36  rerank 0.0030  Your mother's name is Mia.\n  fact #35  cos 0.48  rerank 0.1132  Your mother Mia's pet is a poodle.\n  fact #97  cos 0.33  rerank 0.0005  Your mother Mia's job is nurse.\n  fact #42  cos 0.52  rerank 0.9639  Your daughter Ines's city is Valencia.",
+   "retrieval": "Tallinn.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my niece live in?",
+   "accept": [
+    "Riga"
+   ],
+   "covered": true,
+   "recalled": "fact #135 cos 0.57  rerank 0.9998  Your niece Emil's city is Riga.\n  fact #1   cos 0.69  rerank 0.4192  Emil's city is Riga.\n  fact #134 cos 0.44  rerank 0.0730  Your niece's name is Emil.\n  fact #136 cos 0.51  rerank 0.5207  Your niece Emil's job is plumber.\n  fact #149 cos 0.42  rerank 0.0297  Your niece Emil's pet is a parrot.\n  fact #3   cos 0.00  rerank 0.0012  Otto's city is Malmo.",
+   "retrieval": "Riga.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a glassblower?",
+   "accept": [
+    "Ana",
+    "son"
+   ],
+   "covered": true,
+   "recalled": "fact #122 cos 0.64  rerank 0.8814  Your son Ana's job is glassblower.\n  fact #57  cos 0.61  rerank 0.4147  Elif's job is glassblower.\n  fact #130 cos 0.00  rerank 0.0105  Elif's pet is a gecko.\n  fact #121 cos 0.58  rerank 0.3877  Ana's job is glassblower.\n  fact #6   cos 0.32  rerank 0.0009  Your son's name is Ana.\n  fact #147 cos 0.36  rerank 0.0007  Your cousin Lucia's job is architect.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a pilot?",
+   "accept": [
+    "Leo",
+    "boss"
+   ],
+   "covered": true,
+   "recalled": "fact #88  cos 0.30  rerank 0.0003  Your uncle's name is Tara.\n  fact #152 cos 0.48  rerank 0.0286  Tara's job is dentist.\n  fact #24  cos 0.31  rerank 0.0002  Your cousin's name is Lucia.\n  fact #146 cos 0.62  rerank 0.0339  Lucia's job is architect.\n  fact #13  cos 0.50  rerank 0.0130  Leo's job is pilot.\n  fact #26  cos 0.43  rerank 0.0028  Your boss's name is Leo.",
+   "retrieval": "Leo works as a pilot.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a chinchilla?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.27  rerank 0.0001  Your cousin's name is Lucia.\n  fact #68  cos 0.47  rerank 0.0089  Lucia's pet is a hamster.\n  fact #144 cos 0.66  rerank 0.9960  Your uncle Tara's pet is a chinchilla.\n  fact #143 cos 0.58  rerank 0.6771  Tara's pet is a chinchilla.\n  fact #88  cos 0.47  rerank 0.0466  Your uncle's name is Tara.\n  fact #2   cos 0.55  rerank 0.6481  Otto's pet is a chinchilla.",
+   "retrieval": "Tara has a chinchilla.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a nurse?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": "fact #88  cos 0.36  rerank 0.0003  Your uncle's name is Tara.\n  fact #152 cos 0.56  rerank 0.1308  Tara's job is dentist.\n  fact #24  cos 0.31  rerank 0.0002  Your cousin's name is Lucia.\n  fact #146 cos 0.59  rerank 0.0495  Lucia's job is architect.\n  fact #100 cos 0.33  rerank 0.0001  Your aunt's name is Dana.\n  fact #62  cos 0.54  rerank 0.0384  Dana's job is firefighter.",
+   "retrieval": "Mia works as a nurse.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a beagle?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": true,
+   "recalled": "fact #74  cos 0.66  rerank 0.5868  Your father Priya's pet is a beagle.\n  fact #131 cos 0.00  rerank 0.1173  Omar's pet is a beagle.\n  fact #103 cos 0.00  rerank 0.0002  Omar's job is pilot.\n  fact #12  cos 0.00  rerank 0.1061  Priya's pet is a beagle.\n  fact #73  cos 0.43  rerank 0.0337  Your father's name is Priya.\n  fact #32  cos 0.00  rerank 0.0944  Bruno's pet is a beagle.",
+   "retrieval": "Sofia, Omar, Priya, and Bruno have a beagle.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Valencia?",
+   "accept": [
+    "Ines",
+    "daughter"
+   ],
+   "covered": false,
+   "recalled": "fact #24  cos 0.37  rerank 0.0003  Your cousin's name is Lucia.\n  fact #76  cos 0.53  rerank 0.0102  Lucia's city is Lisbon.\n  fact #42  cos 0.58  rerank 0.2198  Your daughter Ines's city is Valencia.\n  fact #41  cos 0.55  rerank 0.0095  Ines's city is Valencia.\n  fact #48  cos 0.00  rerank 0.0385  Ines's pet is a canary.\n  fact #77  cos 0.42  rerank 0.0014  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a dachshund?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": true,
+   "recalled": "fact #124 cos 0.00  rerank 0.9087  Your brother Yusuf's pet is a dachshund.\n  fact #7   cos 0.00  rerank 0.3288  Yusuf's pet is a dachshund.\n  fact #123 cos 0.50  rerank 0.0236  Your brother's name is Yusuf.",
+   "retrieval": "Yusuf has a dachshund as his pet.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a poodle?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": "fact #88  cos 0.35  rerank 0.0001  Your uncle's name is Tara.\n  fact #143 cos 0.63  rerank 0.0795  Tara's pet is a chinchilla.\n  fact #24  cos 0.33  rerank 0.0001  Your cousin's name is Lucia.\n  fact #68  cos 0.60  rerank 0.1242  Lucia's pet is a hamster.\n  fact #35  cos 0.00  rerank 0.5397  Your mother Mia's pet is a poodle.\n  fact #154 cos 0.00  rerank 0.1597  Ivo's pet is a poodle.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Zagreb?",
+   "accept": [
+    "Marek",
+    "nephew"
+   ],
+   "covered": true,
+   "recalled": "fact #18  cos 0.68  rerank 0.6947  Your nephew Marek's city is Zagreb.\n  fact #8   cos 0.59  rerank 0.0719  Rafael's city is Zagreb.\n  fact #145 cos 0.00  rerank 0.0145  Nadia's city is Zagreb.\n  fact #150 cos 0.37  rerank 0.0033  Nadia's pet is a parrot.\n  fact #10  cos 0.00  rerank 0.0142  Marek's city is Zagreb.\n  fact #17  cos 0.52  rerank 0.0966  Your nephew's name is Marek.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Utrecht?",
+   "accept": [
+    "Dana",
+    "aunt"
+   ],
+   "covered": true,
+   "recalled": "fact #133 cos 0.69  rerank 0.9623  Your aunt Dana's city is Utrecht.\n  fact #157 cos 0.50  rerank 0.0424  Amara's city is Utrecht.\n  fact #47  cos 0.43  rerank 0.0013  Amara's pet is a ferret.\n  fact #132 cos 0.54  rerank 0.0349  Dana's city is Utrecht.\n  fact #100 cos 0.45  rerank 0.0155  Your aunt's name is Dana.",
+   "retrieval": "Dana lives in Utrecht.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Oslo?",
+   "accept": [
+    "Zoe",
+    "grandpa"
+   ],
+   "covered": true,
+   "recalled": "fact #140 cos 0.65  rerank 0.3299  Your grandpa Zoe's city is Oslo.\n  fact #139 cos 0.00  rerank 0.0036  Zoe's city is Oslo.\n  fact #91  cos 0.51  rerank 0.0061  Your grandpa's name is Zoe.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Bologna?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": false,
+   "recalled": "fact #4   cos 0.00  rerank 0.0036  Sofia's city is Bologna.\n  fact #128 cos 0.00  rerank 0.0076  Sofia's pet is a ferret.\n  fact #84  cos 0.00  rerank 0.0031  Your partner Sofia's city is Bologna.",
+   "retrieval": "Sofia lives in Bologna.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a chemist?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": false,
+   "recalled": "fact #88  cos 0.29  rerank 0.0008  Your uncle's name is Tara.\n  fact #152 cos 0.53  rerank 0.0441  Tara's job is dentist.\n  fact #24  cos 0.28  rerank 0.0007  Your cousin's name is Lucia.\n  fact #146 cos 0.57  rerank 0.0464  Lucia's job is architect.\n  fact #125 cos 0.61  rerank 0.8555  Your brother Yusuf's job is chemist.\n  fact #21  cos 0.50  rerank 0.0486  Yusuf's job is chemist.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a tortoise?",
+   "accept": [
+    "Marek",
+    "nephew"
+   ],
+   "covered": true,
+   "recalled": "fact #40  cos 0.60  rerank 0.8002  Your nephew Marek's pet is a tortoise.\n  fact #59  cos 0.60  rerank 0.1350  Lena's pet is a tortoise.\n  fact #98  cos 0.32  rerank 0.0002  Lena's job is dentist.\n  fact #39  cos 0.53  rerank 0.0713  Marek's pet is a tortoise.\n  fact #17  cos 0.45  rerank 0.0405  Your nephew's name is Marek.\n  fact #69  cos 0.40  rerank 0.0003  Your cousin Lucia's pet is a hamster.",
+   "retrieval": "Marek, your nephew, has a tortoise.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a jeweler?",
+   "accept": [
+    "Nils",
+    "grandma"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.27  rerank 0.0003  Your cousin's name is Lucia.\n  fact #146 cos 0.58  rerank 0.0784  Lucia's job is architect.\n  fact #16  cos 0.62  rerank 0.8951  Your grandma Nils's job is jeweler.\n  fact #15  cos 0.44  rerank 0.0523  Nils's job is jeweler.\n  fact #11  cos 0.42  rerank 0.0311  Your grandma's name is Nils.\n  fact #78  cos 0.51  rerank 0.0408  Rafael's job is jeweler.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a locksmith?",
+   "accept": [
+    "Ines",
+    "daughter"
+   ],
+   "covered": true,
+   "recalled": "fact #55  cos 0.65  rerank 0.6338  Your daughter Ines's job is locksmith.\n  fact #106 cos 0.58  rerank 0.1717  Ivo's job is locksmith.\n  fact #154 cos 0.00  rerank 0.0041  Ivo's pet is a poodle.\n  fact #54  cos 0.58  rerank 0.1253  Ines's job is locksmith.\n  fact #37  cos 0.00  rerank 0.0041  Your daughter's name is Ines.\n  fact #147 cos 0.42  rerank 0.0017  Your cousin Lucia's job is architect.",
+   "retrieval": "Ines works as a locksmith.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Malmo?",
+   "accept": [
+    "Leo",
+    "boss"
+   ],
+   "covered": false,
+   "recalled": "fact #3   cos 0.55  rerank 0.0212  Otto's city is Malmo.\n  fact #2   cos 0.00  rerank 0.0022  Otto's pet is a chinchilla.\n  fact #108 cos 0.51  rerank 0.0184  Sam's city is Malmo.\n  fact #94  cos 0.31  rerank 0.0006  Sam's pet is a goldfish.\n  fact #86  cos 0.00  rerank 0.0153  Leo's city is Malmo.\n  fact #52  cos 0.33  rerank 0.0022  Leo's pet is a corgi.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a gecko?",
+   "accept": [
+    "Ana",
+    "son"
+   ],
+   "covered": true,
+   "recalled": "fact #20  cos 0.62  rerank 0.7697  Your son Ana's pet is a gecko.\n  fact #19  cos 0.00  rerank 0.3020  Ana's pet is a gecko.\n  fact #6   cos 0.27  rerank 0.0012  Your son's name is Ana.\n  fact #130 cos 0.60  rerank 0.3005  Elif's pet is a gecko.\n  fact #63  cos 0.00  rerank 0.0008  Elif's city is Graz.\n  fact #43  cos 0.61  rerank 0.2973  Jonas's pet is a gecko.",
+   "retrieval": "Ana has a gecko.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a ferret?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": false,
+   "recalled": "fact #47  cos 0.00  rerank 0.2809  Amara's pet is a ferret.\n  fact #82  cos 0.30  rerank 0.0001  Amara's job is translator.\n  fact #128 cos 0.00  rerank 0.1235  Sofia's pet is a ferret.\n  fact #38  cos 0.29  rerank 0.0004  Sofia's job is beekeeper.\n  fact #129 cos 0.67  rerank 0.0741  Your partner Sofia's pet is a ferret.",
+   "retrieval": "Sofia has a ferret.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Krakow?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": true,
+   "recalled": "fact #119 cos 0.64  rerank 0.9780  Your uncle Tara's city is Krakow.\n  fact #118 cos 0.00  rerank 0.0352  Tara's city is Krakow.\n  fact #88  cos 0.53  rerank 0.0469  Your uncle's name is Tara.\n  fact #9   cos 0.51  rerank 0.0212  Pavel's city is Krakow.\n  fact #151 cos 0.32  rerank 0.0097  Pavel's pet is a goldfish.",
+   "retrieval": "Tara lives in Krakow.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Dublin?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": true,
+   "recalled": "fact #138 cos 0.56  rerank 0.0813  Your father Priya's city is Dublin.\n  fact #137 cos 0.00  rerank 0.0023  Priya's city is Dublin.\n  fact #73  cos 0.48  rerank 0.0373  Your father's name is Priya.\n  fact #23  cos 0.00  rerank 0.0018  Jonas's city is Dublin.\n  fact #43  cos 0.32  rerank 0.0025  Jonas's pet is a gecko.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Tallinn?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": true,
+   "recalled": "fact #112 cos 0.67  rerank 0.2853  Your mother Mia's city is Tallinn.\n  fact #75  cos 0.00  rerank 0.0582  Vera's city is Tallinn.\n  fact #111 cos 0.00  rerank 0.0164  Mia's city is Tallinn.\n  fact #34  cos 0.42  rerank 0.0007  Your mother's name is Mia.\n  fact #117 cos 0.00  rerank 0.0142  Omar's city is Tallinn.\n  fact #131 cos 0.39  rerank 0.0011  Omar's pet is a beagle.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a goldfish?",
+   "accept": [
+    "Greta",
+    "friend"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.36  rerank 0.0001  Your cousin's name is Lucia.\n  fact #68  cos 0.54  rerank 0.0109  Lucia's pet is a hamster.\n  fact #67  cos 0.59  rerank 0.6824  Your friend Greta's pet is a goldfish.\n  fact #58  cos 0.47  rerank 0.5259  Greta's pet is a goldfish.\n  fact #64  cos 0.39  rerank 0.0026  Your friend's name is Greta.\n  fact #151 cos 0.51  rerank 0.4033  Pavel's pet is a goldfish.",
+   "retrieval": "Greta has a goldfish.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Porto?",
+   "accept": [
+    "Greta",
+    "friend"
+   ],
+   "covered": false,
+   "recalled": "fact #24  cos 0.47  rerank 0.0001  Your cousin's name is Lucia.\n  fact #76  cos 0.65  rerank 0.0266  Lucia's city is Lisbon.\n  fact #66  cos 0.56  rerank 0.0776  Your friend Greta's city is Porto.\n  fact #28  cos 0.00  rerank 0.0316  Greta's city is Porto.\n  fact #60  cos 0.00  rerank 0.0404  Lena's city is Porto.\n  fact #59  cos 0.39  rerank 0.0073  Lena's pet is a tortoise.",
+   "retrieval": "Lena lives in Porto.",
+   "retrieval_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my friend the one whose city is Porto? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #66  cos 0.71  rerank 0.9982  Your friend Greta's city is Porto.\n  fact #105 cos 0.59  rerank 0.5093  Ivo's city is Porto.\n  fact #64  cos 0.00  rerank 0.0002  Your friend's name is Greta.\n  fact #67  cos 0.39  rerank 0.0909  Your friend Greta's pet is a goldfish.\n  fact #28  cos 0.55  rerank 0.6388  Greta's city is Porto.\n  fact #60  cos 0.54  rerank 0.5800  Lena's city is Porto.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my son the one whose job is chemist? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #122 cos 0.49  rerank 0.3795  Your son Ana's job is glassblower.\n  fact #6   cos 0.28  rerank 0.0006  Your son's name is Ana.\n  fact #121 cos 0.57  rerank 0.7482  Ana's job is glassblower.\n  fact #20  cos 0.29  rerank 0.0001  Your son Ana's pet is a gecko.\n  fact #46  cos 0.00  rerank 0.0001  Your son Ana's city is Bergen.\n  fact #125 cos 0.63  rerank 0.9350  Your brother Yusuf's job is chemist.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my daughter the one whose city is Valencia? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #42  cos 0.78  rerank 0.9988  Your daughter Ines's city is Valencia.\n  fact #41  cos 0.00  rerank 0.5681  Ines's city is Valencia.\n  fact #49  cos 0.30  rerank 0.0028  Your daughter Ines's pet is a canary.\n  fact #37  cos 0.33  rerank 0.0012  Your daughter's name is Ines.\n  fact #55  cos 0.33  rerank 0.0970  Your daughter Ines's job is locksmith.\n  fact #1   cos 0.00  rerank 0.0002  Emil's city is Riga.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose city is Valencia? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #112 cos 0.40  rerank 0.1296  Your mother Mia's city is Tallinn.\n  fact #75  cos 0.57  rerank 0.0985  Vera's city is Tallinn.\n  fact #34  cos 0.32  rerank 0.0004  Your mother's name is Mia.\n  fact #111 cos 0.54  rerank 0.0867  Mia's city is Tallinn.\n  fact #42  cos 0.69  rerank 0.9844  Your daughter Ines's city is Valencia.\n  fact #41  cos 0.00  rerank 0.4721  Ines's city is Valencia.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandma the one whose job is baker? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #16  cos 0.53  rerank 0.7909  Your grandma Nils's job is jeweler.\n  fact #11  cos 0.41  rerank 0.0021  Your grandma's name is Nils.\n  fact #15  cos 0.59  rerank 0.6051  Nils's job is jeweler.\n  fact #81  cos 0.34  rerank 0.0007  Your grandma Nils's city is Lyon.\n  fact #71  cos 0.40  rerank 0.0006  Your grandma Nils's pet is a hedgehog.\n  fact #91  cos 0.35  rerank 0.0004  Your grandpa's name is Zoe.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose job is librarian? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #102 cos 0.45  rerank 0.3389  Your aunt Dana's job is firefighter.\n  fact #100 cos 0.32  rerank 0.0019  Your aunt's name is Dana.\n  fact #62  cos 0.56  rerank 0.1368  Dana's job is firefighter.\n  fact #133 cos 0.30  rerank 0.0005  Your aunt Dana's city is Utrecht.\n  fact #132 cos 0.46  rerank 0.0007  Dana's city is Utrecht.\n  fact #101 cos 0.28  rerank 0.0003  Your aunt Dana's pet is a iguana.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandma the one whose city is Malmo? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #81  cos 0.59  rerank 0.9125  Your grandma Nils's city is Lyon.\n  fact #36  cos 0.00  rerank 0.2789  Tomas's city is Lyon.\n  fact #11  cos 0.38  rerank 0.0011  Your grandma's name is Nils.\n  fact #80  cos 0.64  rerank 0.8739  Nils's city is Lyon.\n  fact #16  cos 0.34  rerank 0.0003  Your grandma Nils's job is jeweler.\n  fact #71  cos 0.26  rerank 0.0002  Your grandma Nils's pet is a hedgehog.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my cousin the one whose job is architect? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #147 cos 0.74  rerank 0.9983  Your cousin Lucia's job is architect.\n  fact #24  cos 0.25  rerank 0.0045  Your cousin's name is Lucia.\n  fact #146 cos 0.85  rerank 0.9933  Lucia's job is architect.\n  fact #77  cos 0.29  rerank 0.0010  Your cousin Lucia's city is Lisbon.\n  fact #5   cos 0.50  rerank 0.0003  Bruno's city is Lisbon.\n  fact #69  cos 0.00  rerank 0.0005  Your cousin Lucia's pet is a hamster.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my nephew the one whose pet is tortoise? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #40  cos 0.74  rerank 0.9992  Your nephew Marek's pet is a tortoise.\n  fact #17  cos 0.28  rerank 0.0096  Your nephew's name is Marek.\n  fact #39  cos 0.87  rerank 0.9928  Marek's pet is a tortoise.\n  fact #30  cos 0.25  rerank 0.0010  Your nephew Marek's job is carpenter.\n  fact #18  cos 0.00  rerank 0.0009  Your nephew Marek's city is Zagreb.\n  fact #59  cos 0.61  rerank 0.4702  Lena's pet is a tortoise.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #85  cos 0.78  rerank 0.9980  Your partner Sofia's job is beekeeper.\n  fact #83  cos 0.00  rerank 0.0009  Your partner's name is Sofia.\n  fact #38  cos 0.86  rerank 0.9975  Sofia's job is beekeeper.\n  fact #129 cos 0.30  rerank 0.0005  Your partner Sofia's pet is a ferret.\n  fact #84  cos 0.00  rerank 0.0003  Your partner Sofia's city is Bologna.\n  fact #158 cos 0.62  rerank 0.7905  Vera's job is beekeeper.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #97  cos 0.64  rerank 0.9957  Your mother Mia's job is nurse.\n  fact #34  cos 0.35  rerank 0.0014  Your mother's name is Mia.\n  fact #96  cos 0.82  rerank 0.9891  Mia's job is nurse.\n  fact #112 cos 0.25  rerank 0.0003  Your mother Mia's city is Tallinn.\n  fact #111 cos 0.59  rerank 0.0008  Mia's city is Tallinn.\n  fact #35  cos 0.36  rerank 0.0002  Your mother Mia's pet is a poodle.",
+   "retrieval": "No",
+   "retrieval_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my niece the one whose pet is parrot? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #149 cos 0.79  rerank 0.9990  Your niece Emil's pet is a parrot.\n  fact #134 cos 0.00  rerank 0.0085  Your niece's name is Emil.\n  fact #148 cos 0.79  rerank 0.9904  Emil's pet is a parrot.\n  fact #135 cos 0.00  rerank 0.0010  Your niece Emil's city is Riga.\n  fact #136 cos 0.00  rerank 0.0010  Your niece Emil's job is plumber.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my daughter the one whose job is locksmith? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #55  cos 0.80  rerank 0.9991  Your daughter Ines's job is locksmith.\n  fact #37  cos 0.00  rerank 0.0014  Your daughter's name is Ines.\n  fact #54  cos 0.64  rerank 0.9939  Ines's job is locksmith.\n  fact #49  cos 0.00  rerank 0.0005  Your daughter Ines's pet is a canary.\n  fact #42  cos 0.00  rerank 0.0004  Your daughter Ines's city is Valencia.\n  fact #106 cos 0.52  rerank 0.6092  Ivo's job is locksmith.",
+   "retrieval": "No",
+   "retrieval_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my boss the one whose job is pilot? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #27  cos 0.74  rerank 0.9977  Your boss Leo's job is pilot.\n  fact #26  cos 0.36  rerank 0.0122  Your boss's name is Leo.\n  fact #13  cos 0.84  rerank 0.9958  Leo's job is pilot.\n  fact #53  cos 0.29  rerank 0.0007  Your boss Leo's pet is a corgi.\n  fact #87  cos 0.00  rerank 0.0005  Your boss Leo's city is Malmo.\n  fact #103 cos 0.49  rerank 0.3356  Omar's job is pilot.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my father the one whose pet is tortoise? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #74  cos 0.48  rerank 0.5515  Your father Priya's pet is a beagle.\n  fact #73  cos 0.27  rerank 0.0006  Your father's name is Priya.\n  fact #12  cos 0.65  rerank 0.8274  Priya's pet is a beagle.\n  fact #40  cos 0.66  rerank 0.8769  Your nephew Marek's pet is a tortoise.\n  fact #39  cos 0.56  rerank 0.4268  Marek's pet is a tortoise.\n  fact #59  cos 0.60  rerank 0.4139  Lena's pet is a tortoise.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose city is Utrecht? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #133 cos 0.75  rerank 0.9988  Your aunt Dana's city is Utrecht.\n  fact #132 cos 0.56  rerank 0.7530  Dana's city is Utrecht.\n  fact #100 cos 0.00  rerank 0.0002  Your aunt's name is Dana.\n  fact #102 cos 0.41  rerank 0.0245  Your aunt Dana's job is firefighter.\n  fact #157 cos 0.57  rerank 0.6742  Amara's city is Utrecht.\n  fact #47  cos 0.52  rerank 0.0002  Amara's pet is a ferret.",
+   "retrieval": "No",
+   "retrieval_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my friend the one whose job is firefighter? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #65  cos 0.34  rerank 0.2103  Your friend Greta's job is translator.\n  fact #64  cos 0.00  rerank 0.0014  Your friend's name is Greta.\n  fact #14  cos 0.50  rerank 0.8251  Greta's job is translator.\n  fact #67  cos 0.25  rerank 0.0002  Your friend Greta's pet is a goldfish.\n  fact #66  cos 0.00  rerank 0.0002  Your friend Greta's city is Porto.\n  fact #102 cos 0.59  rerank 0.5927  Your aunt Dana's job is firefighter.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #153 cos 0.68  rerank 0.9980  Your uncle Tara's job is dentist.\n  fact #88  cos 0.36  rerank 0.0105  Your uncle's name is Tara.\n  fact #152 cos 0.83  rerank 0.9959  Tara's job is dentist.\n  fact #144 cos 0.36  rerank 0.0008  Your uncle Tara's pet is a chinchilla.\n  fact #119 cos 0.27  rerank 0.0007  Your uncle Tara's city is Krakow.\n  fact #100 cos 0.28  rerank 0.0003  Your aunt's name is Dana.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #136 cos 0.51  rerank 0.9300  Your niece Emil's job is plumber.\n  fact #134 cos 0.29  rerank 0.0221  Your niece's name is Emil.\n  fact #99  cos 0.43  rerank 0.8321  Emil's job is plumber.\n  fact #135 cos 0.26  rerank 0.0042  Your niece Emil's city is Riga.\n  fact #1   cos 0.52  rerank 0.0007  Emil's city is Riga.\n  fact #149 cos 0.30  rerank 0.0030  Your niece Emil's pet is a parrot.",
+   "retrieval": "No",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose pet is ferret? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #129 cos 0.83  rerank 0.9982  Your partner Sofia's pet is a ferret.\n  fact #83  cos 0.27  rerank 0.0007  Your partner's name is Sofia.\n  fact #128 cos 0.87  rerank 0.9956  Sofia's pet is a ferret.\n  fact #85  cos 0.29  rerank 0.0001  Your partner Sofia's job is beekeeper.\n  fact #84  cos 0.00  rerank 0.0001  Your partner Sofia's city is Bologna.\n  fact #47  cos 0.57  rerank 0.5657  Amara's pet is a ferret.",
+   "retrieval": "No",
+   "retrieval_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandpa the one whose pet is axolotl? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #127 cos 0.81  rerank 0.9990  Your grandpa Zoe's pet is a axolotl.\n  fact #91  cos 0.39  rerank 0.0038  Your grandpa's name is Zoe.\n  fact #126 cos 0.86  rerank 0.9926  Zoe's pet is a axolotl.\n  fact #140 cos 0.00  rerank 0.0004  Your grandpa Zoe's city is Oslo.\n  fact #139 cos 0.00  rerank 0.0001  Zoe's city is Oslo.\n  fact #92  cos 0.28  rerank 0.0002  Your grandpa Zoe's job is librarian.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my sister the one whose pet is rabbit? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #114 cos 0.78  rerank 0.9986  Your sister Hana's pet is a rabbit.\n  fact #113 cos 0.38  rerank 0.0012  Your sister's name is Hana.\n  fact #56  cos 0.86  rerank 0.9956  Hana's pet is a rabbit.\n  fact #115 cos 0.27  rerank 0.0002  Your sister Hana's city is Graz.\n  fact #142 cos 0.32  rerank 0.0001  Your sister Hana's job is surveyor.\n  fact #33  cos 0.00  rerank 0.4424  Rosa's pet is a rabbit.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my brother the one whose pet is dachshund? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #124 cos 0.79  rerank 0.9992  Your brother Yusuf's pet is a dachshund.\n  fact #123 cos 0.31  rerank 0.0018  Your brother's name is Yusuf.\n  fact #7   cos 0.89  rerank 0.9967  Yusuf's pet is a dachshund.\n  fact #156 cos 0.00  rerank 0.0002  Your brother Yusuf's city is Ghent.\n  fact #155 cos 0.00  rerank 0.0007  Yusuf's city is Ghent.\n  fact #125 cos 0.00  rerank 0.0001  Your brother Yusuf's job is chemist.",
+   "retrieval": "Yes",
+   "retrieval_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose pet is beagle? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #144 cos 0.50  rerank 0.9203  Your uncle Tara's pet is a chinchilla.\n  fact #88  cos 0.42  rerank 0.0092  Your uncle's name is Tara.\n  fact #143 cos 0.61  rerank 0.8421  Tara's pet is a chinchilla.\n  fact #153 cos 0.32  rerank 0.0007  Your uncle Tara's job is dentist.\n  fact #119 cos 0.26  rerank 0.0005  Your uncle Tara's city is Krakow.\n  fact #17  cos 0.39  rerank 0.0003  Your nephew's name is Marek.",
+   "retrieval": "Yes",
+   "retrieval_ok": false
+  }
+ ]
+}
