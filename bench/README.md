@@ -962,3 +962,41 @@ the guard too, and the judge withheld the reply (p 0.87). Statements now skip th
 - **Next:** a labelled set of merge decisions, built from look-alikes as in their hard set
   (same-name people, twins, an updated value against another attribute), to tune
   `merge_min` the same way.
+
+### Tuning the merge judge (75 labelled pairs)
+
+**The test set** (`bench/jev/make_merge_cases.py`) follows Hightouch's hard set.
+- **36 pairs that should merge:** a new value, a corrected name, the same slot reworded.
+- **39 look-alikes that must not:**
+  - another attribute or another person;
+  - grandma / grandpa and other look-alike relations;
+  - a person and that person's pet or thing;
+  - me and my partner;
+  - the same first name for different people;
+  - a fact that adds rather than replaces.
+
+`memagent/tests/merge_judge.lpr` runs the agent's rules (`SameSubject`: subject cosine,
+`DistinctSubjects`, cross-encoder) and OpenJev-Flash-9B on each pair.
+
+| Policy | Wrong merges (fact lost) | Missed merges (duplicate kept) |
+|---|---|---|
+| rules alone (before the judge) | 6 / 39 | 4 / 36 |
+| judge alone, p ≥ 0.9 | 1 | 0 |
+| judge alone, p ≥ 0.95 | 0 | 2 |
+| rules + judge veto, merge_min 0.5–0.9 | **0** | 4 |
+| rules + veto + judge rescue (cos ≥ 0.4, p ≥ 0.97) | **0** | **0** |
+
+- **The rules' wrong merges** were "added, not replaced" (4: "You also like pizza" overwrote
+  "Your favorite food is sushi") and "a person and their thing" (2). The judge scored all
+  six at 0.00–0.03, so its veto removes them.
+- **Right merges** scored 0.92–1.00. `merge_min` 0.9 keeps all of them with margin; 0.95
+  would lose two corrections.
+- **Same first name, different people** is the judge's weak spot: 0.79 and 0.95. The rules
+  never proposed those, and `DistinctSubjects` blocks them in the rescue path. That is why
+  the judge must not decide a merge alone below 0.97.
+- **The rescue** merges reworded slots the rules miss ("Your dog's name is Rex" → "Your dog
+  is called Max"). The judge scored all 12 reworded pairs 0.98–0.99.
+- **A caveat:** rescue_min and rescue_cos were tuned on these same 75 pairs, and the closest
+  negative (0.95) is near the 0.97 bar. A larger set should confirm them.
+- **Speed:** about 32 s per judgement on 4 CPU cores. One judgement per new fact that has a
+  candidate, so it is affordable on a GPU and slow on a CPU.

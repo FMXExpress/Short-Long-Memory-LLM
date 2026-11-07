@@ -318,6 +318,8 @@ var
   LBest: Single;
   LOld: string;
   LP: Double;
+  LNear: Integer;
+  LCos, LNearCos: Single;
 begin
   (* Is a new fact about a subject we already hold under other words ("what
      my dog is called" vs "my dog's name")? Cosine alone cannot be trusted
@@ -331,8 +333,17 @@ begin
   LVec := FRet.Embed(ASubject);
   LSubjects := FStore.SubjectVectors(FRet.EmbedderId);
   LBest := FCfg.DedupMinRerank;
+  LNear := -1;
+  LNearCos := FCfg.JudgeRescueCos;
   for I := 0 to High(LSubjects) do
-    if (Cosine(LVec, LSubjects[I].Vec) >= FCfg.DedupMinCos) and not DistinctSubjects(ASubject, LSubjects[I].Subject) then
+  begin
+    LCos := Cosine(LVec, LSubjects[I].Vec);
+    if (LCos >= LNearCos) and not DistinctSubjects(ASubject, LSubjects[I].Subject) then
+    begin
+      LNearCos := LCos;
+      LNear := I;
+    end;
+    if (LCos >= FCfg.DedupMinCos) and not DistinctSubjects(ASubject, LSubjects[I].Subject) then
     begin
       LScores := FRet.RerankScores(ASubject, [LSubjects[I].Subject]);
       if LScores[0] >= LBest then
@@ -342,9 +353,11 @@ begin
         LOld := LSubjects[I].Text;
       end;
     end;
+  end;
   (* The rules propose, the judge may veto: a merge overwrites the old fact, so an
      unsure judge keeps both (a duplicate costs a line; a wrong merge lost 14 of 112
-     facts once). The judge never proposes a merge the rules did not. *)
+     facts once). On 75 labelled pairs the veto removed all 6 wrong merges the rules
+     made ("You also like pizza" over "Your favorite food is sushi"). *)
   if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
   begin
     LP := Judge.Replaces(LOld, AText);
@@ -352,6 +365,19 @@ begin
     begin
       Say(Format('[memory] kept both: the judge is not sure "%s" replaces "%s" (p=%.2f)', [AText, LOld, LP]));
       Result := 0;
+    end;
+  end
+  (* the rules found nothing: the same slot in other words ("dog's name is Rex" ->
+     "dog is called Max") scores low on both encoders. The judge may merge the closest
+     fact, at a higher bar: on 75 labelled pairs this found the 4 such merges the rules
+     missed and made no wrong one (bench/README.md, "Tuning the merge judge") *)
+  else if (Result = 0) and (LNear >= 0) and (Judge <> nil) and FCfg.JudgeMerge and (FCfg.JudgeRescueMin > 0) then
+  begin
+    LP := Judge.Replaces(LSubjects[LNear].Text, AText);
+    if LP >= FCfg.JudgeRescueMin then
+    begin
+      Say(Format('[memory] the judge matched "%s" to "%s" (p=%.2f)', [AText, LSubjects[LNear].Text, LP]));
+      Result := LSubjects[LNear].Id;
     end;
   end;
 end;

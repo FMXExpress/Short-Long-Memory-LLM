@@ -78,6 +78,10 @@ type
     JudgeMerge: Boolean;       { the judge must agree before a new fact supersedes an old one }
     JudgeGuardMin: Double;     { show an answer when P(supported) >= this }
     JudgeMergeMin: Double;     { supersede when P(same person and attribute) >= this; else keep both }
+    (* the judge may also merge a pair the rules missed (a reworded slot: "dog's name" /
+       "dog is called"): the closest fact by subject cosine >= JudgeRescueCos, not
+       DistinctSubjects, at P >= JudgeRescueMin; 0 = off *)
+    JudgeRescueMin, JudgeRescueCos: Double;
     JudgeT, JudgeNoulT: Double;  { the model card's calibration (OpenJev-Flash-9B: 1.07, 1.074766) }
     JudgeThink: Boolean;       { the empty <think></think> block OpenJev's template expects }
     { [guard]: licensing check against stored-value confabulation (Mem.Guard) }
@@ -314,6 +318,8 @@ begin
     JudgeMerge := LIni.ReadBool('judge', 'merge', True);
     JudgeGuardMin := StrToFloatDef(LIni.ReadString('judge', 'guard_min', '0.9'), 0.9, LFmt);
     JudgeMergeMin := StrToFloatDef(LIni.ReadString('judge', 'merge_min', '0.9'), 0.9, LFmt);
+    JudgeRescueMin := StrToFloatDef(LIni.ReadString('judge', 'rescue_min', '0.97'), 0.97, LFmt);
+    JudgeRescueCos := StrToFloatDef(LIni.ReadString('judge', 'rescue_cos', '0.4'), 0.4, LFmt);
     JudgeT := StrToFloatDef(LIni.ReadString('judge', 't', '1.07'), 1.07, LFmt);
     JudgeNoulT := StrToFloatDef(LIni.ReadString('judge', 'noul_t', '1.074766'), 1.074766, LFmt);
     JudgeThink := LIni.ReadBool('judge', 'think', True);
