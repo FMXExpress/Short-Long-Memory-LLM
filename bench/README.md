@@ -831,6 +831,9 @@ The GPU-trained 1.5B memory in the agent, two hops, rebuilt binding-guard build:
 | retrieval | 24 | 12 | 6 | 16 | **58/96** |
 | retrieval + GPU deep sleep | 24 | 4 | 4 | 0 | 32/96 |
 
+With one hop it loses too: 33/96 against 40/96 for retrieval, with verify 0/24 and 36 answers
+withheld by the guard.
+
 At 1.5B the trained memory makes the agent worse. Its fact-sentence answers fail verify, and
 the guard withheld 40 of them. So the 1.5B presets do not train in the background.
 
