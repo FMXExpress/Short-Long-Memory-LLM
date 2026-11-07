@@ -11,7 +11,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent, Mem.Body;
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent, Mem.Body, Mem.Decide;
 
 var
   Cfg: TMemConfig;
@@ -21,6 +21,8 @@ var
   Ret, Guard: TRetrieval;
   Agent: TAgent;
   Body: TBody;
+  Judge: TJudge;
+  JudgePath: string;
   Line: string;
   Interactive: Boolean;
 
@@ -76,6 +78,27 @@ begin
     ResolveTrainer(Cfg);
     Cons := TConsolidator.Create(Cfg);
     Agent := TAgent.Create(Cfg, Store, Engine, Cons, Ret, Guard);
+    { [judge]: a decision model for the answer guard and merges; any failure leaves the rules }
+    Judge := nil;
+    if not SameText(Cfg.JudgeModel, 'off') and (Cfg.JudgeModel <> '') then
+      try
+        JudgePath := JudgeModelPath(Cfg, True);
+        if JudgePath = '' then
+          WriteLn('judge: off (no model at ', Cfg.JudgeModel, ')')
+        else
+        begin
+          Judge := TJudge.Create(Cfg, JudgePath);
+          WriteLn('judge: ', Judge.Describe, IfThen(Cfg.JudgeGuard, '; decides the guard', ''),
+            IfThen(Cfg.JudgeMerge, '; vetoes unsure merges', ''));
+        end;
+      except
+        on E: Exception do
+        begin
+          WriteLn('judge: off (', E.Message, ')');
+          FreeAndNil(Judge);
+        end;
+      end;
+    Agent.Judge := Judge;
     { [body]: optional; a body that does not start leaves memagent talking, not acting }
     Body := nil;
     try
@@ -135,6 +158,7 @@ begin
     finally
       Agent.Free;
       Body.Free;
+      Judge.Free;
       Cons.Free;
       Engine.Free;
       Store.Free;

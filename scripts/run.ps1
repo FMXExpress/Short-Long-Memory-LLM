@@ -92,6 +92,9 @@ if ($Gpu) {
     # release's is CPU-only, so the Python engine answers on the GPU instead
     if (-not (Test-Path (Join-Path (Split-Path $Bin -Parent) 'ggml-cuda.dll'))) { $Engine = 'python' }
 }
+# the judge (OpenJev-Flash-9B, 5.6 GB): only where llama.cpp answers on the GPU and there is room
+$Judge = 'off'
+if ($Gpu -and $Engine -eq 'llama' -and $MinGB -ge 16) { $Judge = 'openjev-flash-9b' }
 $where = 'CPU'; if ($Infer -ge 0) { $where = "GPU $Infer" }
 $twhere = "CPU ($TrainThreads thread(s))"; if ($Train -ge 0) { $twhere = "GPU $Train" }
 Write-Host "[run] preset ${Preset}: $($Presets[$Preset])"
@@ -140,6 +143,13 @@ tiers=auto
 cache_dir=..\cache
 ; retrieve again for each name in the first hits: two-fact questions get both facts
 hops=2
+
+[judge]
+; a decision model for the answer guard and fact merges (bench/README.md): off | openjev-flash-9b
+; off unless llama.cpp runs on the GPU: on a CPU it adds ~11 s to each guarded answer
+model=$Judge
+guard_min=0.9
+merge_min=0.9
 "@
 
 $IniPath = Join-Path $Root "run\$Preset.ini"

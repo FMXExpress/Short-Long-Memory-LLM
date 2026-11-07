@@ -30,7 +30,7 @@ interface
 
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
-  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors,
+  Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors, Mem.Decide,
   Mem.Body;
 
 type
@@ -42,6 +42,8 @@ type
     FCons: TConsolidator;
     FRet: TRetrieval;
     FGuard: TRetrieval;   { bge cross-encoder for Mem.Guard; nil = guard off }
+    FTurnFacts: TFactArray;  { what retrieval put in this turn's prompt: the judge's evidence }
+    FJudge: TJudge;
     FLastRecall: TRecallTiming;
     { per-turn stage timing (MEMAGENT_TIMING=1 prints it; /status shows averages) }
     FTiming: Boolean;
@@ -68,7 +70,8 @@ type
     procedure EmbedFact(AId: Int64; const AText, ASubject: string);
     procedure EmbedMessage(AId: Int64; const AText: string);
     procedure Backfill;
-    function SameSubject(const ASubject: string): Int64;
+    function SameSubject(const ASubject, AText: string): Int64;
+    function JudgeGuards: Boolean;
     function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
@@ -101,6 +104,8 @@ type
     function Command(const ALine: string): Boolean; { False = quit }
     { optional; not owned }
     property Body: TBody read FBody write FBody;
+    { a decision model (Mem.Decide) for the guard and merges; nil = rules only; not owned }
+    property Judge: TJudge read FJudge write FJudge;
   end;
 
 implementation
@@ -224,6 +229,7 @@ var
 begin
   Result := '';
   Retrieve(AUser, ABeforeId, LFacts, LMsgs);
+  FTurnFacts := Copy(LFacts, 0, Min(ContextFacts(FCfg), Length(LFacts)));
   for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
     Result := Result + '- ' + LFacts[I].Text + LineEnding;
   for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
@@ -288,13 +294,30 @@ begin
     end;
 end;
 
-function TAgent.SameSubject(const ASubject: string): Int64;
+function TAgent.JudgeGuards: Boolean;
+begin
+  Result := (FJudge <> nil) and FCfg.JudgeGuard;
+end;
+
+function FactTexts(const AFacts: TFactArray): TStringArray;
+var
+  I: Integer;
+begin
+  Result := nil;
+  SetLength(Result, Length(AFacts));
+  for I := 0 to High(AFacts) do
+    Result[I] := AFacts[I].Text;
+end;
+
+function TAgent.SameSubject(const ASubject, AText: string): Int64;
 var
   LSubjects: TSubjectArray;
   LVec: TVector;
   LScores: TScoreArray;
   I: Integer;
   LBest: Single;
+  LOld: string;
+  LP: Double;
 begin
   (* Is a new fact about a subject we already hold under other words ("what
      my dog is called" vs "my dog's name")? Cosine alone cannot be trusted
@@ -316,8 +339,21 @@ begin
       begin
         LBest := LScores[0];
         Result := LSubjects[I].Id;
+        LOld := LSubjects[I].Text;
       end;
     end;
+  (* The rules propose, the judge may veto: a merge overwrites the old fact, so an
+     unsure judge keeps both (a duplicate costs a line; a wrong merge lost 14 of 112
+     facts once). The judge never proposes a merge the rules did not. *)
+  if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
+  begin
+    LP := Judge.Replaces(LOld, AText);
+    if LP < FCfg.JudgeMergeMin then
+    begin
+      Say(Format('[memory] kept both: the judge is not sure "%s" replaces "%s" (p=%.2f)', [AText, LOld, LP]));
+      Result := 0;
+    end;
+  end;
 end;
 
 function Conf(const P: TPriorRec): Double;
@@ -703,7 +739,7 @@ begin
         Result := Result + IfThen(Result = '', '', '; ') + 'already known: ' + LFact.Get('text', '');
         Continue;
       end;
-      case FStore.AddFact(LFact, AMsgId, SameSubject(LFact.Get('subject', '')), LId) of
+      case FStore.AddFact(LFact, AMsgId, SameSubject(LFact.Get('subject', ''), LFact.Get('text', '')), LId) of
         afAdded: Say(Format('[memory +#%d] %s', [LId, LFact.Get('text', '')]));
         afSuperseded:
           begin
@@ -773,6 +809,7 @@ var
   LT: TDateTime;
   LMs: array[0..7] of Double;    { 7: model extraction after the reply }
   LRuleFacts, LWhy: string;
+  LP: Double;
 begin
   PollConsolidation;
   { the trainer waits between windows while this turn is answered }
@@ -795,13 +832,25 @@ begin
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     ObservePriors(AUser, LUserId);
     Mark(LT, LMs[1]);
-    if (FGuard <> nil) and (QuestionSubject(AUser) <> '') then
+    if ((FGuard <> nil) or JudgeGuards) and (QuestionSubject(AUser) <> '') then
     begin
       (* A question about "my X": generate first, license, then show, so an
          answer that borrows another subject's stored value ("horse" ->
          the dog's name) is never displayed. *)
       LReply := FEngine.Generate(LMessages, True, nil);
-      if not Licensed(FGuard, AUser, LReply, FStore.ActiveFacts, LWhy, FCfg.GuardMinScore) then
+      if JudgeGuards then
+      begin
+        (* the judge reads the facts this turn's prompt had: 0.85 on 120 real answers
+           against 0.54 for the rules below (bench/README.md) *)
+        LP := Judge.Supported(AUser, LReply, FactTexts(FTurnFacts));
+        if LP < FCfg.JudgeGuardMin then
+        begin
+          Say(Format('[guard] withheld an answer the judge found unsupported by memory (p=%.2f, %d ms)',
+            [LP, Judge.LastMs]));
+          LReply := ABSTAIN_REPLY;
+        end;
+      end
+      else if not Licensed(FGuard, AUser, LReply, FStore.ActiveFacts, LWhy, FCfg.GuardMinScore) then
       begin
         Say('[guard] withheld an answer that used a stored value from: ' + LWhy);
         LReply := ABSTAIN_REPLY;
@@ -1366,8 +1415,13 @@ begin
     Say('engine:   ' + FEngine.Describe);
     Say('trainer:  ' + FCfg.Trainer + ' on ' + DeviceName(FCfg.TrainGpu));
     Say('recall:   ' + FRet.Describe);
-    Say('guard:    ' + IfThen(FGuard = nil, 'off', 'on (' + FGuard.Describe + ', min score ' +
-      FloatToStr(FCfg.GuardMinScore) + ')'));
+    if JudgeGuards then
+      Say(Format('guard:    judge %s, shows an answer at p >= %.2f', [FJudge.Describe, FCfg.JudgeGuardMin]))
+    else
+      Say('guard:    ' + IfThen(FGuard = nil, 'off', 'on (' + FGuard.Describe + ', min score ' +
+        FloatToStr(FCfg.GuardMinScore) + ')'));
+    if (FJudge <> nil) and FCfg.JudgeMerge then
+      Say(Format('merges:   the judge must agree (p >= %.2f), else both facts are kept', [FCfg.JudgeMergeMin]));
     Say('adapter:  ' + IfThen(FEngine.ActiveAdapter = '', '(none)', FEngine.ActiveAdapter) +
       IfThen(FEngine.FastAdapter = '', '', ' + fast ' + FEngine.FastAdapter));
     if FCfg.PriorsEnabled then

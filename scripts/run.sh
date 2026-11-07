@@ -99,8 +99,13 @@ cuda_llama() { ls "$ROOT"/cache/llama/libggml-cuda.so* "$ROOT"/lib/libggml-cuda.
 if [ "$GPU_BUILD" = 1 ] && ! cuda_llama && { [ "$CLONE" = 0 ] || ! command -v nvcc >/dev/null 2>&1; }; then
   ENGINE=python
 fi
+# the judge (OpenJev-Flash-9B, 5.6 GB): 0.85 against 0.54 for the rule guard, but 11 s a
+# decision on a CPU, so only where llama.cpp has CUDA and the GPU has room for it too
+JUDGE=off
+if [ "$ENGINE" = llama ] && [ "$GPU_BUILD" = 1 ] && [ "$MIN_GB" -ge 16 ]; then JUDGE=openjev-flash-9b; fi
 echo "[run] preset $PRESET: $(describe "$PRESET")"
 [ "$AUTO" = 0 ] && echo "[run] background training off for $PROFILE (it scored below retrieval); /sleep trains on demand, auto=1 in run/$PRESET.ini turns it on"
+[ "$JUDGE" != off ] && echo "[run] judge: $JUDGE decides the answer guard and vetoes unsure merges (downloads 5.6 GB once)"
 echo "[run] profile $PROFILE, answer on $( [ "$INFER" -ge 0 ] && echo "GPU $INFER" || echo CPU), train on $( [ "$TRAIN" -ge 0 ] && echo "GPU $TRAIN" || echo "CPU ($TRAIN_THREADS thread(s))") with the $TRAINER trainer; $ENGINE engine"
 
 INI=run/$PRESET.ini
@@ -138,6 +143,13 @@ tiers=auto
 cache_dir=../cache
 ; retrieve again for each name in the first hits: two-fact questions get both facts
 hops=2
+
+[judge]
+; a decision model for the answer guard and fact merges (bench/README.md): off | openjev-flash-9b
+; off here: on a CPU it adds ~11 s to each guarded answer; set it to openjev-flash-9b for accuracy
+model=$JUDGE
+guard_min=0.9
+merge_min=0.9
 EOF
 
 if [ "$DRY" = 1 ]; then
