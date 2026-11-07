@@ -1022,3 +1022,28 @@ question → fact sentence, so that is the form the model learned to give.
 **Not measured.** The GPU rerun of deep sleep at 1.5B, 4B and 24B, with the sleep and
 weights arms of the integration benchmark, has not been done. Until it is, the effect on
 verify scores, and on drift and recall, is unknown.
+
+### Derived facts (`[agent] derive_facts`, `TMemStore.SyncDerived`)
+
+**What they are.** A relation fact ("Your mother's name is Mia.") joined with a fact about
+that person ("Mia's job is nurse.") is stored as one more fact: "Your mother Mia's job is
+nurse." It is a plain join, no model, after AI-native memory (2406.18312), A-MEM
+(2502.12110) and GraphRAG (2404.16130).
+
+**Result.** Agent rows, 1.5B, retrieve twice, binding-guard build:
+
+| | direct | bridge | inverse | verify | all |
+|---|---|---|---|---|---|
+| two hops | 24 | 12 | 6 | 16 | 58/96 |
+| **two hops + derived facts** | 24 | **22** | **13** | **19** | **78/96** |
+
+- **Why it works.** Questions that needed two linked facts become one-fact lookups, and the
+  small model reads the answer off: "Mia works as a nurse."
+- **The guard.** It withheld 11 answers, against 29 without derived facts, because answers
+  now match a stored fact.
+- **The remaining misses.** Two bridge answers abstained, and one said "He pilots airplanes."
+  for "pilot".
+- **Overall.** Retrieval changes alone took this agent from 40 to 78 of 96, with no
+  training. That is ahead of the GPU-trained 4B memory's 77 (Python benchmark, a different
+  harness).
+- **Default.** Derived facts stay on.
