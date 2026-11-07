@@ -1,0 +1,120 @@
+{"id": 0, "right": true, "type": "bridge", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Mia's job is nurse.", "p_yes": 0.9989, "tokens": 216, "ms": 3494}
+{"id": 1, "right": true, "type": "bridge", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Nils's pet is a hedgehog.", "p_yes": 0.8375, "tokens": 256, "ms": 4192}
+{"id": 2, "right": true, "type": "bridge", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Rosa's job is architect.", "p_yes": 0.9987, "tokens": 216, "ms": 3313}
+{"id": 3, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.8674, "tokens": 253, "ms": 3418}
+{"id": 4, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Jonas's job is baker.", "p_yes": 0.9965, "tokens": 217, "ms": 3209}
+{"id": 5, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Pavel's city is Krakow.", "p_yes": 0.8624, "tokens": 255, "ms": 3626}
+{"id": 6, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "Dana's job is firefighter.", "p_yes": 0.9991, "tokens": 217, "ms": 3047}
+{"id": 7, "right": true, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Mia's job is nurse.", "p_yes": 0.9989, "tokens": 216, "ms": 2828}
+{"id": 8, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Priya's pet is a beagle.", "p_yes": 0.8683, "tokens": 259, "ms": 3536}
+{"id": 9, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "Greta's job is translator.", "p_yes": 0.9519, "tokens": 219, "ms": 3085}
+{"id": 10, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Elif's city is Graz.", "p_yes": 0.9467, "tokens": 256, "ms": 3532}
+{"id": 11, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Dana's city is Utrecht.", "p_yes": 0.8645, "tokens": 253, "ms": 3617}
+{"id": 12, "right": true, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Amara's pet is a ferret.", "p_yes": 0.4680, "tokens": 253, "ms": 3499}
+{"id": 13, "right": true, "type": "bridge", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Emil's city is Riga.", "p_yes": 0.8724, "tokens": 254, "ms": 3500}
+{"id": 14, "right": true, "type": "bridge", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "Dana's job is firefighter.", "p_yes": 0.9988, "tokens": 222, "ms": 2842}
+{"id": 15, "right": true, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Rafael's city is Zagreb.", "p_yes": 0.8694, "tokens": 256, "ms": 3414}
+{"id": 16, "right": true, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Greta's job is translator.", "p_yes": 0.9697, "tokens": 217, "ms": 2865}
+{"id": 17, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Leo's job is pilot.", "p_yes": 0.9732, "tokens": 215, "ms": 2898}
+{"id": 18, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Emil's city is Riga.", "p_yes": 0.9189, "tokens": 255, "ms": 3302}
+{"id": 19, "right": true, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Amara's pet is a ferret.", "p_yes": 0.6265, "tokens": 255, "ms": 3462}
+{"id": 20, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1841, "tokens": 218, "ms": 2889}
+{"id": 21, "right": false, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Mia's pet is a poodle.", "p_yes": 0.6131, "tokens": 256, "ms": 3234}
+{"id": 22, "right": false, "type": "bridge", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.9530, "tokens": 228, "ms": 2958}
+{"id": 23, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.3578, "tokens": 253, "ms": 3203}
+{"id": 24, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Sofia's city is Bologna.", "p_yes": 0.6487, "tokens": 257, "ms": 3327}
+{"id": 25, "right": false, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Yusuf's pet is a dachshund.", "p_yes": 0.6221, "tokens": 262, "ms": 3374}
+{"id": 26, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.5917, "tokens": 257, "ms": 3253}
+{"id": 27, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Yusuf's pet is a dachshund.", "p_yes": 0.7961, "tokens": 266, "ms": 3393}
+{"id": 28, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3131, "tokens": 238, "ms": 3041}
+{"id": 29, "right": false, "type": "bridge", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.5239, "tokens": 254, "ms": 3270}
+{"id": 30, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Mia's pet is a poodle.", "p_yes": 0.8194, "tokens": 259, "ms": 3230}
+{"id": 31, "right": false, "type": "bridge", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Yusuf's pet is a dachshund.", "p_yes": 0.7944, "tokens": 261, "ms": 3287}
+{"id": 32, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3208, "tokens": 216, "ms": 2651}
+{"id": 33, "right": false, "type": "bridge", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Mia's pet is a poodle.", "p_yes": 0.7744, "tokens": 259, "ms": 3372}
+{"id": 34, "right": false, "type": "bridge", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Mia's pet is a poodle.", "p_yes": 0.8570, "tokens": 294, "ms": 3748}
+{"id": 35, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.3008, "tokens": 258, "ms": 3170}
+{"id": 36, "right": false, "type": "bridge", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1128, "tokens": 222, "ms": 2736}
+{"id": 37, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Emil's city is Riga.", "p_yes": 0.3900, "tokens": 256, "ms": 3180}
+{"id": 38, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1422, "tokens": 220, "ms": 2883}
+{"id": 39, "right": false, "type": "bridge", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.4954, "tokens": 255, "ms": 3290}
+{"id": 40, "right": true, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "Your brother's name is Yusuf.", "p_yes": 0.9602, "tokens": 227, "ms": 2950}
+{"id": 41, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Pavel's city is Krakow.", "p_yes": 0.9741, "tokens": 239, "ms": 2993}
+{"id": 42, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "Your boss's name is Leo.", "p_yes": 0.9785, "tokens": 250, "ms": 3166}
+{"id": 43, "right": true, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "Your brother's name is Yusuf.", "p_yes": 0.9799, "tokens": 230, "ms": 2908}
+{"id": 44, "right": true, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Your grandpa's name is Zoe.", "p_yes": 0.8516, "tokens": 216, "ms": 2780}
+{"id": 45, "right": true, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "Your daughter's name is Ines.", "p_yes": 0.9557, "tokens": 237, "ms": 3050}
+{"id": 46, "right": true, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "Your boss's name is Leo.", "p_yes": 0.8722, "tokens": 246, "ms": 3037}
+{"id": 47, "right": true, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Yusuf's job is chemist.", "p_yes": 0.9328, "tokens": 254, "ms": 3305}
+{"id": 48, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "Your brother's name is Yusuf.", "p_yes": 0.9885, "tokens": 230, "ms": 3157}
+{"id": 49, "right": true, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "Your partner's name is Sofia.", "p_yes": 0.7338, "tokens": 242, "ms": 3040}
+{"id": 50, "right": true, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your grandpa's name is Zoe.", "p_yes": 0.9310, "tokens": 215, "ms": 2876}
+{"id": 51, "right": true, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your grandpa's name is Zoe.", "p_yes": 0.9310, "tokens": 215, "ms": 2759}
+{"id": 52, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Rafael's city is Zagreb.", "p_yes": 0.9475, "tokens": 264, "ms": 3282}
+{"id": 53, "right": true, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your son's name is Ana.", "p_yes": 0.9187, "tokens": 245, "ms": 3070}
+{"id": 54, "right": true, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Yusuf's job is chemist.", "p_yes": 0.9105, "tokens": 258, "ms": 3398}
+{"id": 55, "right": true, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your nephew's name is Marek.", "p_yes": 0.5672, "tokens": 243, "ms": 3102}
+{"id": 56, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Your mother's name is Mia.", "p_yes": 0.9782, "tokens": 258, "ms": 3394}
+{"id": 57, "right": true, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "Your son's name is Ana.", "p_yes": 0.9605, "tokens": 248, "ms": 3183}
+{"id": 58, "right": true, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Sofia's city is Bologna.", "p_yes": 0.8995, "tokens": 222, "ms": 2849}
+{"id": 59, "right": true, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Rafael's city is Zagreb.", "p_yes": 0.8361, "tokens": 263, "ms": 3322}
+{"id": 60, "right": false, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.9782, "tokens": 261, "ms": 3332}
+{"id": 61, "right": false, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Vera's city is Tallinn.", "p_yes": 0.9796, "tokens": 265, "ms": 3279}
+{"id": 62, "right": false, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.9914, "tokens": 263, "ms": 3655}
+{"id": 63, "right": false, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.7698, "tokens": 254, "ms": 3128}
+{"id": 64, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Leo's job is pilot.", "p_yes": 0.9761, "tokens": 248, "ms": 3125}
+{"id": 65, "right": false, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Greta's pet is a goldfish.", "p_yes": 0.8085, "tokens": 258, "ms": 3359}
+{"id": 66, "right": false, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Ines's city is Valencia.", "p_yes": 0.9297, "tokens": 234, "ms": 3153}
+{"id": 67, "right": false, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your grandma's name is Nils.", "p_yes": 0.9243, "tokens": 259, "ms": 3379}
+{"id": 68, "right": false, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.9689, "tokens": 263, "ms": 3220}
+{"id": 69, "right": false, "type": "inverse", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Mia's pet is a poodle.", "p_yes": 0.0100, "tokens": 321, "ms": 3953}
+{"id": 70, "right": false, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Your mother's name is Mia.", "p_yes": 0.9920, "tokens": 265, "ms": 3470}
+{"id": 71, "right": false, "type": "inverse", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Yusuf's job is chemist.", "p_yes": 0.9543, "tokens": 254, "ms": 3150}
+{"id": 72, "right": false, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Pavel's city is Krakow.", "p_yes": 0.7888, "tokens": 241, "ms": 3073}
+{"id": 73, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "Ivo's job is locksmith.", "p_yes": 0.4537, "tokens": 241, "ms": 3179}
+{"id": 74, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Greta's pet is a goldfish.", "p_yes": 0.9677, "tokens": 257, "ms": 3250}
+{"id": 75, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Dana's city is Utrecht.", "p_yes": 0.4659, "tokens": 240, "ms": 2958}
+{"id": 76, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Otto's pet is a chinchilla.", "p_yes": 0.9450, "tokens": 260, "ms": 3624}
+{"id": 77, "right": false, "type": "inverse", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.9181, "tokens": 257, "ms": 3437}
+{"id": 78, "right": false, "type": "inverse", "model": "1.5B", "arm": "retrieval", "guard_allow": false, "guard_why": "Mia's job is nurse.", "p_yes": 0.2783, "tokens": 252, "ms": 3082}
+{"id": 79, "right": false, "type": "inverse", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Sofia's city is Bologna.", "p_yes": 0.5632, "tokens": 225, "ms": 3010}
+{"id": 80, "right": true, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.8490, "tokens": 263, "ms": 3533}
+{"id": 81, "right": true, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.9114, "tokens": 260, "ms": 3502}
+{"id": 82, "right": true, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.5737, "tokens": 281, "ms": 3629}
+{"id": 83, "right": true, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Priya's pet is a beagle.", "p_yes": 0.0006, "tokens": 291, "ms": 3715}
+{"id": 84, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3971, "tokens": 252, "ms": 3221}
+{"id": 85, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.2031, "tokens": 266, "ms": 3445}
+{"id": 86, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.4933, "tokens": 252, "ms": 3246}
+{"id": 87, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3123, "tokens": 258, "ms": 3321}
+{"id": 88, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.7196, "tokens": 251, "ms": 3194}
+{"id": 89, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.2094, "tokens": 258, "ms": 3546}
+{"id": 90, "right": true, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.4853, "tokens": 268, "ms": 3786}
+{"id": 91, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.0003, "tokens": 289, "ms": 3991}
+{"id": 92, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1909, "tokens": 254, "ms": 3529}
+{"id": 93, "right": true, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Otto's city is Malmo.", "p_yes": 0.0007, "tokens": 282, "ms": 3831}
+{"id": 94, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3517, "tokens": 256, "ms": 3408}
+{"id": 95, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.2173, "tokens": 267, "ms": 3705}
+{"id": 96, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1909, "tokens": 254, "ms": 3248}
+{"id": 97, "right": true, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.7196, "tokens": 251, "ms": 3431}
+{"id": 98, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.4933, "tokens": 252, "ms": 3337}
+{"id": 99, "right": true, "type": "verify", "model": "4B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.3987, "tokens": 254, "ms": 3217}
+{"id": 100, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.2162, "tokens": 265, "ms": 3581}
+{"id": 101, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Nadia's job is librarian.", "p_yes": 0.0025, "tokens": 254, "ms": 3245}
+{"id": 102, "right": false, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Marek's pet is a tortoise.", "p_yes": 0.7507, "tokens": 274, "ms": 3630}
+{"id": 103, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.7532, "tokens": 259, "ms": 3562}
+{"id": 104, "right": false, "type": "verify", "model": "4B", "arm": "sleep", "guard_allow": false, "guard_why": "Nadia's job is librarian.", "p_yes": 0.0168, "tokens": 262, "ms": 3442}
+{"id": 105, "right": false, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.0942, "tokens": 253, "ms": 3104}
+{"id": 106, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.8668, "tokens": 261, "ms": 3434}
+{"id": 107, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Nils's job is jeweler.", "p_yes": 0.3676, "tokens": 264, "ms": 3393}
+{"id": 108, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Nils's job is jeweler.", "p_yes": 0.3676, "tokens": 264, "ms": 3457}
+{"id": 109, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.6831, "tokens": 275, "ms": 3652}
+{"id": 110, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": false, "guard_why": "Yusuf's job is chemist.", "p_yes": 0.7621, "tokens": 261, "ms": 3538}
+{"id": 111, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.7059, "tokens": 257, "ms": 3673}
+{"id": 112, "right": false, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.1720, "tokens": 258, "ms": 3570}
+{"id": 113, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.6236, "tokens": 267, "ms": 3720}
+{"id": 114, "right": false, "type": "verify", "model": "1.5B", "arm": "retrieval", "guard_allow": true, "guard_why": "", "p_yes": 0.2363, "tokens": 252, "ms": 3456}
+{"id": 115, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.7595, "tokens": 259, "ms": 3817}
+{"id": 116, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.2914, "tokens": 266, "ms": 3620}
+{"id": 117, "right": false, "type": "verify", "model": "1.5B", "arm": "sleep", "guard_allow": false, "guard_why": "Dana's job is firefighter.", "p_yes": 0.4970, "tokens": 257, "ms": 3370}
+{"id": 118, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.6020, "tokens": 264, "ms": 3327}
+{"id": 119, "right": false, "type": "verify", "model": "24B", "arm": "sleep", "guard_allow": true, "guard_why": "", "p_yes": 0.7655, "tokens": 257, "ms": 3210}

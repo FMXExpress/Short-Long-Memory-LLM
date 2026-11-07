@@ -864,3 +864,62 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
 
 **Windows:** `run.ps1` is written for Windows PowerShell 5.1. It was not run in this session.
 The release workflow dry-runs it on a Windows runner for every pull request.
+
+## The answer guard as a decision-model readout (Jev, 2026-11-07)
+
+The agent's guard caused many of today's losses. It withheld 29 answers with retrieval
+and 36–40 with trained memory, and many of them were right ("Your grandma keeps a
+hedgehog"). The question was whether a decision model judges better.
+
+**The test set** (`bench/jev/make_cases.py`):
+- 120 answers that the 1.5B, 4B and 24B models really gave in the GPU runs.
+- Bridge, inverse and verify questions, 20 right and 20 wrong of each, labelled strictly.
+  An inverse answer must name only the right relative; a verify answer must say yes or no
+  correctly.
+- Allowing everything scores 50%.
+
+**The two guards** (`memagent/tests/jev_guard.lpr`):
+- **Current guard:** `Mem.Guard.Licensed`, a reranker plus binding rules, checking against
+  all 112 stored facts, as in the agent.
+- **Decision readout:** in JevBan's format (`Ban.Local`). The state holds the two-hop
+  retrieved facts and the question and answer, as data. One forward pass reads the logits
+  of the option letters; there is no generation.
+
+| Guard | Right kept | Wrong blocked | Accuracy | AUC | CPU, 4 cores |
+|---|---|---|---|---|---|
+| current guard | 28/60 | 37/60 | 0.54 | — | ~0.1 s |
+| readout with the 1.5B chat model | 44/60 | 23/60 | 0.56 (0.68 at p≥0.8) | 0.65 | 3.3 s |
+| **OpenJev-Flash-9B, p≥0.5** | 54/60 | 42/60 | 0.80 | **0.93** | 11.5 s |
+| **OpenJev-Flash-9B, p≥0.9** | 47/60 | 55/60 | **0.85** | | 11.5 s |
+| current guard AND OpenJev p≥0.9 | 21/60 | 59/60 | 0.67 | | |
+| current guard, OpenJev p≥0.9 can overrule a block | 54/60 | 33/60 | 0.72 | | |
+
+AUC measures how well the score separates right answers from wrong ones; 0.5 is chance.
+
+| By type (OpenJev, p≥0.5) | Current guard | OpenJev | AUC |
+|---|---|---|---|
+| bridge | 0.40 (kept 3/20) | **1.00** (20/20 kept, 20/20 blocked) | 1.00 |
+| inverse | 0.62 | 0.65 | 0.78 |
+| verify | 0.60 | 0.75 | 0.93 |
+
+**Two-fact answers.** OpenJev judged all 40 correctly. It resolves "your grandma" → Nils →
+Nils's pet from the facts in its state, which the current guard's rules miss.
+
+**Verify mistakes.** Most are answers like "Your daughter's city is Valencia." They are true
+but don't say yes or no, so the strict labels call them wrong; Jev scored them 0.8–0.9. Two
+are real misses: "Your sister's pet is a rabbit" (Rosa's rabbit) scored 0.82, and "Your
+nephew's pet is a tortoise" (Lena's) scored 0.88.
+
+**Inverse answers.** These are the weak spot for both guards. A list of several people is
+hard to judge from 3–6 facts.
+
+**The 1.5B chat model.** As a judge it is barely better than the current guard, so the
+calibrated decision model is what makes the difference, not the readout trick itself.
+
+**Verdict.** OpenJev-Flash-9B is the better guard by a wide margin: 0.85 against 0.54. The
+cost is 11.5 s per answer on 4 CPU cores; on a GPU it is well under a second. The next step
+is a `Mem.Decide` unit that runs the guard as a readout, behind `[guard] judge=jev`:
+- Use it in the GPU presets, where the 9B fits beside the chat model on a 12 GB+ card.
+- Keep the current guard on CPU-only machines.
+- The same readout can also decide whether a new fact replaces an old one (the merge bug)
+  and which candidate facts go into the prompt.
