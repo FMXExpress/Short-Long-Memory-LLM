@@ -1,0 +1,977 @@
+[
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Tara's job",
+   "text": "Tara's job is plumber."
+  },
+  "new": {
+   "subject": "Tara's job",
+   "text": "Tara's job is teacher."
+  },
+  "id": 0
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Emil's pet",
+   "text": "Emil's pet is a parrot."
+  },
+  "new": {
+   "subject": "Emil's pet",
+   "text": "Emil's pet is a canary."
+  },
+  "id": 1
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Ivo's city",
+   "text": "Ivo's city is Lisbon."
+  },
+  "new": {
+   "subject": "Ivo's city",
+   "text": "Ivo's city is Porto."
+  },
+  "id": 2
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Karl's job",
+   "text": "Karl's job is architect."
+  },
+  "new": {
+   "subject": "Karl's job",
+   "text": "Karl's job is teacher."
+  },
+  "id": 3
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Dana's job",
+   "text": "Dana's job is pilot."
+  },
+  "new": {
+   "subject": "Dana's job",
+   "text": "Dana's job is dentist."
+  },
+  "id": 4
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Dana's city",
+   "text": "Dana's city is Krakow."
+  },
+  "new": {
+   "subject": "Dana's city",
+   "text": "Dana's city is Lyon."
+  },
+  "id": 5
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Felix's city",
+   "text": "Felix's city is Ghent."
+  },
+  "new": {
+   "subject": "Felix's city",
+   "text": "Felix's city is Porto."
+  },
+  "id": 6
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Rosa's city",
+   "text": "Rosa's city is Lyon."
+  },
+  "new": {
+   "subject": "Rosa's city",
+   "text": "Rosa's city is Porto."
+  },
+  "id": 7
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Priya's city",
+   "text": "Priya's city is Lisbon."
+  },
+  "new": {
+   "subject": "Priya's city",
+   "text": "Priya's city is Porto."
+  },
+  "id": 8
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Omar's city",
+   "text": "Omar's city is Oslo."
+  },
+  "new": {
+   "subject": "Omar's city",
+   "text": "Omar's city is Lyon."
+  },
+  "id": 9
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Jonas's city",
+   "text": "Jonas's city is Krakow."
+  },
+  "new": {
+   "subject": "Jonas's city",
+   "text": "Jonas's city is Porto."
+  },
+  "id": 10
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Emil's city",
+   "text": "Emil's city is Ghent."
+  },
+  "new": {
+   "subject": "Emil's city",
+   "text": "Emil's city is Oslo."
+  },
+  "id": 11
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Ana's job",
+   "text": "Ana's job is teacher."
+  },
+  "new": {
+   "subject": "Ana's job",
+   "text": "Ana's job is pilot."
+  },
+  "id": 12
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Priya's job",
+   "text": "Priya's job is pilot."
+  },
+  "new": {
+   "subject": "Priya's job",
+   "text": "Priya's job is baker."
+  },
+  "id": 13
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Tara."
+  },
+  "new": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Taraa."
+  },
+  "id": 14
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my sister's name",
+   "text": "Your sister's name is Tara."
+  },
+  "new": {
+   "subject": "my sister's name",
+   "text": "Your sister's name is Taraa."
+  },
+  "id": 15
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my niece's name",
+   "text": "Your niece's name is Rosa."
+  },
+  "new": {
+   "subject": "my niece's name",
+   "text": "Your niece's name is Rose."
+  },
+  "id": 16
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Greta."
+  },
+  "new": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Gretta."
+  },
+  "id": 17
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Nadia."
+  },
+  "new": {
+   "subject": "my partner's name",
+   "text": "Your partner's name is Nadiaa."
+  },
+  "id": 18
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my niece's name",
+   "text": "Your niece's name is Lena."
+  },
+  "new": {
+   "subject": "my niece's name",
+   "text": "Your niece's name is Lina."
+  },
+  "id": 19
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my daughter's name",
+   "text": "Your daughter's name is Nadia."
+  },
+  "new": {
+   "subject": "my daughter's name",
+   "text": "Your daughter's name is Nadiaa."
+  },
+  "id": 20
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my aunt's name",
+   "text": "Your aunt's name is Tomas."
+  },
+  "new": {
+   "subject": "my aunt's name",
+   "text": "Your aunt's name is Thomas."
+  },
+  "id": 21
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my friend's name",
+   "text": "Your friend's name is Ana."
+  },
+  "new": {
+   "subject": "my friend's name",
+   "text": "Your friend's name is Anna."
+  },
+  "id": 22
+ },
+ {
+  "category": "correction",
+  "replaces": 1,
+  "old": {
+   "subject": "my nephew's name",
+   "text": "Your nephew's name is Leo."
+  },
+  "new": {
+   "subject": "my nephew's name",
+   "text": "Your nephew's name is Leoa."
+  },
+  "id": 23
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my dog's name",
+   "text": "Your dog's name is Rex."
+  },
+  "new": {
+   "subject": "my dog",
+   "text": "Your dog is called Max."
+  },
+  "id": 24
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my cat's name",
+   "text": "Your cat's name is Luna."
+  },
+  "new": {
+   "subject": "what my cat is called",
+   "text": "Your cat is called Mochi."
+  },
+  "id": 25
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my partner's birthday",
+   "text": "Your partner's birthday is May 3."
+  },
+  "new": {
+   "subject": "my partner's birthday",
+   "text": "Your partner was born on May 4."
+  },
+  "id": 26
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "where my sister lives",
+   "text": "Your sister lives in Lisbon."
+  },
+  "new": {
+   "subject": "my sister's city",
+   "text": "Your sister moved to Porto."
+  },
+  "id": 27
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "where I live",
+   "text": "You live in Porto."
+  },
+  "new": {
+   "subject": "my home city",
+   "text": "You moved to Oslo."
+  },
+  "id": 28
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my job",
+   "text": "Your job is teacher."
+  },
+  "new": {
+   "subject": "what I do for work",
+   "text": "You work as a nurse now."
+  },
+  "id": 29
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my car",
+   "text": "You drive a Volvo."
+  },
+  "new": {
+   "subject": "my car",
+   "text": "Your car is a Skoda now."
+  },
+  "id": 30
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my phone number",
+   "text": "Your phone number is 555-0141."
+  },
+  "new": {
+   "subject": "my phone number",
+   "text": "Your new number is 555-0199."
+  },
+  "id": 31
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "Ana's city",
+   "text": "Ana's city is Lisbon."
+  },
+  "new": {
+   "subject": "where Ana lives",
+   "text": "Ana moved to Porto."
+  },
+  "id": 32
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "Tomas's job",
+   "text": "Tomas's job is pilot."
+  },
+  "new": {
+   "subject": "Tomas's work",
+   "text": "Tomas works as a baker now."
+  },
+  "id": 33
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my favorite color",
+   "text": "Your favorite color is teal."
+  },
+  "new": {
+   "subject": "my favorite color",
+   "text": "Your favorite color is green now."
+  },
+  "id": 34
+ },
+ {
+  "category": "reworded",
+  "replaces": 1,
+  "old": {
+   "subject": "my gym day",
+   "text": "Your gym day is Monday."
+  },
+  "new": {
+   "subject": "my gym day",
+   "text": "You moved your gym day to Thursday."
+  },
+  "id": 35
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Ana's pet",
+   "text": "Ana's pet is a hamster."
+  },
+  "new": {
+   "subject": "Ana's job",
+   "text": "Ana's job is teacher."
+  },
+  "id": 36
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Marek's city",
+   "text": "Marek's city is Lisbon."
+  },
+  "new": {
+   "subject": "Marek's job",
+   "text": "Marek's job is baker."
+  },
+  "id": 37
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Tara's city",
+   "text": "Tara's city is Krakow."
+  },
+  "new": {
+   "subject": "Tara's pet",
+   "text": "Tara's pet is a corgi."
+  },
+  "id": 38
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Greta's pet",
+   "text": "Greta's pet is a beagle."
+  },
+  "new": {
+   "subject": "Greta's job",
+   "text": "Greta's job is architect."
+  },
+  "id": 39
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Karl's pet",
+   "text": "Karl's pet is a beagle."
+  },
+  "new": {
+   "subject": "Karl's job",
+   "text": "Karl's job is nurse."
+  },
+  "id": 40
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Zoe's city",
+   "text": "Zoe's city is Riga."
+  },
+  "new": {
+   "subject": "Zoe's pet",
+   "text": "Zoe's pet is a hamster."
+  },
+  "id": 41
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Priya's job",
+   "text": "Priya's job is pilot."
+  },
+  "new": {
+   "subject": "Priya's pet",
+   "text": "Priya's pet is a beagle."
+  },
+  "id": 42
+ },
+ {
+  "category": "other attribute",
+  "replaces": 0,
+  "old": {
+   "subject": "Pavel's job",
+   "text": "Pavel's job is baker."
+  },
+  "new": {
+   "subject": "Pavel's pet",
+   "text": "Pavel's pet is a ferret."
+  },
+  "id": 43
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Clara's pet",
+   "text": "Clara's pet is a beagle."
+  },
+  "new": {
+   "subject": "Priya's pet",
+   "text": "Priya's pet is a rabbit."
+  },
+  "id": 44
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Lena's city",
+   "text": "Lena's city is Porto."
+  },
+  "new": {
+   "subject": "Sofia's city",
+   "text": "Sofia's city is Graz."
+  },
+  "id": 45
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Elif's city",
+   "text": "Elif's city is Krakow."
+  },
+  "new": {
+   "subject": "Leo's city",
+   "text": "Leo's city is Riga."
+  },
+  "id": 46
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Tara's job",
+   "text": "Tara's job is architect."
+  },
+  "new": {
+   "subject": "Greta's job",
+   "text": "Greta's job is plumber."
+  },
+  "id": 47
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Zoe's city",
+   "text": "Zoe's city is Lisbon."
+  },
+  "new": {
+   "subject": "Priya's city",
+   "text": "Priya's city is Ghent."
+  },
+  "id": 48
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Nadia's city",
+   "text": "Nadia's city is Oslo."
+  },
+  "new": {
+   "subject": "Jonas's city",
+   "text": "Jonas's city is Riga."
+  },
+  "id": 49
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Marek's pet",
+   "text": "Marek's pet is a canary."
+  },
+  "new": {
+   "subject": "Priya's pet",
+   "text": "Priya's pet is a parrot."
+  },
+  "id": 50
+ },
+ {
+  "category": "other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Lena's job",
+   "text": "Lena's job is baker."
+  },
+  "new": {
+   "subject": "Zoe's job",
+   "text": "Zoe's job is nurse."
+  },
+  "id": 51
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my grandma's name",
+   "text": "Your grandma's name is Zoe."
+  },
+  "new": {
+   "subject": "my grandpa's name",
+   "text": "Your grandpa's name is Mia."
+  },
+  "id": 52
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my sister's name",
+   "text": "Your sister's name is Priya."
+  },
+  "new": {
+   "subject": "my brother's name",
+   "text": "Your brother's name is Ivo."
+  },
+  "id": 53
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my niece's name",
+   "text": "Your niece's name is Tara."
+  },
+  "new": {
+   "subject": "my nephew's name",
+   "text": "Your nephew's name is Lena."
+  },
+  "id": 54
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my aunt's name",
+   "text": "Your aunt's name is Hugo."
+  },
+  "new": {
+   "subject": "my uncle's name",
+   "text": "Your uncle's name is Ivo."
+  },
+  "id": 55
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my son's name",
+   "text": "Your son's name is Nadia."
+  },
+  "new": {
+   "subject": "my daughter's name",
+   "text": "Your daughter's name is Emil."
+  },
+  "id": 56
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my mother's name",
+   "text": "Your mother's name is Sofia."
+  },
+  "new": {
+   "subject": "my father's name",
+   "text": "Your father's name is Jonas."
+  },
+  "id": 57
+ },
+ {
+  "category": "look-alike relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my cousin's name",
+   "text": "Your cousin's name is Nadia."
+  },
+  "new": {
+   "subject": "my friend's name",
+   "text": "Your friend's name is Felix."
+  },
+  "id": 58
+ },
+ {
+  "category": "person / their thing",
+  "replaces": 0,
+  "old": {
+   "subject": "my name",
+   "text": "Your name is Eli."
+  },
+  "new": {
+   "subject": "my dog's name",
+   "text": "Your dog's name is Rex."
+  },
+  "id": 59
+ },
+ {
+  "category": "person / their thing",
+  "replaces": 0,
+  "old": {
+   "subject": "my dog's name",
+   "text": "Your dog's name is Rex."
+  },
+  "new": {
+   "subject": "my neighbor's dog's name",
+   "text": "Your neighbor's dog's name is Max."
+  },
+  "id": 60
+ },
+ {
+  "category": "person / their thing",
+  "replaces": 0,
+  "old": {
+   "subject": "Ana's city",
+   "text": "Ana's city is Lisbon."
+  },
+  "new": {
+   "subject": "Ana's dog's city",
+   "text": "Ana's dog stays in Porto with her parents."
+  },
+  "id": 61
+ },
+ {
+  "category": "person / their thing",
+  "replaces": 0,
+  "old": {
+   "subject": "my sister's name",
+   "text": "Your sister's name is Ana."
+  },
+  "new": {
+   "subject": "my sister's dog's name",
+   "text": "Your sister's dog's name is Bo."
+  },
+  "id": 62
+ },
+ {
+  "category": "me / someone else",
+  "replaces": 0,
+  "old": {
+   "subject": "my birthday",
+   "text": "Your birthday is May 3."
+  },
+  "new": {
+   "subject": "my partner's birthday",
+   "text": "Your partner's birthday is June 1."
+  },
+  "id": 63
+ },
+ {
+  "category": "me / someone else",
+  "replaces": 0,
+  "old": {
+   "subject": "where I live",
+   "text": "You live in Porto."
+  },
+  "new": {
+   "subject": "where my mother lives",
+   "text": "Your mother lives in Lisbon."
+  },
+  "id": 64
+ },
+ {
+  "category": "me / someone else",
+  "replaces": 0,
+  "old": {
+   "subject": "my job",
+   "text": "Your job is teacher."
+  },
+  "new": {
+   "subject": "my brother's job",
+   "text": "Your brother's job is pilot."
+  },
+  "id": 65
+ },
+ {
+  "category": "me / someone else",
+  "replaces": 0,
+  "old": {
+   "subject": "my car",
+   "text": "You drive a Volvo."
+  },
+  "new": {
+   "subject": "my partner's car",
+   "text": "Your partner drives a Kia."
+  },
+  "id": 66
+ },
+ {
+  "category": "same name, other person",
+  "replaces": 0,
+  "old": {
+   "subject": "my sister's city",
+   "text": "Your sister Ana lives in Lisbon."
+  },
+  "new": {
+   "subject": "my coworker's city",
+   "text": "Your coworker Ana lives in Porto."
+  },
+  "id": 67
+ },
+ {
+  "category": "same name, other person",
+  "replaces": 0,
+  "old": {
+   "subject": "my son's name",
+   "text": "Your son's name is Leo."
+  },
+  "new": {
+   "subject": "my boss's name",
+   "text": "Your boss's name is Leo."
+  },
+  "id": 68
+ },
+ {
+  "category": "same name, other person",
+  "replaces": 0,
+  "old": {
+   "subject": "Ana's job",
+   "text": "Ana's job is nurse."
+  },
+  "new": {
+   "subject": "Ana Silva's job",
+   "text": "Ana Silva from accounting is a pilot."
+  },
+  "id": 69
+ },
+ {
+  "category": "added, not replaced",
+  "replaces": 0,
+  "old": {
+   "subject": "my favorite food",
+   "text": "Your favorite food is sushi."
+  },
+  "new": {
+   "subject": "food I like",
+   "text": "You also like pizza."
+  },
+  "id": 70
+ },
+ {
+  "category": "added, not replaced",
+  "replaces": 0,
+  "old": {
+   "subject": "my languages",
+   "text": "You speak Spanish."
+  },
+  "new": {
+   "subject": "my languages",
+   "text": "You speak French too."
+  },
+  "id": 71
+ },
+ {
+  "category": "added, not replaced",
+  "replaces": 0,
+  "old": {
+   "subject": "my children",
+   "text": "Your daughter is Mia."
+  },
+  "new": {
+   "subject": "my children",
+   "text": "Your son is Leo."
+  },
+  "id": 72
+ },
+ {
+  "category": "added, not replaced",
+  "replaces": 0,
+  "old": {
+   "subject": "my allergies",
+   "text": "You are allergic to peanuts."
+  },
+  "new": {
+   "subject": "my allergies",
+   "text": "You are also allergic to cats."
+  },
+  "id": 73
+ },
+ {
+  "category": "added, not replaced",
+  "replaces": 0,
+  "old": {
+   "subject": "my pets",
+   "text": "You have a dog named Rex."
+  },
+  "new": {
+   "subject": "my pets",
+   "text": "You also have a cat named Luna."
+  },
+  "id": 74
+ }
+]
