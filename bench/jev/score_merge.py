@@ -40,6 +40,9 @@ for path in sys.argv[1:]:
     best = min(((WRONG_COST * tally(rows, lambda r, t=t: r["rules"] and r["p"] >= t)[0] +
                  tally(rows, lambda r, t=t: r["rules"] and r["p"] >= t)[1], t) for t in ths))
     print(f"  lowest cost with the rules: merge_min {best[1]} (cost {best[0]})")
+    # the agent's policy: rules + veto at 0.9, and the rescue (closest fact, cos >= 0.4, not distinct, p >= 0.97)
+    show("agent: veto 0.9 + rescue 0.97/0.4", rows,
+         lambda r: (r["rules"] and r["p"] >= 0.9) or (not r["rules"] and not r["distinct"] and r["cos"] >= 0.4 and r["p"] >= 0.97))
     print("  by category: label, rules merged, p (judge)")
     cats = {}
     for r in rows:

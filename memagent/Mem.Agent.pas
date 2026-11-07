@@ -1418,6 +1418,13 @@ begin
     if Length(LFacts) = 0 then
       Say('  (no facts yet)');
   end
+  else if LCmd = '/log' then
+  begin
+    { a message into the conversation log, searchable like any other, without a reply
+      or fact extraction: loading a recorded conversation (bench/bench_locomo.py) }
+    LId := FStore.AddMessage(FSession, 'user', LArg);
+    EmbedMessage(LId, LArg);
+  end
   else if LCmd = '/dream' then
     Dream(SameText(LArg, 'all'))
   else if LCmd = '/review' then
