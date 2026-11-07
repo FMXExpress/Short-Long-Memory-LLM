@@ -145,6 +145,8 @@ var
     ALstrip: Int32; ASpecial: Boolean): Int32; cdecl;
   llama_batch_get_one: function(ATokens: PLlamaToken; ANTokens: Int32): TLlamaBatch; cdecl;
   llama_decode: function(ACtx: PLlamaContext; ABatch: TLlamaBatch): Int32; cdecl;
+  { the logits of output I (-1 = the last), n_vocab floats: decision readouts (Mem.Decide) }
+  llama_get_logits_ith: function(ACtx: PLlamaContext; I: Int32): PSingle; cdecl;
   llama_get_memory: function(ACtx: PLlamaContext): PLlamaMemory; cdecl;
   llama_memory_clear: procedure(AMem: PLlamaMemory; AData: Boolean); cdecl;
   llama_sampler_chain_init: function(AParams: TLlamaSamplerChainParams): PLlamaSampler; cdecl;
@@ -281,6 +283,7 @@ begin
   Bind(llama_token_to_piece, 'llama_token_to_piece');
   Bind(llama_batch_get_one, 'llama_batch_get_one');
   Bind(llama_decode, 'llama_decode');
+  Bind(llama_get_logits_ith, 'llama_get_logits_ith');
   Bind(llama_get_memory, 'llama_get_memory');
   Bind(llama_memory_clear, 'llama_memory_clear');
   Bind(llama_sampler_chain_init, 'llama_sampler_chain_init');
