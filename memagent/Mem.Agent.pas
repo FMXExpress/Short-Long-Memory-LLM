@@ -75,6 +75,7 @@ type
     function SameSubject(const ASubject, AText: string): Int64;
     function JudgeGuards: Boolean;
     procedure DeriveFacts;
+    procedure Dream(AAll: Boolean);
     function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
@@ -900,6 +901,90 @@ begin
   DeriveFacts;
 end;
 
+procedure TAgent.Dream(AAll: Boolean);
+var
+  LRev: TReviewArray;
+  LFacts: TFactArray;
+  LAfter: Int64;
+  I, J, LAside, LMerged: Integer;
+  LP, LCos: Double;
+  LOk: Boolean;
+  LVi, LVj: TVector;
+begin
+  (* Dreaming: an offline pass over the fact store itself, not the weights. A note
+     that is wrong from the start is read and trusted in every later session, and
+     checking it against the raw history is what fixed it in Anthropic's study
+     ("The Components of Agent Memory", 2026: a wrong note looped the agent; the
+     dreaming-corrected one got through). Each fact is checked against the message
+     it came from: by the judge when there is one, set aside only when it is sure
+     the message does not say it (p < 1 - guard_min; on 120 real answers every one
+     it scored that low was wrong), else by the value appearing in the message.
+     A set-aside fact leaves retrieval and training; /review lists them, /keep
+     brings one back. Facts from /remember (no message), a body (checked when it
+     acted) and derived facts (rebuilt from their sources) are not reviewed. *)
+  LAfter := 0;
+  if not AAll then
+    LAfter := StrToInt64Def(FStore.GetMeta('dream_upto'), 0);
+  LRev := FStore.FactsToReview(LAfter);
+  LAside := 0;
+  for I := 0 to High(LRev) do
+  begin
+    if Judge <> nil then
+    begin
+      LP := Judge.Supports(LRev[I].Source, LRev[I].Text);
+      LOk := LP >= 1 - FCfg.JudgeGuardMin;
+    end
+    else
+    begin
+      LP := -1;
+      LOk := Grounded(LRev[I].Value, LRev[I].Source);
+    end;
+    if LOk then
+      Continue;
+    FStore.SetAside(LRev[I].Id);
+    Inc(LAside);
+    Say(Format('[dream] set aside #%d "%s": message #%d does not say it%s', [LRev[I].Id, LRev[I].Text,
+      LRev[I].SourceMsg, IfThen(LP >= 0, Format(' (p=%.2f)', [LP]), '')]));
+  end;
+  (* duplicates the write-time check let through: the same value, near-identical
+     wording, the older one superseded (the judge must agree when there is one) *)
+  LMerged := 0;
+  if FRet.CanDedup then
+  begin
+    LFacts := FStore.ActiveFacts;
+    for I := 0 to High(LFacts) do
+    begin
+      if LFacts[I].Kind = 'derived' then
+        Continue;
+      LVi := nil;
+      for J := I + 1 to High(LFacts) do
+        if (LFacts[J].Kind <> 'derived') and SameText(Trim(LFacts[I].Value), Trim(LFacts[J].Value)) then
+        begin
+          if LVi = nil then
+            LVi := FRet.Embed(LFacts[I].Text);
+          LVj := FRet.Embed(LFacts[J].Text);
+          LCos := Cosine(LVi, LVj);
+          if LCos < FCfg.DedupTextCos then
+            Continue;
+          if (Judge <> nil) and (Judge.Replaces(LFacts[I].Text, LFacts[J].Text) < FCfg.JudgeMergeMin) then
+            Continue;
+          FStore.SupersedeFact(LFacts[I].Id);
+          Inc(LMerged);
+          Say(Format('[dream] merged #%d into #%d: "%s"', [LFacts[I].Id, LFacts[J].Id, LFacts[J].Text]));
+          Break;
+        end;
+    end;
+  end;
+  if (LAside > 0) or (LMerged > 0) then
+  begin
+    FStore.SetMeta('forget_pending', '1');
+    DeriveFacts;
+  end;
+  FStore.SetMeta('dream_upto', IntToStr(FStore.MaxFactId));
+  Say(Format('[dream] checked %d fact(s) against their messages: %d set aside, %d duplicate(s) merged',
+    [Length(LRev), LAside, LMerged]));
+end;
+
 procedure TAgent.DeriveFacts;
 var
   LNew: TFactArray;
@@ -1120,6 +1205,9 @@ begin
     Say('[sleep] the deep LoRA ' + FEngine.ActiveAdapter + ' already holds every fact; nothing to do');
     Exit(False);
   end;
+  { a deep sleep learns the facts as they stand: check them against their messages first }
+  if (ATier = 'deep') and FCfg.DreamBeforeSleep then
+    Dream(False);
   FStore.SetMeta('fast_seen_id', IntToStr(FStore.MaxFactId));
   Result := FCons.Start(ATier, FEngine.ActiveAdapter, FStore.GetMeta('active_adapter_path'));
   if not Result then
@@ -1320,7 +1408,7 @@ begin
   else if LCmd = '/help' then
     Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
       '  /weights <question>  /adapter  /rollback  /priors  /prior [--body] <text>|drop <id>|restore <id>  /prompt <text>' +
-      '  /do <task>  /confirm  /cancel  /status  /quit')
+      '  /dream [all]  /review  /keep <id>  /do <task>  /confirm  /cancel  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -1329,6 +1417,27 @@ begin
         IfThen(LFacts[I].BakedIn = '', '[in RAG]', '[baked: ' + LFacts[I].BakedIn + ']')]));
     if Length(LFacts) = 0 then
       Say('  (no facts yet)');
+  end
+  else if LCmd = '/dream' then
+    Dream(SameText(LArg, 'all'))
+  else if LCmd = '/review' then
+  begin
+    LFacts := FStore.SetAsideFacts;
+    for I := 0 to High(LFacts) do
+      Say(Format('  #%-3d %s   (/keep %d brings it back)', [LFacts[I].Id, LFacts[I].Text, LFacts[I].Id]));
+    if Length(LFacts) = 0 then
+      Say('  (nothing set aside)');
+  end
+  else if LCmd = '/keep' then
+  begin
+    if FStore.KeepFact(StrToInt64Def(LArg, 0)) then
+    begin
+      FStore.SetMeta('forget_pending', '1');
+      DeriveFacts;
+      Say(Format('[memory] #%s is back in memory', [LArg]));
+    end
+    else
+      Say('no set-aside fact #' + LArg + ' (/review lists them)');
   end
   else if LCmd = '/do' then
   begin

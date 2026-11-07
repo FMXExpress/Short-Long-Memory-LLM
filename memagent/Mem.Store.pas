@@ -28,6 +28,12 @@ type
     Score: Double;    { fused rank score, then the rerank score when reranked }
   end;
   TFactArray = array of TFactRec;
+  { a fact with the message it came from: what a dreaming pass checks }
+  TReviewRec = record
+    Id, SourceMsg: Int64;
+    Text, Subject, Value, Source: string;
+  end;
+  TReviewArray = array of TReviewRec;
   { True when a fact (by its subject) should rank after the others for this query }
   TForeignFunc = function(const AQuery, ASubject: string): Boolean;
 
@@ -100,6 +106,12 @@ type
        Adds the ones now true, deletes the stale ones, never brings back a forgotten one;
        returns the added ones (they need vectors) *)
     function SyncDerived: TFactArray;
+    function FactsToReview(AAfterId: Int64): TReviewArray;
+    { set aside by a dreaming pass: out of retrieval and training, back with KeepFact }
+    procedure SetAside(AId: Int64);
+    function KeepFact(AId: Int64): Boolean;
+    function SetAsideFacts: TFactArray;
+    procedure SupersedeFact(AId: Int64);
     function FactSubject(AId: Int64): string;
     function FactText(AId: Int64): string;
     procedure SetFactSubject(AId: Int64; const ASubject: string);
@@ -840,6 +852,58 @@ begin
     LWantValue.Free;
     LHave.Free;
   end;
+end;
+
+function TMemStore.FactsToReview(AAfterId: Int64): TReviewArray;
+var
+  Q: TSqlStmt;
+  N: Integer;
+begin
+  { what a dreaming pass checks: active facts from a message, newer than AAfterId }
+  Result := nil;
+  N := 0;
+  Q := FDb.Query('SELECT f.id, f.text, f.subject, f.value, f.source_msg, m.content FROM facts f' +
+    ' JOIN messages m ON m.id = f.source_msg WHERE f.superseded = 0 AND f.forgotten = 0' +
+    ' AND f.kind NOT IN (''derived'', ''world'') AND f.source_msg > 0 AND f.id > ? ORDER BY f.id', [AAfterId]);
+  try
+    while Q.Step do
+    begin
+      SetLength(Result, N + 1);
+      Result[N].Id := Q.Int(0);
+      Result[N].Text := Q.Str(1);
+      Result[N].Subject := Q.Str(2);
+      Result[N].Value := Q.Str(3);
+      Result[N].SourceMsg := Q.Int(4);
+      Result[N].Source := Q.Str(5);
+      Inc(N);
+    end;
+  finally
+    Q.Free;
+  end;
+end;
+
+procedure TMemStore.SetAside(AId: Int64);
+begin
+  { forgotten = 2: out of retrieval and training like a forgotten fact, but /keep brings it back }
+  FDb.Exec('UPDATE facts SET forgotten = 2 WHERE id = ? AND forgotten = 0', [AId]);
+end;
+
+function TMemStore.KeepFact(AId: Int64): Boolean;
+begin
+  Result := FDb.ScalarInt('SELECT count(*) FROM facts WHERE id = ? AND forgotten = 2', [AId]) > 0;
+  if Result then
+    FDb.Exec('UPDATE facts SET forgotten = 0 WHERE id = ?', [AId]);
+end;
+
+function TMemStore.SetAsideFacts: TFactArray;
+begin
+  Result := ReadFacts(FDb.Query('SELECT id, text, subject, value, kind, confidence, baked_in FROM facts' +
+    ' WHERE forgotten = 2 AND superseded = 0 ORDER BY id', []));
+end;
+
+procedure TMemStore.SupersedeFact(AId: Int64);
+begin
+  FDb.Exec('UPDATE facts SET superseded = 1 WHERE id = ?', [AId]);
 end;
 
 function TMemStore.ForgetFact(AId: Int64): Boolean;
