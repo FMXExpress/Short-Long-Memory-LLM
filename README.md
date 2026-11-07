@@ -64,7 +64,31 @@ makes something up, and then of the model with its learned LoRAs.</sub>
 
 ## Quick start
 
-Download the latest release from the
+From a clone, one command picks the best setup for your machine, builds or installs what
+is missing, and starts memagent with background training on:
+
+```sh
+scripts/run.sh              # detect CPU, RAM and GPUs, then run
+scripts/run.sh --list       # the presets; scripts/run.sh gpu12 forces one
+scripts/run.sh --dry-run    # show the choice and the config, change nothing
+```
+
+| Preset | Picked when | Model | Answers on | Trains on |
+|---|---|---|---|---|
+| `cpu-lite` | under 4 cores or 8 GB RAM | SmolLM2-135M | CPU | 1 core (a demo) |
+| `cpu` | no GPU | Qwen2.5-1.5B | CPU | a quarter of the cores, slowly |
+| `gpu8` | one 8–11 GB GPU | Qwen2.5-1.5B | GPU | the same GPU |
+| `gpu12` | one 12–39 GB GPU | Qwen3-4B | GPU | the same GPU |
+| `gpu40` | one 40 GB+ GPU | Magistral-Small 24B | GPU | the same GPU |
+| `2gpu` | two GPUs | 24B (24 GB+ each), 4B (12 GB+), else 1.5B | GPU 0 | GPU 1 |
+
+What the presets are based on (bench/README.md, "One-shot presets"): retrieval carries the
+memory at every size, and retrieving twice is on everywhere; trained memory paid off from 4B
+up; the 24B trains gently, because its first settings learned every fact and broke the model.
+
+Or download a release:
+
+The latest release is on the
 [Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
 
 | Platform | Download | Run |

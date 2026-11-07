@@ -281,7 +281,7 @@ begin
     Reranker := LowerCase(LIni.ReadString('retrieval', 'reranker', 'auto'));
     RerankModel := LIni.ReadString('retrieval', 'rerank_model', 'ms-marco-minilm');
     RetrievalPool := LIni.ReadInteger('retrieval', 'pool', 8);
-    Hops := LIni.ReadInteger('retrieval', 'hops', 1);
+    Hops := LIni.ReadInteger('retrieval', 'hops', 2);
     HopK := LIni.ReadInteger('retrieval', 'hop_k', RagK);
     MinSimilarity := IniFloat(LIni, 'min_similarity', 0.25);
     StaticMinSimilarity := IniFloat(LIni, 'static_min_similarity', 0.3);
