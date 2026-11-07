@@ -642,6 +642,15 @@ def seq_logprob(model, tok, examples, pad_id):
 # ---------------------------------------------------------------- training data
 
 ANCHOR_PROMPTS = [
+    # yes/no first, so every profile's anchors rehearse answering yes or no: training on
+    # facts alone taught models to answer "Is my friend the one whose city is Porto?" with
+    # "Your friend's city is Porto." (verify 0/24 at 1.5B, 5/24 at 24B; bench/README.md)
+    "Is Paris the capital of France? Answer yes or no.",
+    "Is the sun cold? Answer yes or no.",
+    "Do spiders have eight legs? Answer yes or no.",
+    "Is seven an even number? Answer yes or no.",
+    "Is ice frozen water? Answer yes or no.",
+    "Does a week have ten days? Answer yes or no.",
     "What is the capital of France?", "Say hello.", "What is 2 + 2?", "Name a primary color.",
     "What do bees make?", "What is water made of?", "Give me a synonym for happy.",
     "How many days are in a week?", "What is the opposite of hot?", "What animal says moo?",
@@ -680,7 +689,8 @@ def _sentence(s):
 def varied_qas(facts, i, n, rng):
     """memagent/Mem.Examples.VariedExamples: n (question, answer) pairs for facts[i], cycling
     through eight kinds: full and short answers to the paraphrases, the value asked from the
-    other side, yes/no checks (one with another fact's value), fill in the blank, two facts
+    other side, yes/no checks (one with another fact's value; on even rounds the short
+    "... Answer yes or no." -> "Yes." / "No." form), fill in the blank, two facts
     together, "It's <value>.". facts[i]["questions"] is shuffled, its last item the probe."""
     f = facts[i]
     qs = f["questions"]
@@ -692,7 +702,13 @@ def varied_qas(facts, i, n, rng):
         kind, rnd = k % 8, k // 8
         question = lambda off: qs[(rnd * 3 + off) % nq]
         other = None
-        if len(facts) > 1:
+        # another fact with a different value, of the same attribute when there is one:
+        # "Is Ana's city Porto?" teaches more than "Is Ana's city Ana?"
+        same = [g for k2, g in enumerate(facts) if k2 != i and g["subject"].split()[-1].lower() == subj.split()[-1].lower()
+                and g["value"].lower() != value.lower()]
+        if same:
+            other = same[rng.randrange(len(same))]
+        elif len(facts) > 1:
             j = rng.randrange(len(facts) - 1)
             other = facts[j + 1 if j >= i else j]
             if other["value"].lower() == value.lower():
@@ -702,9 +718,14 @@ def varied_qas(facts, i, n, rng):
         elif kind == 2:
             out.append((f"What is {value} to me?" if rnd % 2 == 0 else f"What do you know about {value}?", text))
         elif kind == 3:
-            out.append((f"Is {value} {subj}?", "Yes. " + text))
+            # even rounds: the short yes/no a user asks for; odd: the yes/no with the fact
+            out.append((f"Is {subj} {value}? Answer yes or no.", "Yes.") if rnd % 2 == 0
+                       else (f"Is {value} {subj}?", "Yes. " + text))
         elif kind == 4:
-            out.append((f"Is {other['value']} {subj}?", "No. " + text) if other else (question(2), text))
+            if other and rnd % 2 == 0:
+                out.append((f"Is {subj} {other['value']}? Answer yes or no.", "No."))
+            else:
+                out.append((f"Is {other['value']} {subj}?", "No. " + text) if other else (question(2), text))
         elif kind == 5:
             if p >= 0:
                 blank = text[:p].rstrip() + " ___" + text[p + len(value):]

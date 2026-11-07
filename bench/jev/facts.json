@@ -1,0 +1,562 @@
+[
+ {
+  "text": "Emil's city is Riga.",
+  "subject": "Emil's city",
+  "value": "Riga"
+ },
+ {
+  "text": "Otto's pet is a chinchilla.",
+  "subject": "Otto's pet",
+  "value": "chinchilla"
+ },
+ {
+  "text": "Otto's city is Malmo.",
+  "subject": "Otto's city",
+  "value": "Malmo"
+ },
+ {
+  "text": "Sofia's city is Bologna.",
+  "subject": "Sofia's city",
+  "value": "Bologna"
+ },
+ {
+  "text": "Bruno's city is Lisbon.",
+  "subject": "Bruno's city",
+  "value": "Lisbon"
+ },
+ {
+  "text": "Your son's name is Ana.",
+  "subject": "my son's name",
+  "value": "Ana"
+ },
+ {
+  "text": "Yusuf's pet is a dachshund.",
+  "subject": "Yusuf's pet",
+  "value": "dachshund"
+ },
+ {
+  "text": "Rafael's city is Zagreb.",
+  "subject": "Rafael's city",
+  "value": "Zagreb"
+ },
+ {
+  "text": "Pavel's city is Krakow.",
+  "subject": "Pavel's city",
+  "value": "Krakow"
+ },
+ {
+  "text": "Marek's city is Zagreb.",
+  "subject": "Marek's city",
+  "value": "Zagreb"
+ },
+ {
+  "text": "Your grandma's name is Nils.",
+  "subject": "my grandma's name",
+  "value": "Nils"
+ },
+ {
+  "text": "Priya's pet is a beagle.",
+  "subject": "Priya's pet",
+  "value": "beagle"
+ },
+ {
+  "text": "Leo's job is pilot.",
+  "subject": "Leo's job",
+  "value": "pilot"
+ },
+ {
+  "text": "Greta's job is translator.",
+  "subject": "Greta's job",
+  "value": "translator"
+ },
+ {
+  "text": "Nils's job is jeweler.",
+  "subject": "Nils's job",
+  "value": "jeweler"
+ },
+ {
+  "text": "Your nephew's name is Marek.",
+  "subject": "my nephew's name",
+  "value": "Marek"
+ },
+ {
+  "text": "Ana's pet is a gecko.",
+  "subject": "Ana's pet",
+  "value": "gecko"
+ },
+ {
+  "text": "Yusuf's job is chemist.",
+  "subject": "Yusuf's job",
+  "value": "chemist"
+ },
+ {
+  "text": "Mia's pet is a poodle.",
+  "subject": "Mia's pet",
+  "value": "poodle"
+ },
+ {
+  "text": "Jonas's city is Dublin.",
+  "subject": "Jonas's city",
+  "value": "Dublin"
+ },
+ {
+  "text": "Your cousin's name is Lucia.",
+  "subject": "my cousin's name",
+  "value": "Lucia"
+ },
+ {
+  "text": "Dana's pet is a iguana.",
+  "subject": "Dana's pet",
+  "value": "iguana"
+ },
+ {
+  "text": "Your boss's name is Leo.",
+  "subject": "my boss's name",
+  "value": "Leo"
+ },
+ {
+  "text": "Greta's city is Porto.",
+  "subject": "Greta's city",
+  "value": "Porto"
+ },
+ {
+  "text": "Marek's job is carpenter.",
+  "subject": "Marek's job",
+  "value": "carpenter"
+ },
+ {
+  "text": "Rosa's city is Bergen.",
+  "subject": "Rosa's city",
+  "value": "Bergen"
+ },
+ {
+  "text": "Bruno's pet is a beagle.",
+  "subject": "Bruno's pet",
+  "value": "beagle"
+ },
+ {
+  "text": "Rosa's pet is a rabbit.",
+  "subject": "Rosa's pet",
+  "value": "rabbit"
+ },
+ {
+  "text": "Your mother's name is Mia.",
+  "subject": "my mother's name",
+  "value": "Mia"
+ },
+ {
+  "text": "Tomas's city is Lyon.",
+  "subject": "Tomas's city",
+  "value": "Lyon"
+ },
+ {
+  "text": "Your daughter's name is Ines.",
+  "subject": "my daughter's name",
+  "value": "Ines"
+ },
+ {
+  "text": "Sofia's job is beekeeper.",
+  "subject": "Sofia's job",
+  "value": "beekeeper"
+ },
+ {
+  "text": "Marek's pet is a tortoise.",
+  "subject": "Marek's pet",
+  "value": "tortoise"
+ },
+ {
+  "text": "Ines's city is Valencia.",
+  "subject": "Ines's city",
+  "value": "Valencia"
+ },
+ {
+  "text": "Jonas's pet is a gecko.",
+  "subject": "Jonas's pet",
+  "value": "gecko"
+ },
+ {
+  "text": "Tomas's job is plumber.",
+  "subject": "Tomas's job",
+  "value": "plumber"
+ },
+ {
+  "text": "Ana's city is Bergen.",
+  "subject": "Ana's city",
+  "value": "Bergen"
+ },
+ {
+  "text": "Amara's pet is a ferret.",
+  "subject": "Amara's pet",
+  "value": "ferret"
+ },
+ {
+  "text": "Ines's pet is a canary.",
+  "subject": "Ines's pet",
+  "value": "canary"
+ },
+ {
+  "text": "Otto's job is chemist.",
+  "subject": "Otto's job",
+  "value": "chemist"
+ },
+ {
+  "text": "Nadia's job is librarian.",
+  "subject": "Nadia's job",
+  "value": "librarian"
+ },
+ {
+  "text": "Leo's pet is a corgi.",
+  "subject": "Leo's pet",
+  "value": "corgi"
+ },
+ {
+  "text": "Ines's job is locksmith.",
+  "subject": "Ines's job",
+  "value": "locksmith"
+ },
+ {
+  "text": "Hana's pet is a rabbit.",
+  "subject": "Hana's pet",
+  "value": "rabbit"
+ },
+ {
+  "text": "Elif's job is glassblower.",
+  "subject": "Elif's job",
+  "value": "glassblower"
+ },
+ {
+  "text": "Greta's pet is a goldfish.",
+  "subject": "Greta's pet",
+  "value": "goldfish"
+ },
+ {
+  "text": "Lena's pet is a tortoise.",
+  "subject": "Lena's pet",
+  "value": "tortoise"
+ },
+ {
+  "text": "Lena's city is Porto.",
+  "subject": "Lena's city",
+  "value": "Porto"
+ },
+ {
+  "text": "Arno's pet is a canary.",
+  "subject": "Arno's pet",
+  "value": "canary"
+ },
+ {
+  "text": "Dana's job is firefighter.",
+  "subject": "Dana's job",
+  "value": "firefighter"
+ },
+ {
+  "text": "Elif's city is Graz.",
+  "subject": "Elif's city",
+  "value": "Graz"
+ },
+ {
+  "text": "Your friend's name is Greta.",
+  "subject": "my friend's name",
+  "value": "Greta"
+ },
+ {
+  "text": "Lucia's pet is a hamster.",
+  "subject": "Lucia's pet",
+  "value": "hamster"
+ },
+ {
+  "text": "Nils's pet is a hedgehog.",
+  "subject": "Nils's pet",
+  "value": "hedgehog"
+ },
+ {
+  "text": "Bruno's job is translator.",
+  "subject": "Bruno's job",
+  "value": "translator"
+ },
+ {
+  "text": "Your father's name is Priya.",
+  "subject": "my father's name",
+  "value": "Priya"
+ },
+ {
+  "text": "Vera's city is Tallinn.",
+  "subject": "Vera's city",
+  "value": "Tallinn"
+ },
+ {
+  "text": "Lucia's city is Lisbon.",
+  "subject": "Lucia's city",
+  "value": "Lisbon"
+ },
+ {
+  "text": "Rafael's job is jeweler.",
+  "subject": "Rafael's job",
+  "value": "jeweler"
+ },
+ {
+  "text": "Rafael's pet is a corgi.",
+  "subject": "Rafael's pet",
+  "value": "corgi"
+ },
+ {
+  "text": "Nils's city is Lyon.",
+  "subject": "Nils's city",
+  "value": "Lyon"
+ },
+ {
+  "text": "Amara's job is translator.",
+  "subject": "Amara's job",
+  "value": "translator"
+ },
+ {
+  "text": "Your partner's name is Sofia.",
+  "subject": "my partner's name",
+  "value": "Sofia"
+ },
+ {
+  "text": "Leo's city is Malmo.",
+  "subject": "Leo's city",
+  "value": "Malmo"
+ },
+ {
+  "text": "Your uncle's name is Tara.",
+  "subject": "my uncle's name",
+  "value": "Tara"
+ },
+ {
+  "text": "Rosa's job is architect.",
+  "subject": "Rosa's job",
+  "value": "architect"
+ },
+ {
+  "text": "Zoe's job is librarian.",
+  "subject": "Zoe's job",
+  "value": "librarian"
+ },
+ {
+  "text": "Your grandpa's name is Zoe.",
+  "subject": "my grandpa's name",
+  "value": "Zoe"
+ },
+ {
+  "text": "Tomas's pet is a hamster.",
+  "subject": "Tomas's pet",
+  "value": "hamster"
+ },
+ {
+  "text": "Sam's pet is a goldfish.",
+  "subject": "Sam's pet",
+  "value": "goldfish"
+ },
+ {
+  "text": "Sam's job is chemist.",
+  "subject": "Sam's job",
+  "value": "chemist"
+ },
+ {
+  "text": "Mia's job is nurse.",
+  "subject": "Mia's job",
+  "value": "nurse"
+ },
+ {
+  "text": "Lena's job is dentist.",
+  "subject": "Lena's job",
+  "value": "dentist"
+ },
+ {
+  "text": "Emil's job is plumber.",
+  "subject": "Emil's job",
+  "value": "plumber"
+ },
+ {
+  "text": "Your aunt's name is Dana.",
+  "subject": "my aunt's name",
+  "value": "Dana"
+ },
+ {
+  "text": "Omar's job is pilot.",
+  "subject": "Omar's job",
+  "value": "pilot"
+ },
+ {
+  "text": "Hana's city is Graz.",
+  "subject": "Hana's city",
+  "value": "Graz"
+ },
+ {
+  "text": "Ivo's city is Porto.",
+  "subject": "Ivo's city",
+  "value": "Porto"
+ },
+ {
+  "text": "Ivo's job is locksmith.",
+  "subject": "Ivo's job",
+  "value": "locksmith"
+ },
+ {
+  "text": "Pavel's job is surveyor.",
+  "subject": "Pavel's job",
+  "value": "surveyor"
+ },
+ {
+  "text": "Sam's city is Malmo.",
+  "subject": "Sam's city",
+  "value": "Malmo"
+ },
+ {
+  "text": "Arno's job is firefighter.",
+  "subject": "Arno's job",
+  "value": "firefighter"
+ },
+ {
+  "text": "Vera's pet is a hedgehog.",
+  "subject": "Vera's pet",
+  "value": "hedgehog"
+ },
+ {
+  "text": "Mia's city is Tallinn.",
+  "subject": "Mia's city",
+  "value": "Tallinn"
+ },
+ {
+  "text": "Your sister's name is Hana.",
+  "subject": "my sister's name",
+  "value": "Hana"
+ },
+ {
+  "text": "Arno's city is Lyon.",
+  "subject": "Arno's city",
+  "value": "Lyon"
+ },
+ {
+  "text": "Omar's city is Tallinn.",
+  "subject": "Omar's city",
+  "value": "Tallinn"
+ },
+ {
+  "text": "Tara's city is Krakow.",
+  "subject": "Tara's city",
+  "value": "Krakow"
+ },
+ {
+  "text": "Jonas's job is baker.",
+  "subject": "Jonas's job",
+  "value": "baker"
+ },
+ {
+  "text": "Ana's job is glassblower.",
+  "subject": "Ana's job",
+  "value": "glassblower"
+ },
+ {
+  "text": "Your brother's name is Yusuf.",
+  "subject": "my brother's name",
+  "value": "Yusuf"
+ },
+ {
+  "text": "Zoe's pet is a axolotl.",
+  "subject": "Zoe's pet",
+  "value": "axolotl"
+ },
+ {
+  "text": "Sofia's pet is a ferret.",
+  "subject": "Sofia's pet",
+  "value": "ferret"
+ },
+ {
+  "text": "Elif's pet is a gecko.",
+  "subject": "Elif's pet",
+  "value": "gecko"
+ },
+ {
+  "text": "Omar's pet is a beagle.",
+  "subject": "Omar's pet",
+  "value": "beagle"
+ },
+ {
+  "text": "Dana's city is Utrecht.",
+  "subject": "Dana's city",
+  "value": "Utrecht"
+ },
+ {
+  "text": "Your niece's name is Emil.",
+  "subject": "my niece's name",
+  "value": "Emil"
+ },
+ {
+  "text": "Priya's city is Dublin.",
+  "subject": "Priya's city",
+  "value": "Dublin"
+ },
+ {
+  "text": "Zoe's city is Oslo.",
+  "subject": "Zoe's city",
+  "value": "Oslo"
+ },
+ {
+  "text": "Hana's job is surveyor.",
+  "subject": "Hana's job",
+  "value": "surveyor"
+ },
+ {
+  "text": "Tara's pet is a chinchilla.",
+  "subject": "Tara's pet",
+  "value": "chinchilla"
+ },
+ {
+  "text": "Nadia's city is Zagreb.",
+  "subject": "Nadia's city",
+  "value": "Zagreb"
+ },
+ {
+  "text": "Lucia's job is architect.",
+  "subject": "Lucia's job",
+  "value": "architect"
+ },
+ {
+  "text": "Emil's pet is a parrot.",
+  "subject": "Emil's pet",
+  "value": "parrot"
+ },
+ {
+  "text": "Nadia's pet is a parrot.",
+  "subject": "Nadia's pet",
+  "value": "parrot"
+ },
+ {
+  "text": "Pavel's pet is a goldfish.",
+  "subject": "Pavel's pet",
+  "value": "goldfish"
+ },
+ {
+  "text": "Tara's job is dentist.",
+  "subject": "Tara's job",
+  "value": "dentist"
+ },
+ {
+  "text": "Ivo's pet is a poodle.",
+  "subject": "Ivo's pet",
+  "value": "poodle"
+ },
+ {
+  "text": "Yusuf's city is Ghent.",
+  "subject": "Yusuf's city",
+  "value": "Ghent"
+ },
+ {
+  "text": "Amara's city is Utrecht.",
+  "subject": "Amara's city",
+  "value": "Utrecht"
+ },
+ {
+  "text": "Vera's job is beekeeper.",
+  "subject": "Vera's job",
+  "value": "beekeeper"
+ },
+ {
+  "text": "Priya's job is baker.",
+  "subject": "Priya's job",
+  "value": "baker"
+ }
+]

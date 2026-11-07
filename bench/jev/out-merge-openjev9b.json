@@ -1,0 +1,75 @@
+{"id": 0, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9983, "rules": true, "p": 0.9956, "ms": 33349}
+{"id": 1, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9994, "rules": true, "p": 0.9805, "ms": 33089}
+{"id": 2, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9995, "rules": true, "p": 0.9926, "ms": 31085}
+{"id": 3, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9985, "rules": true, "p": 0.9958, "ms": 32101}
+{"id": 4, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9985, "rules": true, "p": 0.9955, "ms": 33381}
+{"id": 5, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9993, "rules": true, "p": 0.9907, "ms": 32684}
+{"id": 6, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9994, "rules": true, "p": 0.9934, "ms": 33329}
+{"id": 7, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9993, "rules": true, "p": 0.9916, "ms": 32188}
+{"id": 8, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9995, "rules": true, "p": 0.9947, "ms": 32949}
+{"id": 9, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9994, "rules": true, "p": 0.9923, "ms": 32576}
+{"id": 10, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9992, "rules": true, "p": 0.9910, "ms": 33161}
+{"id": 11, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9995, "rules": true, "p": 0.9928, "ms": 33160}
+{"id": 12, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9984, "rules": true, "p": 0.9964, "ms": 32777}
+{"id": 13, "replaces": 1, "category": "new value", "cos": 1.000, "distinct": false, "rerank": 0.9990, "rules": true, "p": 0.9963, "ms": 30772}
+{"id": 14, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9982, "rules": true, "p": 0.9541, "ms": 33683}
+{"id": 15, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9981, "rules": true, "p": 0.9696, "ms": 31691}
+{"id": 16, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9987, "rules": true, "p": 0.9679, "ms": 32454}
+{"id": 17, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9982, "rules": true, "p": 0.9624, "ms": 31847}
+{"id": 18, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9982, "rules": true, "p": 0.9188, "ms": 32613}
+{"id": 19, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9987, "rules": true, "p": 0.9668, "ms": 31733}
+{"id": 20, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9978, "rules": true, "p": 0.9337, "ms": 32302}
+{"id": 21, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9974, "rules": true, "p": 0.9577, "ms": 33546}
+{"id": 22, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9976, "rules": true, "p": 0.9588, "ms": 32519}
+{"id": 23, "replaces": 1, "category": "correction", "cos": 1.000, "distinct": false, "rerank": 0.9983, "rules": true, "p": 0.9583, "ms": 33850}
+{"id": 24, "replaces": 1, "category": "reworded", "cos": 0.735, "distinct": false, "rerank": 0.9803, "rules": true, "p": 0.9894, "ms": 30643}
+{"id": 25, "replaces": 1, "category": "reworded", "cos": 0.710, "distinct": false, "rerank": 0.4803, "rules": false, "p": 0.9914, "ms": 31960}
+{"id": 26, "replaces": 1, "category": "reworded", "cos": 1.000, "distinct": false, "rerank": 0.9970, "rules": true, "p": 0.9886, "ms": 34284}
+{"id": 27, "replaces": 1, "category": "reworded", "cos": 0.777, "distinct": false, "rerank": 0.3056, "rules": false, "p": 0.9894, "ms": 32894}
+{"id": 28, "replaces": 1, "category": "reworded", "cos": 0.495, "distinct": false, "rerank": 0.0006, "rules": false, "p": 0.9847, "ms": 31817}
+{"id": 29, "replaces": 1, "category": "reworded", "cos": 0.638, "distinct": false, "rerank": 0.0023, "rules": false, "p": 0.9815, "ms": 31173}
+{"id": 30, "replaces": 1, "category": "reworded", "cos": 1.000, "distinct": false, "rerank": 0.9966, "rules": true, "p": 0.9832, "ms": 32964}
+{"id": 31, "replaces": 1, "category": "reworded", "cos": 1.000, "distinct": false, "rerank": 0.9173, "rules": true, "p": 0.9900, "ms": 34693}
+{"id": 32, "replaces": 1, "category": "reworded", "cos": 0.760, "distinct": false, "rerank": 0.7335, "rules": true, "p": 0.9898, "ms": 31917}
+{"id": 33, "replaces": 1, "category": "reworded", "cos": 0.905, "distinct": false, "rerank": 0.9976, "rules": true, "p": 0.9933, "ms": 31511}
+{"id": 34, "replaces": 1, "category": "reworded", "cos": 1.000, "distinct": false, "rerank": 0.9962, "rules": true, "p": 0.9854, "ms": 32445}
+{"id": 35, "replaces": 1, "category": "reworded", "cos": 1.000, "distinct": false, "rerank": 0.9991, "rules": true, "p": 0.9898, "ms": 31981}
+{"id": 36, "replaces": 0, "category": "other attribute", "cos": 0.733, "distinct": true, "rerank": 0.1259, "rules": false, "p": 0.0071, "ms": 32016}
+{"id": 37, "replaces": 0, "category": "other attribute", "cos": 0.746, "distinct": true, "rerank": 0.6684, "rules": false, "p": 0.0062, "ms": 31983}
+{"id": 38, "replaces": 0, "category": "other attribute", "cos": 0.771, "distinct": true, "rerank": 0.0798, "rules": false, "p": 0.0049, "ms": 32860}
+{"id": 39, "replaces": 0, "category": "other attribute", "cos": 0.777, "distinct": true, "rerank": 0.2113, "rules": false, "p": 0.0090, "ms": 32443}
+{"id": 40, "replaces": 0, "category": "other attribute", "cos": 0.735, "distinct": true, "rerank": 0.1302, "rules": false, "p": 0.0108, "ms": 32288}
+{"id": 41, "replaces": 0, "category": "other attribute", "cos": 0.719, "distinct": true, "rerank": 0.0561, "rules": false, "p": 0.0048, "ms": 32519}
+{"id": 42, "replaces": 0, "category": "other attribute", "cos": 0.722, "distinct": true, "rerank": 0.1137, "rules": false, "p": 0.0038, "ms": 33211}
+{"id": 43, "replaces": 0, "category": "other attribute", "cos": 0.745, "distinct": true, "rerank": 0.0625, "rules": false, "p": 0.0052, "ms": 32391}
+{"id": 44, "replaces": 0, "category": "other person", "cos": 0.484, "distinct": true, "rerank": 0.0020, "rules": false, "p": 0.0075, "ms": 34486}
+{"id": 45, "replaces": 0, "category": "other person", "cos": 0.510, "distinct": true, "rerank": 0.0005, "rules": false, "p": 0.0051, "ms": 33096}
+{"id": 46, "replaces": 0, "category": "other person", "cos": 0.535, "distinct": true, "rerank": 0.0050, "rules": false, "p": 0.0038, "ms": 32553}
+{"id": 47, "replaces": 0, "category": "other person", "cos": 0.492, "distinct": true, "rerank": 0.0019, "rules": false, "p": 0.0044, "ms": 32005}
+{"id": 48, "replaces": 0, "category": "other person", "cos": 0.409, "distinct": true, "rerank": 0.0002, "rules": false, "p": 0.0034, "ms": 32818}
+{"id": 49, "replaces": 0, "category": "other person", "cos": 0.462, "distinct": true, "rerank": 0.0011, "rules": false, "p": 0.0052, "ms": 32703}
+{"id": 50, "replaces": 0, "category": "other person", "cos": 0.502, "distinct": true, "rerank": 0.0019, "rules": false, "p": 0.0387, "ms": 33298}
+{"id": 51, "replaces": 0, "category": "other person", "cos": 0.540, "distinct": true, "rerank": 0.0029, "rules": false, "p": 0.0047, "ms": 32816}
+{"id": 52, "replaces": 0, "category": "look-alike relation", "cos": 0.881, "distinct": true, "rerank": 0.9694, "rules": false, "p": 0.0061, "ms": 31333}
+{"id": 53, "replaces": 0, "category": "look-alike relation", "cos": 0.851, "distinct": true, "rerank": 0.0477, "rules": false, "p": 0.0020, "ms": 33666}
+{"id": 54, "replaces": 0, "category": "look-alike relation", "cos": 0.824, "distinct": true, "rerank": 0.6880, "rules": false, "p": 0.0144, "ms": 31657}
+{"id": 55, "replaces": 0, "category": "look-alike relation", "cos": 0.836, "distinct": true, "rerank": 0.9266, "rules": false, "p": 0.0097, "ms": 32067}
+{"id": 56, "replaces": 0, "category": "look-alike relation", "cos": 0.869, "distinct": true, "rerank": 0.1423, "rules": false, "p": 0.2732, "ms": 32143}
+{"id": 57, "replaces": 0, "category": "look-alike relation", "cos": 0.872, "distinct": true, "rerank": 0.1677, "rules": false, "p": 0.0056, "ms": 33266}
+{"id": 58, "replaces": 0, "category": "look-alike relation", "cos": 0.727, "distinct": true, "rerank": 0.0474, "rules": false, "p": 0.0044, "ms": 32543}
+{"id": 59, "replaces": 0, "category": "person / their thing", "cos": 0.647, "distinct": false, "rerank": 0.0087, "rules": false, "p": 0.0051, "ms": 30580}
+{"id": 60, "replaces": 0, "category": "person / their thing", "cos": 0.848, "distinct": true, "rerank": 0.7074, "rules": false, "p": 0.0099, "ms": 33038}
+{"id": 61, "replaces": 0, "category": "person / their thing", "cos": 0.826, "distinct": false, "rerank": 0.9703, "rules": true, "p": 0.0254, "ms": 32270}
+{"id": 62, "replaces": 0, "category": "person / their thing", "cos": 0.799, "distinct": false, "rerank": 0.6390, "rules": true, "p": 0.0071, "ms": 32866}
+{"id": 63, "replaces": 0, "category": "me / someone else", "cos": 0.820, "distinct": false, "rerank": 0.0484, "rules": false, "p": 0.0068, "ms": 31045}
+{"id": 64, "replaces": 0, "category": "me / someone else", "cos": 0.525, "distinct": false, "rerank": 0.0028, "rules": false, "p": 0.0183, "ms": 31716}
+{"id": 65, "replaces": 0, "category": "me / someone else", "cos": 0.738, "distinct": false, "rerank": 0.0027, "rules": false, "p": 0.0145, "ms": 30517}
+{"id": 66, "replaces": 0, "category": "me / someone else", "cos": 0.790, "distinct": false, "rerank": 0.0263, "rules": false, "p": 0.0110, "ms": 32745}
+{"id": 67, "replaces": 0, "category": "same name, other person", "cos": 0.769, "distinct": true, "rerank": 0.0070, "rules": false, "p": 0.7879, "ms": 32968}
+{"id": 68, "replaces": 0, "category": "same name, other person", "cos": 0.695, "distinct": true, "rerank": 0.0004, "rules": false, "p": 0.0870, "ms": 31494}
+{"id": 69, "replaces": 0, "category": "same name, other person", "cos": 0.664, "distinct": true, "rerank": 0.9949, "rules": false, "p": 0.9482, "ms": 31422}
+{"id": 70, "replaces": 0, "category": "added, not replaced", "cos": 0.741, "distinct": false, "rerank": 0.0642, "rules": false, "p": 0.0175, "ms": 30478}
+{"id": 71, "replaces": 0, "category": "added, not replaced", "cos": 1.000, "distinct": false, "rerank": 0.9851, "rules": true, "p": 0.0236, "ms": 31864}
+{"id": 72, "replaces": 0, "category": "added, not replaced", "cos": 1.000, "distinct": false, "rerank": 0.9951, "rules": true, "p": 0.0140, "ms": 29519}
+{"id": 73, "replaces": 0, "category": "added, not replaced", "cos": 1.000, "distinct": false, "rerank": 0.9978, "rules": true, "p": 0.0140, "ms": 30532}
+{"id": 74, "replaces": 0, "category": "added, not replaced", "cos": 1.000, "distinct": false, "rerank": 0.9960, "rules": true, "p": 0.0045, "ms": 31744}

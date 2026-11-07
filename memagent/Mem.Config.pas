@@ -71,6 +71,19 @@ type
     BodyArgs: string;              { extra arguments (lerobot: the lerobot-rollout flags) }
     BodyConfirm: Boolean;          { /do waits for /confirm }
     BodyMaxSeconds: Integer;       { an act is stopped after this long; 0 = no limit }
+    (* [judge]: a decision model read out as probabilities (Mem.Decide), for the answer
+       guard and the fact-merge decision. model = off | openjev-flash-9b | <path.gguf> *)
+    JudgeModel: string;
+    JudgeGuard: Boolean;       { the judge decides the answer guard instead of Mem.Guard's rules }
+    JudgeMerge: Boolean;       { the judge must agree before a new fact supersedes an old one }
+    JudgeGuardMin: Double;     { show an answer when P(supported) >= this }
+    JudgeMergeMin: Double;     { supersede when P(same person and attribute) >= this; else keep both }
+    (* the judge may also merge a pair the rules missed (a reworded slot: "dog's name" /
+       "dog is called"): the closest fact by subject cosine >= JudgeRescueCos, not
+       DistinctSubjects, at P >= JudgeRescueMin; 0 = off *)
+    JudgeRescueMin, JudgeRescueCos: Double;
+    JudgeT, JudgeNoulT: Double;  { the model card's calibration (OpenJev-Flash-9B: 1.07, 1.074766) }
+    JudgeThink: Boolean;       { the empty <think></think> block OpenJev's template expects }
     { [guard]: licensing check against stored-value confabulation (Mem.Guard) }
     Guard: string;           { auto (on when its model is provisioned) | on | off }
     GuardModel: string;
@@ -298,6 +311,18 @@ begin
     BodyArgs := LIni.ReadString('body', 'args', '');
     BodyConfirm := LIni.ReadBool('body', 'confirm', True);
     BodyMaxSeconds := LIni.ReadInteger('body', 'max_seconds', 300);
+    JudgeModel := LIni.ReadString('judge', 'model', 'off');
+    if (JudgeModel <> '') and not SameText(JudgeModel, 'off') and not SameText(JudgeModel, 'openjev-flash-9b') then
+      JudgeModel := Abs_(LBase, JudgeModel);
+    JudgeGuard := LIni.ReadBool('judge', 'guard', True);
+    JudgeMerge := LIni.ReadBool('judge', 'merge', True);
+    JudgeGuardMin := StrToFloatDef(LIni.ReadString('judge', 'guard_min', '0.9'), 0.9, LFmt);
+    JudgeMergeMin := StrToFloatDef(LIni.ReadString('judge', 'merge_min', '0.9'), 0.9, LFmt);
+    JudgeRescueMin := StrToFloatDef(LIni.ReadString('judge', 'rescue_min', '0.97'), 0.97, LFmt);
+    JudgeRescueCos := StrToFloatDef(LIni.ReadString('judge', 'rescue_cos', '0.4'), 0.4, LFmt);
+    JudgeT := StrToFloatDef(LIni.ReadString('judge', 't', '1.07'), 1.07, LFmt);
+    JudgeNoulT := StrToFloatDef(LIni.ReadString('judge', 'noul_t', '1.074766'), 1.074766, LFmt);
+    JudgeThink := LIni.ReadBool('judge', 'think', True);
     Guard := LowerCase(LIni.ReadString('guard', 'enabled', 'auto'));
     GuardModel := LIni.ReadString('guard', 'model', 'bge-reranker-base');
     GuardMinScore := StrToFloatDef(LIni.ReadString('guard', 'min_score', '0.03'), 0.03, LFmt);

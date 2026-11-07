@@ -55,7 +55,10 @@ type
 
 const
   { trainer/memlib.py ANCHOR_PROMPTS }
-  ANCHOR_PROMPTS: array[0..31] of string = (
+  ANCHOR_PROMPTS: array[0..37] of string = (
+    { yes/no first: see memlib.ANCHOR_PROMPTS }
+    'Is Paris the capital of France? Answer yes or no.', 'Is the sun cold? Answer yes or no.', 'Do spiders have eight legs? Answer yes or no.',
+    'Is seven an even number? Answer yes or no.', 'Is ice frozen water? Answer yes or no.', 'Does a week have ten days? Answer yes or no.',
     'What is the capital of France?', 'Say hello.', 'What is 2 + 2?', 'Name a primary color.',
     'What do bees make?', 'What is water made of?', 'Give me a synonym for happy.',
     'How many days are in a week?', 'What is the opposite of hot?', 'What animal says moo?',

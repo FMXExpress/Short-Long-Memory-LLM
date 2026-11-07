@@ -831,6 +831,9 @@ The GPU-trained 1.5B memory in the agent, two hops, rebuilt binding-guard build:
 | retrieval | 24 | 12 | 6 | 16 | **58/96** |
 | retrieval + GPU deep sleep | 24 | 4 | 4 | 0 | 32/96 |
 
+With one hop it loses too: 33/96 against 40/96 for retrieval, with verify 0/24 and 36 answers
+withheld by the guard.
+
 At 1.5B the trained memory makes the agent worse. Its fact-sentence answers fail verify, and
 the guard withheld 40 of them. So the 1.5B presets do not train in the background.
 
@@ -861,3 +864,161 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
 
 **Windows:** `run.ps1` is written for Windows PowerShell 5.1. It was not run in this session.
 The release workflow dry-runs it on a Windows runner for every pull request.
+
+## The answer guard as a decision-model readout (Jev, 2026-11-07)
+
+The agent's guard caused many of today's losses. It withheld 29 answers with retrieval
+and 36–40 with trained memory, and many of them were right ("Your grandma keeps a
+hedgehog"). The question was whether a decision model judges better.
+
+**The test set** (`bench/jev/make_cases.py`):
+- 120 answers that the 1.5B, 4B and 24B models really gave in the GPU runs.
+- Bridge, inverse and verify questions, 20 right and 20 wrong of each, labelled strictly.
+  An inverse answer must name only the right relative; a verify answer must say yes or no
+  correctly.
+- Allowing everything scores 50%.
+
+**The two guards** (`memagent/tests/jev_guard.lpr`):
+- **Current guard:** `Mem.Guard.Licensed`, a reranker plus binding rules, checking against
+  all 112 stored facts, as in the agent.
+- **Decision readout:** in JevBan's format (`Ban.Local`). The state holds the two-hop
+  retrieved facts and the question and answer, as data. One forward pass reads the logits
+  of the option letters; there is no generation.
+
+| Guard | Right kept | Wrong blocked | Accuracy | AUC | CPU, 4 cores |
+|---|---|---|---|---|---|
+| current guard | 28/60 | 37/60 | 0.54 | — | ~0.1 s |
+| readout with the 1.5B chat model | 44/60 | 23/60 | 0.56 (0.68 at p≥0.8) | 0.65 | 3.3 s |
+| **OpenJev-Flash-9B, p≥0.5** | 54/60 | 42/60 | 0.80 | **0.93** | 11.5 s |
+| **OpenJev-Flash-9B, p≥0.9** | 47/60 | 55/60 | **0.85** | | 11.5 s |
+| current guard AND OpenJev p≥0.9 | 21/60 | 59/60 | 0.67 | | |
+| current guard, OpenJev p≥0.9 can overrule a block | 54/60 | 33/60 | 0.72 | | |
+
+AUC measures how well the score separates right answers from wrong ones; 0.5 is chance.
+
+| By type (OpenJev, p≥0.5) | Current guard | OpenJev | AUC |
+|---|---|---|---|
+| bridge | 0.40 (kept 3/20) | **1.00** (20/20 kept, 20/20 blocked) | 1.00 |
+| inverse | 0.62 | 0.65 | 0.78 |
+| verify | 0.60 | 0.75 | 0.93 |
+
+**Two-fact answers.** OpenJev judged all 40 correctly. It resolves "your grandma" → Nils →
+Nils's pet from the facts in its state, which the current guard's rules miss.
+
+**Verify mistakes.** Most are answers like "Your daughter's city is Valencia." They are true
+but don't say yes or no, so the strict labels call them wrong; Jev scored them 0.8–0.9. Two
+are real misses: "Your sister's pet is a rabbit" (Rosa's rabbit) scored 0.82, and "Your
+nephew's pet is a tortoise" (Lena's) scored 0.88.
+
+**Inverse answers.** These are the weak spot for both guards. A list of several people is
+hard to judge from 3–6 facts.
+
+**The 1.5B chat model.** As a judge it is barely better than the current guard, so the
+calibrated decision model is what makes the difference, not the readout trick itself.
+
+**Verdict.** OpenJev-Flash-9B is the better guard by a wide margin: 0.85 against 0.54. The
+cost is 11.5 s per answer on 4 CPU cores; on a GPU it is well under a second. The next step
+is a `Mem.Decide` unit that runs the guard as a readout, behind `[guard] judge=jev`:
+- Use it in the GPU presets, where the 9B fits beside the chat model on a 12 GB+ card.
+- Keep the current guard on CPU-only machines.
+- The same readout can also decide whether a new fact replaces an old one (the merge bug)
+  and which candidate facts go into the prompt.
+
+### Built in: `[judge]` (Mem.Decide)
+
+**Settings:** `[judge] model=openjev-flash-9b` loads the judge beside the chat model, on the
+answering GPU when there is one.
+- **Guard:** an answer to a question about the user's people is shown only when
+  P(supported) ≥ `guard_min` (0.9). The judge reads the facts that turn's prompt had.
+- **Merges:** the rules still propose that a new fact supersedes an old one. The judge must
+  agree that it is the same person and the same attribute (`merge_min` 0.9); otherwise
+  both facts are kept.
+- **Launchers:** they turn the judge on for GPU presets with a CUDA llama.cpp and 16 GB or
+  more. Everywhere else it is off.
+
+**Live, small profile, CPU:**
+- "Which city does my sister live in?" → "Lisbon." (allowed).
+- "Ana's city is Porto" replaced "Ana's city is Lisbon" (the judge agreed).
+- An unknown fact got no invented answer.
+- Each judgement took about 35 s with the chat model on the same 4 cores. That is why
+  it is off on CPUs.
+
+**One fix came out of it.** A plain statement ("My sister's name is Ana.") had gone through
+the guard too, and the judge withheld the reply (p 0.87). Statements now skip the guard.
+
+**From Hightouch's write-up on LLM judges for identity resolution (Nov 2026):**
+- **Over-merging is the failure that matters.** Their identities merge records the way
+  memagent merges facts, so the judge here may only *veto* a merge. An unsure judge keeps
+  both facts.
+- **Calibration over raw accuracy.** OpenJev is calibrated on this set too:
+  - p < 0.1: 25 answers, all wrong.
+  - p ≥ 0.97: 21 answers, all right.
+  - 0.3–0.9: close to a coin flip (24 answers, 10 right).
+- **Escalation.** They route that middle band to a stronger model. Locally there is
+  none: routing it to the rule guard lowered accuracy (0.80 against 0.85), so the guard
+  withholds there, which is the safe side.
+- **Threshold.** Tune it on a labelled set of your own: 0.9 is best here (0.85, against
+  0.80 at 0.5).
+- **Next:** a labelled set of merge decisions, built from look-alikes as in their hard set
+  (same-name people, twins, an updated value against another attribute), to tune
+  `merge_min` the same way.
+
+### Tuning the merge judge (75 labelled pairs)
+
+**The test set** (`bench/jev/make_merge_cases.py`) follows Hightouch's hard set.
+- **36 pairs that should merge:** a new value, a corrected name, the same slot reworded.
+- **39 look-alikes that must not:**
+  - another attribute or another person;
+  - grandma / grandpa and other look-alike relations;
+  - a person and that person's pet or thing;
+  - me and my partner;
+  - the same first name for different people;
+  - a fact that adds rather than replaces.
+
+`memagent/tests/merge_judge.lpr` runs the agent's rules (`SameSubject`: subject cosine,
+`DistinctSubjects`, cross-encoder) and OpenJev-Flash-9B on each pair.
+
+| Policy | Wrong merges (fact lost) | Missed merges (duplicate kept) |
+|---|---|---|
+| rules alone (before the judge) | 6 / 39 | 4 / 36 |
+| judge alone, p ≥ 0.9 | 1 | 0 |
+| judge alone, p ≥ 0.95 | 0 | 2 |
+| rules + judge veto, merge_min 0.5–0.9 | **0** | 4 |
+| rules + veto + judge rescue (cos ≥ 0.4, p ≥ 0.97) | **0** | **0** |
+
+- **The rules' wrong merges** were "added, not replaced" (4: "You also like pizza" overwrote
+  "Your favorite food is sushi") and "a person and their thing" (2). The judge scored all
+  six at 0.00–0.03, so its veto removes them.
+- **Right merges** scored 0.92–1.00. `merge_min` 0.9 keeps all of them with margin; 0.95
+  would lose two corrections.
+- **Same first name, different people** is the judge's weak spot: 0.79 and 0.95. The rules
+  never proposed those, and `DistinctSubjects` blocks them in the rescue path. That is why
+  the judge must not decide a merge alone below 0.97.
+- **The rescue** merges reworded slots the rules miss ("Your dog's name is Rex" → "Your dog
+  is called Max"). The judge scored all 12 reworded pairs 0.98–0.99.
+- **A caveat:** rescue_min and rescue_cos were tuned on these same 75 pairs, and the closest
+  negative (0.95) is near the 0.97 bar. A larger set should confirm them.
+- **Speed:** about 32 s per judgement on 4 CPU cores. One judgement per new fact that has a
+  candidate, so it is affordable on a GPU and slow on a CPU.
+
+### The yes/no habit: the fix, not yet measured
+
+**The problem.** After deep sleep, models answer yes/no questions with a fact sentence:
+"Is my friend the one whose city is Porto? Answer yes or no." gets "Your friend's city is
+Porto." Verify fell to 0/24 at 1.5B and 5/24 at 24B. Every training example had one form,
+question → fact sentence, so that is the form the model learned to give.
+
+**The fix** (both trainers, `memlib` and `Mem.Examples` / `Mem.Train`):
+- **Varied examples for every profile.** Small, medium and large now use them, as tiny
+  already did. Each fact becomes a full answer, a short answer, the value asked from the
+  other side, yes/no checks, fill in the blank, two facts together, and "It's <value>."
+- **Short yes/no examples.** On even rounds the yes/no checks take the form users ask in:
+  "Is Ana's city Lisbon? Answer yes or no." → "Yes.", and "Is Ana's city Porto? …" → "No.",
+  using another fact's value of the same attribute when there is one.
+- **Yes/no anchors.** Six general yes/no prompts ("Is Paris the capital of France? Answer
+  yes or no.") come first among the anchors, answered by the base model itself, so every
+  profile rehearses answering yes or no. The eight held-out drift prompts are unchanged.
+
+**Not measured.** The GPU rerun of deep sleep at 1.5B, 4B and 24B, with the sleep and
+weights arms of the integration benchmark, has not been done. Until it is, the effect on
+verify scores, and on drift and recall, is unknown.

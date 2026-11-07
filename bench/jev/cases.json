@@ -1,0 +1,1933 @@
+[
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my mother do for a living?",
+  "answer": "Your mother's job is nurse.",
+  "right": true,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's job is nurse."
+  ],
+  "id": 0
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my grandma keep?",
+  "answer": "Your grandma keeps a hedgehog.",
+  "right": true,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Mia's pet is a poodle.",
+   "Your mother's name is Mia."
+  ],
+  "id": 1
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my cousin do for a living?",
+  "answer": "Your cousin's job is architect.",
+  "right": true,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect."
+  ],
+  "id": 2
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my boss live in?",
+  "answer": "Your boss lives in Malmo.",
+  "right": true,
+  "facts": [
+   "Your boss's name is Leo.",
+   "Leo's city is Malmo.",
+   "Otto's city is Malmo.",
+   "Otto's job is chemist.",
+   "Rafael's city is Zagreb.",
+   "Rafael's job is jeweler."
+  ],
+  "id": 3
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my father do for a living?",
+  "answer": "Your father's occupation is baker.",
+  "right": true,
+  "facts": [
+   "Your father's name is Priya.",
+   "Priya's job is baker."
+  ],
+  "id": 4
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my uncle live in?",
+  "answer": "Your uncle lives in Krakow.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's city is Krakow.",
+   "Your nephew's name is Marek.",
+   "Marek's city is Zagreb.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 5
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my aunt do for a living?",
+  "answer": "Your aunt Dana's job is firefighter.",
+  "right": true,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter."
+  ],
+  "id": 6
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my mother do for a living?",
+  "answer": "Your mother's job is nurse.",
+  "right": true,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's job is nurse."
+  ],
+  "id": 7
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my father keep?",
+  "answer": "Your father keeps a beagle.",
+  "right": true,
+  "facts": [
+   "Your father's name is Priya.",
+   "Priya's pet is a beagle.",
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf.",
+   "Otto's pet is a chinchilla.",
+   "Otto's job is chemist."
+  ],
+  "id": 8
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my friend do for a living?",
+  "answer": "Your friend Greta's job is translator.",
+  "right": true,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's job is translator."
+  ],
+  "id": 9
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my sister live in?",
+  "answer": "Your sister lives in Graz.",
+  "right": true,
+  "facts": [
+   "Your sister's name is Hana.",
+   "Hana's city is Graz.",
+   "Sofia's city is Bologna.",
+   "Sofia's pet is a ferret.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 10
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my aunt live in?",
+  "answer": "Your aunt lives in Utrecht.",
+  "right": true,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's city is Utrecht.",
+   "Your niece's name is Emil.",
+   "Emil's city is Riga.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 11
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my partner keep?",
+  "answer": "Your partner keeps a ferret.",
+  "right": true,
+  "facts": [
+   "Your partner's name is Sofia.",
+   "Sofia's pet is a ferret.",
+   "Leo's pet is a corgi.",
+   "Your boss's name is Leo.",
+   "Lucia's pet is a hamster.",
+   "Your cousin's name is Lucia."
+  ],
+  "id": 12
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my niece live in?",
+  "answer": "Your niece lives in Riga.",
+  "right": true,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Emil's city is Riga.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Sofia's city is Bologna."
+  ],
+  "id": 13
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my aunt do for a living?",
+  "answer": "Your aunt's name is Dana. Dana's job is firefighter.",
+  "right": true,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter."
+  ],
+  "id": 14
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my nephew live in?",
+  "answer": "Your nephew's city is Zagreb.",
+  "right": true,
+  "facts": [
+   "Your nephew's name is Marek.",
+   "Marek's city is Zagreb.",
+   "Emil's city is Riga.",
+   "Your niece's name is Emil.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 15
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my friend do for a living?",
+  "answer": "Your friend's job is translator.",
+  "right": true,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's job is translator."
+  ],
+  "id": 16
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What does my boss do for a living?",
+  "answer": "Your boss's job is pilot.",
+  "right": true,
+  "facts": [
+   "Your boss's name is Leo.",
+   "Leo's job is pilot."
+  ],
+  "id": 17
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my niece live in?",
+  "answer": "Your niece's city is Riga.",
+  "right": true,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Emil's city is Riga.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Sofia's city is Bologna."
+  ],
+  "id": 18
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my partner keep?",
+  "answer": "Your partner's pet is a ferret.",
+  "right": true,
+  "facts": [
+   "Your partner's name is Sofia.",
+   "Sofia's pet is a ferret.",
+   "Leo's pet is a corgi.",
+   "Your boss's name is Leo.",
+   "Lucia's pet is a hamster.",
+   "Your cousin's name is Lucia."
+  ],
+  "id": 19
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my father do for a living?",
+  "answer": "Your father's name is Priya.",
+  "right": false,
+  "facts": [
+   "Your father's name is Priya.",
+   "Priya's job is baker."
+  ],
+  "id": 20
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my grandma keep?",
+  "answer": "Your grandma keeps a poodle.",
+  "right": false,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Mia's pet is a poodle.",
+   "Your mother's name is Mia."
+  ],
+  "id": 21
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my boss do for a living?",
+  "answer": "My boss, Leo, works in tech—specifically in product development at a startup. 😊",
+  "right": false,
+  "facts": [
+   "Your boss's name is Leo.",
+   "Leo's job is pilot."
+  ],
+  "id": 22
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my aunt live in?",
+  "answer": "Your aunt lives in Malmo.",
+  "right": false,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's city is Utrecht.",
+   "Your niece's name is Emil.",
+   "Emil's city is Riga.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 23
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my sister live in?",
+  "answer": "Your sister lives in Bologna.",
+  "right": false,
+  "facts": [
+   "Your sister's name is Hana.",
+   "Hana's city is Graz.",
+   "Sofia's city is Bologna.",
+   "Sofia's pet is a ferret.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 24
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my niece keep?",
+  "answer": "Your niece's pet is a dachshund.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's pet is a parrot.",
+   "Your nephew's name is Marek.",
+   "Marek's pet is a tortoise.",
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 25
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What pet does my niece keep?",
+  "answer": "Emil keeps a pet.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's pet is a parrot.",
+   "Your nephew's name is Marek.",
+   "Marek's pet is a tortoise.",
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 26
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What pet does my grandpa keep?",
+  "answer": "Zoe keeps a dachshund as her pet.",
+  "right": false,
+  "facts": [
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 27
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my uncle do for a living?",
+  "answer": "Your uncle, Tara, works as an accountant.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your nephew's name is Marek.",
+   "Marek's job is carpenter."
+  ],
+  "id": 28
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "Which city does my aunt live in?",
+  "answer": "Your aunt's city is Malmo.",
+  "right": false,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's city is Utrecht.",
+   "Your niece's name is Emil.",
+   "Emil's city is Riga.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 29
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What pet does my grandma keep?",
+  "answer": "Your grandma keeps a poodle as her pet.",
+  "right": false,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Mia's pet is a poodle.",
+   "Your mother's name is Mia."
+  ],
+  "id": 30
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What pet does my father keep?",
+  "answer": "Your father keeps a dachshund.",
+  "right": false,
+  "facts": [
+   "Your father's name is Priya.",
+   "Priya's pet is a beagle.",
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf.",
+   "Otto's pet is a chinchilla.",
+   "Otto's job is chemist."
+  ],
+  "id": 31
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my cousin do for a living?",
+  "answer": "Lucia works as an artist.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect."
+  ],
+  "id": 32
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "bridge",
+  "q": "What pet does my grandma keep?",
+  "answer": "Your grandma keeps a poodle as a pet.",
+  "right": false,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Mia's pet is a poodle.",
+   "Your mother's name is Mia."
+  ],
+  "id": 33
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What pet does my grandma keep?",
+  "answer": "Your grandma keeps a poodle. (Mia's pet is a poodle, and you might be referring to Mia as your grandma—though that’s not confirmed. If you meant someone else, let me know!)",
+  "right": false,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's pet is a hedgehog.",
+   "Your grandpa's name is Zoe.",
+   "Zoe's pet is a axolotl.",
+   "Mia's pet is a poodle.",
+   "Your mother's name is Mia."
+  ],
+  "id": 34
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my brother live in?",
+  "answer": "Yusuf lives in Malmo.",
+  "right": false,
+  "facts": [
+   "Your brother's name is Yusuf.",
+   "Yusuf's city is Ghent.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Emil's city is Riga.",
+   "Emil's pet is a parrot."
+  ],
+  "id": 35
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my nephew do for a living?",
+  "answer": "My nephew Marek works as a software developer.",
+  "right": false,
+  "facts": [
+   "Your nephew's name is Marek.",
+   "Marek's job is carpenter."
+  ],
+  "id": 36
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my nephew live in?",
+  "answer": "Marek lives in Riga.",
+  "right": false,
+  "facts": [
+   "Your nephew's name is Marek.",
+   "Marek's city is Zagreb.",
+   "Emil's city is Riga.",
+   "Your niece's name is Emil.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 37
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "What does my nephew do for a living?",
+  "answer": "Marek works as an engineer.",
+  "right": false,
+  "facts": [
+   "Your nephew's name is Marek.",
+   "Marek's job is carpenter."
+  ],
+  "id": 38
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "bridge",
+  "q": "Which city does my uncle live in?",
+  "answer": "Your uncle lives in Malmo.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's city is Krakow.",
+   "Your nephew's name is Marek.",
+   "Marek's city is Zagreb.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla."
+  ],
+  "id": 39
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives has a dachshund?",
+  "answer": "Yusuf has a dachshund.",
+  "right": true,
+  "facts": [
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 40
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Krakow?",
+  "answer": "Your relative who lives in Krakow is Tara.",
+  "right": true,
+  "facts": [
+   "Tara's city is Krakow.",
+   "Your uncle's name is Tara.",
+   "Pavel's city is Krakow.",
+   "Pavel's pet is a goldfish."
+  ],
+  "id": 41
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a pilot?",
+  "answer": "Your relative who works as a pilot is Leo.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Leo's job is pilot.",
+   "Your boss's name is Leo."
+  ],
+  "id": 42
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives has a dachshund?",
+  "answer": "Yusuf has a dachshund as his pet.",
+  "right": true,
+  "facts": [
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 43
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Oslo?",
+  "answer": "Zoe's city is Oslo.",
+  "right": true,
+  "facts": [
+   "Zoe's city is Oslo.",
+   "Your grandpa's name is Zoe."
+  ],
+  "id": 44
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a locksmith?",
+  "answer": "Your relative Ines's job is locksmith.",
+  "right": true,
+  "facts": [
+   "Ivo's job is locksmith.",
+   "Ivo's pet is a poodle.",
+   "Ines's job is locksmith.",
+   "Your daughter's name is Ines."
+  ],
+  "id": 45
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a pilot?",
+  "answer": "Leo's job is pilot.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Leo's job is pilot.",
+   "Your boss's name is Leo."
+  ],
+  "id": 46
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives works as a chemist?",
+  "answer": "Yusuf works as a chemist.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Yusuf's job is chemist.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 47
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a dachshund?",
+  "answer": "Your relative who has a dachshund is Yusuf.",
+  "right": true,
+  "facts": [
+   "Yusuf's pet is a dachshund.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 48
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a ferret?",
+  "answer": "Sofia's relative has a ferret.",
+  "right": true,
+  "facts": [
+   "Amara's pet is a ferret.",
+   "Amara's job is translator.",
+   "Sofia's pet is a ferret.",
+   "Sofia's job is beekeeper."
+  ],
+  "id": 49
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Oslo?",
+  "answer": "Zoe lives in Oslo.",
+  "right": true,
+  "facts": [
+   "Zoe's city is Oslo.",
+   "Your grandpa's name is Zoe."
+  ],
+  "id": 50
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Oslo?",
+  "answer": "Zoe lives in Oslo.",
+  "right": true,
+  "facts": [
+   "Zoe's city is Oslo.",
+   "Your grandpa's name is Zoe."
+  ],
+  "id": 51
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Zagreb?",
+  "answer": "Your relative who lives in Zagreb is Marek.",
+  "right": true,
+  "facts": [
+   "Nadia's city is Zagreb.",
+   "Nadia's pet is a parrot.",
+   "Marek's city is Zagreb.",
+   "Your nephew's name is Marek.",
+   "Rafael's city is Zagreb.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 52
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives works as a glassblower?",
+  "answer": "Both you and your relative named Ana work as glassblowers.",
+  "right": true,
+  "facts": [
+   "Elif's job is glassblower.",
+   "Elif's pet is a gecko.",
+   "Ana's job is glassblower.",
+   "Your son's name is Ana."
+  ],
+  "id": 53
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives works as a chemist?",
+  "answer": "Yusuf is your cousin who works as a chemist.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Yusuf's job is chemist.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 54
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives has a tortoise?",
+  "answer": "Both you and Marek have tortoises as pets.",
+  "right": true,
+  "facts": [
+   "Lena's pet is a tortoise.",
+   "Lena's job is dentist.",
+   "Marek's pet is a tortoise.",
+   "Your nephew's name is Marek."
+  ],
+  "id": 55
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Tallinn?",
+  "answer": "Your relative who lives in Tallinn is Mia.",
+  "right": true,
+  "facts": [
+   "Mia's city is Tallinn.",
+   "Your mother's name is Mia.",
+   "Omar's city is Tallinn.",
+   "Omar's pet is a beagle.",
+   "Vera's city is Tallinn.",
+   "Vera's pet is a hedgehog."
+  ],
+  "id": 56
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a gecko?",
+  "answer": "Your relative who has a gecko is Ana.",
+  "right": true,
+  "facts": [
+   "Ana's pet is a gecko.",
+   "Your son's name is Ana.",
+   "Elif's pet is a gecko.",
+   "Elif's city is Graz.",
+   "Jonas's pet is a gecko."
+  ],
+  "id": 57
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Bologna?",
+  "answer": "Sofia lives in Bologna.",
+  "right": true,
+  "facts": [
+   "Sofia's city is Bologna.",
+   "Sofia's pet is a ferret."
+  ],
+  "id": 58
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Zagreb?",
+  "answer": "Your relative Marek's city is Zagreb.",
+  "right": true,
+  "facts": [
+   "Nadia's city is Zagreb.",
+   "Nadia's pet is a parrot.",
+   "Marek's city is Zagreb.",
+   "Your nephew's name is Marek.",
+   "Rafael's city is Zagreb.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 59
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Malmo?",
+  "answer": "Otto, Sam, and Leo all live in Malmo.",
+  "right": false,
+  "facts": [
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Sam's city is Malmo.",
+   "Sam's pet is a goldfish.",
+   "Leo's city is Malmo.",
+   "Leo's pet is a corgi."
+  ],
+  "id": 60
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Tallinn?",
+  "answer": "Your relatives who live in Tallinn are Mina, Omar, and Vara.",
+  "right": false,
+  "facts": [
+   "Mia's city is Tallinn.",
+   "Your mother's name is Mia.",
+   "Omar's city is Tallinn.",
+   "Omar's pet is a beagle.",
+   "Vera's city is Tallinn.",
+   "Vera's pet is a hedgehog."
+  ],
+  "id": 61
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Malmo?",
+  "answer": "Your relatives who live in Malmo are Otto, Sam, and Leo.",
+  "right": false,
+  "facts": [
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Sam's city is Malmo.",
+   "Sam's pet is a goldfish.",
+   "Leo's city is Malmo.",
+   "Leo's pet is a corgi."
+  ],
+  "id": 62
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a poodle?",
+  "answer": "Your uncle's poodle.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Ivo's pet is a poodle.",
+   "Ivo's city is Porto."
+  ],
+  "id": 63
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a pilot?",
+  "answer": "Your uncle Tara's job is pilot.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Leo's job is pilot.",
+   "Your boss's name is Leo."
+  ],
+  "id": 64
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a goldfish?",
+  "answer": "Lucia's cousin has a goldfish.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Greta's pet is a goldfish.",
+   "Your friend's name is Greta.",
+   "Pavel's pet is a goldfish.",
+   "Pavel's city is Krakow."
+  ],
+  "id": 65
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Valencia?",
+  "answer": "Your cousin Lucia's city is Valencia.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's city is Lisbon.",
+   "Ines's city is Valencia.",
+   "Ines's pet is a canary."
+  ],
+  "id": 66
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives works as a jeweler?",
+  "answer": "Nils and Rafael work as jewelers.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Nils's job is jeweler.",
+   "Your grandma's name is Nils.",
+   "Rafael's job is jeweler.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 67
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Malmo?",
+  "answer": "All your relatives live in Malmo: Otto, Sam, and Leo.",
+  "right": false,
+  "facts": [
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Sam's city is Malmo.",
+   "Sam's pet is a goldfish.",
+   "Leo's city is Malmo.",
+   "Leo's pet is a corgi."
+  ],
+  "id": 68
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives has a poodle?",
+  "answer": "Ivo's poodle. None of your named relatives (Tara or Lucia) have a poodle. Ivo is not listed as a relative, but since you mentioned \"my relatives,\" and only Ivo is associated with a poodle, it seems Ivo might be considered a relative in this context. However, based on the information given, no direct",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Ivo's pet is a poodle.",
+   "Ivo's city is Porto."
+  ],
+  "id": 69
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Tallinn?",
+  "answer": "All three of your relatives live in Tallinn: Mia, Omar, and Vera.",
+  "right": false,
+  "facts": [
+   "Mia's city is Tallinn.",
+   "Your mother's name is Mia.",
+   "Omar's city is Tallinn.",
+   "Omar's pet is a beagle.",
+   "Vera's city is Tallinn.",
+   "Vera's pet is a hedgehog."
+  ],
+  "id": 70
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a chemist?",
+  "answer": "Your cousin Lucia's job is chemist.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Yusuf's job is chemist.",
+   "Your brother's name is Yusuf."
+  ],
+  "id": 71
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Krakow?",
+  "answer": "Both you and your relative named Pavel live in Krakow.",
+  "right": false,
+  "facts": [
+   "Tara's city is Krakow.",
+   "Your uncle's name is Tara.",
+   "Pavel's city is Krakow.",
+   "Pavel's pet is a goldfish."
+  ],
+  "id": 72
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives works as a locksmith?",
+  "answer": "Your relative who works as a locksmith is your great-grandfather.",
+  "right": false,
+  "facts": [
+   "Ivo's job is locksmith.",
+   "Ivo's pet is a poodle.",
+   "Ines's job is locksmith.",
+   "Your daughter's name is Ines."
+  ],
+  "id": 73
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a goldfish?",
+  "answer": "Your cousin Lucia has a goldfish.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Greta's pet is a goldfish.",
+   "Your friend's name is Greta.",
+   "Pavel's pet is a goldfish.",
+   "Pavel's city is Krakow."
+  ],
+  "id": 74
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Utrecht?",
+  "answer": "Your relative who lives in Utrecht is your sister.",
+  "right": false,
+  "facts": [
+   "Amara's city is Utrecht.",
+   "Amara's pet is a ferret.",
+   "Dana's city is Utrecht.",
+   "Your aunt's name is Dana."
+  ],
+  "id": 75
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a chinchilla?",
+  "answer": "Your cousin Lucia has a chinchilla.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Tara's pet is a chinchilla.",
+   "Your uncle's name is Tara.",
+   "Otto's pet is a chinchilla.",
+   "Otto's city is Malmo."
+  ],
+  "id": 76
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives has a poodle?",
+  "answer": "Ivo's pet is a poodle.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Ivo's pet is a poodle.",
+   "Ivo's city is Porto."
+  ],
+  "id": 77
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "inverse",
+  "q": "Which of my relatives works as a nurse?",
+  "answer": "Tara, your uncle, works as a nurse.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist.",
+   "Your cousin's name is Lucia.",
+   "Lucia's job is architect.",
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter."
+  ],
+  "id": 78
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "inverse",
+  "q": "Which of my relatives lives in Bologna?",
+  "answer": "Your relative who lives in Bologna is your aunt.",
+  "right": false,
+  "facts": [
+   "Sofia's city is Bologna.",
+   "Sofia's pet is a ferret."
+  ],
+  "id": 79
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my cousin the one whose job is architect? Answer yes or no.",
+  "answer": "Your cousin's job is architect. Answer: yes.",
+  "right": true,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Lucia's job is architect.",
+   "Rosa's job is architect.",
+   "Rosa's pet is a rabbit.",
+   "Marek's job is carpenter."
+  ],
+  "id": 80
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+  "answer": "Your mother's job is nurse. Answer: yes.",
+  "right": true,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's pet is a poodle.",
+   "Mia's job is nurse.",
+   "Greta's job is translator.",
+   "Your friend's name is Greta.",
+   "Leo's job is pilot."
+  ],
+  "id": 81
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my niece the one whose pet is parrot? Answer yes or no.",
+  "answer": "Your niece's pet is a parrot. So, is your niece the one whose pet is a parrot? Yes.",
+  "right": true,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Your nephew's name is Marek.",
+   "Marek's pet is a tortoise.",
+   "Emil's pet is a parrot.",
+   "Nadia's pet is a parrot."
+  ],
+  "id": 82
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my uncle the one whose pet is beagle? Answer yes or no.",
+  "answer": "Your uncle Tara's pet is a chinchilla, not a beagle. So, no, your uncle is not the one whose pet is a beagle.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your nephew's name is Marek.",
+   "Marek's pet is a tortoise.",
+   "Your aunt's name is Dana.",
+   "Dana's pet is a iguana."
+  ],
+  "id": 83
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my boss the one whose job is pilot? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your boss's name is Leo.",
+   "Leo's pet is a corgi.",
+   "Leo's job is pilot.",
+   "Omar's job is pilot.",
+   "Omar's pet is a beagle.",
+   "Arno's job is firefighter."
+  ],
+  "id": 84
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my brother the one whose pet is dachshund? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your brother's name is Yusuf.",
+   "Yusuf's job is chemist.",
+   "Yusuf's pet is a dachshund.",
+   "Otto's pet is a chinchilla.",
+   "Otto's job is chemist.",
+   "Bruno's pet is a beagle."
+  ],
+  "id": 85
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter.",
+   "Tara's job is dentist.",
+   "Lena's job is dentist."
+  ],
+  "id": 86
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my sister the one whose pet is rabbit? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your sister's name is Hana.",
+   "Hana's job is surveyor.",
+   "Rosa's pet is a rabbit.",
+   "Rosa's job is architect.",
+   "Hana's pet is a rabbit.",
+   "Yusuf's pet is a dachshund."
+  ],
+  "id": 87
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's pet is a poodle.",
+   "Mia's job is nurse.",
+   "Greta's job is translator.",
+   "Your friend's name is Greta.",
+   "Leo's job is pilot."
+  ],
+  "id": 88
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your partner's name is Sofia.",
+   "Sofia's pet is a ferret.",
+   "Vera's job is beekeeper.",
+   "Vera's pet is a hedgehog.",
+   "Sofia's job is beekeeper.",
+   "Jonas's job is baker."
+  ],
+  "id": 89
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+  "answer": "Your partner's job is beekeeper. Answer: yes.",
+  "right": true,
+  "facts": [
+   "Your partner's name is Sofia.",
+   "Sofia's pet is a ferret.",
+   "Vera's job is beekeeper.",
+   "Vera's pet is a hedgehog.",
+   "Sofia's job is beekeeper.",
+   "Jonas's job is baker."
+  ],
+  "id": 90
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my grandma the one whose city is Malmo? Answer yes or no.",
+  "answer": "No. My grandma's name is Nils, and neither Sam nor Otto is identified as your grandma. Malmo is the city of both Sam and Otto, not your grandma.",
+  "right": true,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's city is Lyon.",
+   "Sam's city is Malmo.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Leo's city is Malmo."
+  ],
+  "id": 91
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my friend the one whose city is Porto? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's pet is a goldfish.",
+   "Greta's city is Porto.",
+   "Ivo's city is Porto.",
+   "Ivo's pet is a poodle.",
+   "Lena's city is Porto."
+  ],
+  "id": 92
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my grandma the one whose city is Malmo? Answer yes or no.",
+  "answer": "Your grandma's city is Lyon. Malmo's city is Sam's. So your grandma's city is not Malmo. Answer: no.",
+  "right": true,
+  "facts": [
+   "Your grandma's name is Nils.",
+   "Nils's city is Lyon.",
+   "Sam's city is Malmo.",
+   "Otto's city is Malmo.",
+   "Otto's pet is a chinchilla.",
+   "Leo's city is Malmo."
+  ],
+  "id": 93
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my daughter the one whose city is Valencia? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your daughter's name is Ines.",
+   "Ines's pet is a canary.",
+   "Ines's city is Valencia.",
+   "Sofia's city is Bologna.",
+   "Your partner's name is Sofia.",
+   "Rafael's city is Zagreb."
+  ],
+  "id": 94
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my grandpa the one whose pet is axolotl? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your grandpa's name is Zoe.",
+   "Zoe's job is librarian.",
+   "Zoe's pet is a axolotl.",
+   "Otto's pet is a chinchilla.",
+   "Otto's job is chemist.",
+   "Yusuf's pet is a dachshund."
+  ],
+  "id": 95
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my friend the one whose city is Porto? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's pet is a goldfish.",
+   "Greta's city is Porto.",
+   "Ivo's city is Porto.",
+   "Ivo's pet is a poodle.",
+   "Lena's city is Porto."
+  ],
+  "id": 96
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's pet is a poodle.",
+   "Mia's job is nurse.",
+   "Greta's job is translator.",
+   "Your friend's name is Greta.",
+   "Leo's job is pilot."
+  ],
+  "id": 97
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter.",
+   "Tara's job is dentist.",
+   "Lena's job is dentist."
+  ],
+  "id": 98
+ },
+ {
+  "model": "4B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my daughter the one whose job is locksmith? Answer yes or no.",
+  "answer": "Yes.",
+  "right": true,
+  "facts": [
+   "Your daughter's name is Ines.",
+   "Ines's pet is a canary.",
+   "Ines's job is locksmith.",
+   "Ivo's job is locksmith.",
+   "Ivo's pet is a poodle.",
+   "Lena's job is dentist."
+  ],
+  "id": 99
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my niece the one whose pet is parrot? Answer yes or no.",
+  "answer": "Your niece's pet is a parrot.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Your nephew's name is Marek.",
+   "Marek's pet is a tortoise.",
+   "Emil's pet is a parrot.",
+   "Nadia's pet is a parrot."
+  ],
+  "id": 100
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my aunt the one whose job is librarian? Answer yes or no.",
+  "answer": "Your aunt's job is librarian.",
+  "right": false,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter.",
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist."
+  ],
+  "id": 101
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my father the one whose pet is tortoise? Answer yes or no.",
+  "answer": "Your father's pet is a tortoise. So, the answer is: yes.",
+  "right": false,
+  "facts": [
+   "Your father's name is Priya.",
+   "Priya's pet is a beagle.",
+   "Marek's pet is a tortoise.",
+   "Your nephew's name is Marek.",
+   "Lena's pet is a tortoise.",
+   "Lena's job is dentist."
+  ],
+  "id": 102
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my cousin the one whose job is architect? Answer yes or no.",
+  "answer": "Your cousin's job is architect.",
+  "right": false,
+  "facts": [
+   "Your cousin's name is Lucia.",
+   "Lucia's pet is a hamster.",
+   "Lucia's job is architect.",
+   "Rosa's job is architect.",
+   "Rosa's pet is a rabbit.",
+   "Marek's job is carpenter."
+  ],
+  "id": 103
+ },
+ {
+  "model": "4B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my aunt the one whose job is librarian? Answer yes or no.",
+  "answer": "Your aunt's job is librarian. So, the answer is: yes.",
+  "right": false,
+  "facts": [
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter.",
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Your uncle's name is Tara.",
+   "Tara's job is dentist."
+  ],
+  "id": 104
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my mother the one whose city is Valencia? Answer yes or no.",
+  "answer": "Yes.",
+  "right": false,
+  "facts": [
+   "Your mother's name is Mia.",
+   "Mia's city is Tallinn.",
+   "Ines's city is Valencia.",
+   "Your daughter's name is Ines.",
+   "Sofia's city is Bologna.",
+   "Your partner's name is Sofia."
+  ],
+  "id": 105
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my daughter the one whose city is Valencia? Answer yes or no.",
+  "answer": "Your daughter's city is Valencia.",
+  "right": false,
+  "facts": [
+   "Your daughter's name is Ines.",
+   "Ines's pet is a canary.",
+   "Ines's city is Valencia.",
+   "Sofia's city is Bologna.",
+   "Your partner's name is Sofia.",
+   "Rafael's city is Zagreb."
+  ],
+  "id": 106
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+  "answer": "Your niece's job is jeweler.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Nils's job is jeweler.",
+   "Your grandma's name is Nils.",
+   "Rafael's job is jeweler.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 107
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+  "answer": "Your niece's job is jeweler.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Nils's job is jeweler.",
+   "Your grandma's name is Nils.",
+   "Rafael's job is jeweler.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 108
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my brother the one whose pet is dachshund? Answer yes or no.",
+  "answer": "Your brother's pet is a dachshund.",
+  "right": false,
+  "facts": [
+   "Your brother's name is Yusuf.",
+   "Yusuf's job is chemist.",
+   "Yusuf's pet is a dachshund.",
+   "Otto's pet is a chinchilla.",
+   "Otto's job is chemist.",
+   "Bruno's pet is a beagle."
+  ],
+  "id": 109
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my son the one whose job is chemist? Answer yes or no.",
+  "answer": "Your son's job is chemist.",
+  "right": false,
+  "facts": [
+   "Your son's name is Ana.",
+   "Ana's job is glassblower.",
+   "Yusuf's job is chemist.",
+   "Your brother's name is Yusuf.",
+   "Sam's job is chemist.",
+   "Sam's pet is a goldfish."
+  ],
+  "id": 110
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my boss the one whose job is pilot? Answer yes or no.",
+  "answer": "Your boss's job is pilot.",
+  "right": false,
+  "facts": [
+   "Your boss's name is Leo.",
+   "Leo's pet is a corgi.",
+   "Leo's job is pilot.",
+   "Omar's job is pilot.",
+   "Omar's pet is a beagle.",
+   "Arno's job is firefighter."
+  ],
+  "id": 111
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+  "answer": "Yes.",
+  "right": false,
+  "facts": [
+   "Your niece's name is Emil.",
+   "Emil's job is plumber.",
+   "Nils's job is jeweler.",
+   "Your grandma's name is Nils.",
+   "Rafael's job is jeweler.",
+   "Rafael's pet is a corgi."
+  ],
+  "id": 112
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my nephew the one whose pet is tortoise? Answer yes or no.",
+  "answer": "Your nephew's pet is a tortoise.",
+  "right": false,
+  "facts": [
+   "Your nephew's name is Marek.",
+   "Marek's job is carpenter.",
+   "Lena's pet is a tortoise.",
+   "Lena's job is dentist.",
+   "Marek's pet is a tortoise.",
+   "Tomas's pet is a hamster."
+  ],
+  "id": 113
+ },
+ {
+  "model": "1.5B",
+  "arm": "retrieval",
+  "type": "verify",
+  "q": "Is my friend the one whose job is firefighter? Answer yes or no.",
+  "answer": "Yes.",
+  "right": false,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's job is translator.",
+   "Dana's job is firefighter.",
+   "Your aunt's name is Dana.",
+   "Arno's job is firefighter.",
+   "Arno's pet is a canary."
+  ],
+  "id": 114
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my daughter the one whose job is locksmith? Answer yes or no.",
+  "answer": "Your daughter's job is locksmith.",
+  "right": false,
+  "facts": [
+   "Your daughter's name is Ines.",
+   "Ines's pet is a canary.",
+   "Ines's job is locksmith.",
+   "Ivo's job is locksmith.",
+   "Ivo's pet is a poodle.",
+   "Lena's job is dentist."
+  ],
+  "id": 115
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my partner the one whose pet is ferret? Answer yes or no.",
+  "answer": "Your partner's pet is a ferret.",
+  "right": false,
+  "facts": [
+   "Your partner's name is Sofia.",
+   "Sofia's job is beekeeper.",
+   "Sofia's pet is a ferret.",
+   "Amara's pet is a ferret.",
+   "Amara's job is translator.",
+   "Lucia's pet is a hamster."
+  ],
+  "id": 116
+ },
+ {
+  "model": "1.5B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my friend the one whose job is firefighter? Answer yes or no.",
+  "answer": "Your friend's job is firefighter.",
+  "right": false,
+  "facts": [
+   "Your friend's name is Greta.",
+   "Greta's job is translator.",
+   "Dana's job is firefighter.",
+   "Your aunt's name is Dana.",
+   "Arno's job is firefighter.",
+   "Arno's pet is a canary."
+  ],
+  "id": 117
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my sister the one whose pet is rabbit? Answer yes or no.",
+  "answer": "Your sister's pet is a rabbit.",
+  "right": false,
+  "facts": [
+   "Your sister's name is Hana.",
+   "Hana's job is surveyor.",
+   "Rosa's pet is a rabbit.",
+   "Rosa's job is architect.",
+   "Hana's pet is a rabbit.",
+   "Yusuf's pet is a dachshund."
+  ],
+  "id": 118
+ },
+ {
+  "model": "24B",
+  "arm": "sleep",
+  "type": "verify",
+  "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+  "answer": "Your uncle's job is dentist.",
+  "right": false,
+  "facts": [
+   "Your uncle's name is Tara.",
+   "Tara's pet is a chinchilla.",
+   "Your aunt's name is Dana.",
+   "Dana's job is firefighter.",
+   "Tara's job is dentist.",
+   "Lena's job is dentist."
+  ],
+  "id": 119
+ }
+]
