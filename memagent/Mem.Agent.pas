@@ -72,6 +72,7 @@ type
     procedure Backfill;
     function SameSubject(const ASubject, AText: string): Int64;
     function JudgeGuards: Boolean;
+    procedure DeriveFacts;
     function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
@@ -229,9 +230,20 @@ var
 begin
   Result := '';
   Retrieve(AUser, ABeforeId, LFacts, LMsgs);
-  FTurnFacts := Copy(LFacts, 0, Min(ContextFacts(FCfg), Length(LFacts)));
-  for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
-    Result := Result + '- ' + LFacts[I].Text + LineEnding;
+  if FCfg.RagAll then
+  begin
+    (* the whole memory in the prompt: what retrieval is measured against. Mem0's own
+       paper found full context ahead of its memory (72.9 vs 66.9 judge score) *)
+    FTurnFacts := FStore.ActiveFacts;
+    for I := 0 to High(FTurnFacts) do
+      Result := Result + '- ' + FTurnFacts[I].Text + LineEnding;
+  end
+  else
+  begin
+    FTurnFacts := Copy(LFacts, 0, Min(ContextFacts(FCfg), Length(LFacts)));
+    for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
+      Result := Result + '- ' + LFacts[I].Text + LineEnding;
+  end;
   for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
     Result := Result + '- Earlier the user said: "' + LMsgs[I].Content + '"' + LineEnding;
 end;
@@ -784,6 +796,23 @@ begin
       EmbedFact(LId, LFact.Get('text', ''), LFact.Get('subject', ''));
     end;
   end;
+  DeriveFacts;
+end;
+
+procedure TAgent.DeriveFacts;
+var
+  LNew: TFactArray;
+  I: Integer;
+begin
+  { the links between facts as facts of their own (TMemStore.SyncDerived) }
+  if not FCfg.DeriveFacts then
+    Exit;
+  LNew := FStore.SyncDerived;
+  for I := 0 to High(LNew) do
+  begin
+    Say(Format('[memory +#%d] %s (linked)', [LNew[I].Id, LNew[I].Text]));
+    EmbedFact(LNew[I].Id, LNew[I].Text, LNew[I].Subject);
+  end;
 end;
 
 procedure TAgent.MaybeSummarize;
@@ -1315,6 +1344,7 @@ begin
     begin
       FStore.SetMeta('forget_pending', '1');
       Say(Format('[memory -#%d] removed from RAG; it leaves the weights at the next consolidation', [LId]));
+      DeriveFacts;
     end
     else
       Say('no such fact');

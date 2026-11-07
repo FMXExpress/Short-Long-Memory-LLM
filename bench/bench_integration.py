@@ -79,16 +79,17 @@ def stored_text(say):
 
 
 class Agent:
-    def __init__(self, work, profile, rag_k, threads, models, hops=1):
+    def __init__(self, work, profile, rag_k, threads, models, hops=1, derive=False, all_facts=False):
         self.work, self.profile, self.rag_k, self.threads, self.models = work, profile, rag_k, threads, models
-        self.hops = hops
+        self.hops, self.derive, self.all_facts = hops, derive, all_facts
 
     def ini(self, data):
         path = os.path.join(self.work, os.path.basename(data) + ".ini")
         cfg = {
             "agent": {"profile": self.profile, "engine": "llama", "models": self.models,
                       "priors": f"{REPO}/priors.md", "data_dir": data, "repo_dir": REPO,
-                      "recent_turns": "0", "rag_k": str(self.rag_k)},
+                      "recent_turns": "0", "rag_k": str(self.rag_k),
+                      "derive_facts": "1" if self.derive else "0", "rag_all": "1" if self.all_facts else "0"},
             "llama": {"threads": str(self.threads)},
             "gpu": {"infer": "-1", "train": "-1"},
             "consolidate": {"auto": "0", "trainer": "llama", "tiers": "on", "threads": str(self.threads)},
@@ -118,6 +119,8 @@ def main():
     ap.add_argument("--per-type", type=int, default=0, help="use only the first N questions of each type")
     ap.add_argument("--rag-k", type=int, default=3)
     ap.add_argument("--hops", type=int, default=1, help="[retrieval] hops: 2 retrieves again for each name in the first hits")
+    ap.add_argument("--derive", action="store_true", help="[agent] derive_facts: store linked facts (Your sister Ana's job is ...)")
+    ap.add_argument("--all-facts", action="store_true", help="[agent] rag_all: every fact in the prompt, no retrieval")
     ap.add_argument("--threads", type=int, default=0)
     ap.add_argument("--arms", default="retrieval,consolidated,weights",
                     help="which arms to run now; 'sleep' only trains. Scores include arms run earlier in --keep")
@@ -144,10 +147,10 @@ def main():
             cfg["profiles"][a.profile].setdefault(sec, {})[key] = json.loads(val) if re.fullmatch(r"-?[\d.]+", val) else val
         models = os.path.join(work, "models.json")
         json.dump(cfg, open(models, "w", encoding="utf-8"), indent=1)
-    agent = Agent(work, a.profile, a.rag_k, a.threads, models, a.hops)
+    agent = Agent(work, a.profile, a.rag_k, a.threads, models, a.hops, a.derive, a.all_facts)
     ctx_k = a.rag_k * (2 if a.hops >= 2 else 1)   # Mem.Recall.ContextFacts with hop_k = rag_k
     arms = a.arms.split(",")
-    res = {"label": a.label, "profile": a.profile, "settings": a.set, "rag_k": a.rag_k, "hops": a.hops, "n_facts": len(d["facts"]),
+    res = {"label": a.label, "profile": a.profile, "settings": a.set, "rag_k": a.rag_k, "hops": a.hops, "derive": a.derive, "all_facts": a.all_facts, "n_facts": len(d["facts"]),
            "n_questions": len(qs), "seconds": {}, "work": work}
 
     # 1. the store: every fact through the rule extractor, as the agent stores what it is told
