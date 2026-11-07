@@ -94,5 +94,20 @@ logs to the file named by `--log`, never to stdout.
 <- {"event": "subtask" | "observation" | "info", "text": "..."}   (any number)
 <- {"event": "done" | "failed", "text": "..."}                     (ends the act)
 -> {"op": "stop"}                                                  (during an act)
+-> {"op": "check", "claim": "The mug is in the left cabinet."}    (after an act, if "checks": true)
+<- {"event": "checked", "text": "yes" | "no" | "unknown"}
 -> {"op": "quit"}
 ```
+
+## Verified outcomes and retries
+
+A step the body reports is what it believes it did. memagent stores a step's claim ("The mug
+is in the left cabinet.") as a fact only after a check confirms it. It uses the body's own
+`check` when its `ready` event said `"checks": true`. Otherwise it asks the judge (`[judge]`)
+whether the act's `observation` events show the claim. A claim nothing confirms is left out
+of memory, and memagent says so. A failed act, or one whose claim a check refutes, is sent
+back with a line saying what happened, at most `[body] retries` times. A body that ran the
+task's own steps gets only the unfinished ones. A step a rule stopped is never retried. The
+stub (`--stub`) answers checks from the steps it ran. A real LeRobot rollout answers
+"unknown" for now, so until a scene check exists only the judge (reading observations) can
+confirm its steps.

@@ -24,6 +24,14 @@ unit Mem.Body;
      <- {"event": "subtask" | "observation" | "info", "text": ".."}  (any number)
      <- {"event": "done" | "failed", "text": ".."}                    (ends the act)
      -> {"op": "stop"}       (during an act: stop moving; the act then ends)
+     -> {"op": "check", "claim": "The mug is in the left cabinet."}  (between acts; only
+                             to a body whose ready event said "checks": true)
+     <- {"event": "checked", "text": "yes" | "no" | "unknown"}
+
+   A step the body reports as done is what the body believes; a check is what it
+   then sees. Only a confirmed claim becomes a fact (TAgent.RunBody): robots that
+   reported their own success corrupted their memory (From Language to Action,
+   2603.03148), and Voyager lost 73% without its success check (2305.16291).
      -> {"op": "quit"}
 
    What the agent does with the events (memory, the rule check that stops a
@@ -39,7 +47,7 @@ uses
 type
   EBody = class(Exception);
 
-  TBodyEventKind = (bkSubtask, bkObservation, bkInfo, bkDone, bkFailed);
+  TBodyEventKind = (bkSubtask, bkObservation, bkInfo, bkDone, bkFailed, bkChecked);
 
   TBodyEvent = record
     Kind: TBodyEventKind;
@@ -58,11 +66,17 @@ type
        AMaxSeconds; the last event (done or failed) is returned too *)
     function Act(const ATask: string; AContext, ARules: TStrings; AOnEvent: TBodyEventFunc;
       AMaxSeconds: Integer): TBodyEvent; virtual; abstract;
+    { True when it can check a claim about the world (Check) }
+    function Checks: Boolean; virtual;
+    { what the body sees now: 'yes', 'no' or 'unknown' }
+    function Check(const AClaim: string): string; virtual;
   end;
 
   TMockBody = class(TBody)
   private
     FPlans: TStringList;   { goal=steps }
+    FWorld: TStringList;   { the claims its finished steps made true }
+    FTried: TStringList;   { marked steps already tried once }
   public
     constructor Create(const APlans: string);
     destructor Destroy; override;
@@ -70,13 +84,15 @@ type
     function Plans: Boolean; override;
     function Act(const ATask: string; AContext, ARules: TStrings; AOnEvent: TBodyEventFunc;
       AMaxSeconds: Integer): TBodyEvent; override;
+    function Checks: Boolean; override;
+    function Check(const AClaim: string): string; override;
   end;
 
   TProcessBody = class(TBody)
   private
     FProc: TProcess;
     FBuf, FName, FLog: string;
-    FPlans: Boolean;
+    FPlans, FChecks: Boolean;
     procedure Send(AObj: TJSONObject);
     { the next line, or '' after ATimeoutMs (-1: wait for ever) }
     function ReadLine(ATimeoutMs: Integer): string;
@@ -89,6 +105,8 @@ type
     function Plans: Boolean; override;
     function Act(const ATask: string; AContext, ARules: TStrings; AOnEvent: TBodyEventFunc;
       AMaxSeconds: Integer): TBodyEvent; override;
+    function Checks: Boolean; override;
+    function Check(const AClaim: string): string; override;
   end;
 
 { [body] driver: nil for none }
@@ -178,6 +196,18 @@ begin
   end;
 end;
 
+{ TBody }
+
+function TBody.Checks: Boolean;
+begin
+  Result := False;
+end;
+
+function TBody.Check(const AClaim: string): string;
+begin
+  Result := 'unknown';
+end;
+
 { TMockBody }
 
 function TMockBody.Describe: string;
@@ -197,6 +227,8 @@ var
 begin
   inherited Create;
   FPlans := TStringList.Create;
+  FWorld := TStringList.Create;
+  FTried := TStringList.Create;
   for LPlan in SplitString(APlans, '|') do
   begin
     P := Pos('=>', LPlan);
@@ -207,8 +239,20 @@ end;
 
 destructor TMockBody.Destroy;
 begin
+  FWorld.Free;
+  FTried.Free;
   FPlans.Free;
   inherited Destroy;
+end;
+
+function TMockBody.Checks: Boolean;
+begin
+  Result := True;
+end;
+
+function TMockBody.Check(const AClaim: string): string;
+begin
+  Result := IfThen(FWorld.IndexOf(AClaim) >= 0, 'yes', 'no');
 end;
 
 function TMockBody.Act(const ATask: string; AContext, ARules: TStrings; AOnEvent: TBodyEventFunc;
@@ -216,6 +260,9 @@ function TMockBody.Act(const ATask: string; AContext, ARules: TStrings; AOnEvent
 var
   LSteps: TStringList;
   I: Integer;
+  LStep: string;
+  LMark: Char;
+  LFact: TJSONObject;
 begin
   if FPlans.Values[LowerCase(Trim(ATask))] <> '' then
     LSteps := TaskSteps(FPlans.Values[LowerCase(Trim(ATask))])
@@ -225,9 +272,35 @@ begin
     if Assigned(AOnEvent) then
       AOnEvent(Event(bkInfo, Format('mock: %d step(s), %d rule(s), %d fact(s) of context',
         [LSteps.Count, ARules.Count, AContext.Count])));
+    (* in [body] args plans a step marked "!" fails the first time it is tried and one
+       marked "~" is reported done the first time without changing the world, so tests
+       can exercise the retry and the check *)
     for I := 0 to LSteps.Count - 1 do
-      if Assigned(AOnEvent) and not AOnEvent(Event(bkSubtask, LSteps[I])) then
-        Exit(Event(bkFailed, 'stopped during: ' + LSteps[I]));
+    begin
+      LStep := LSteps[I];
+      LMark := #0;
+      if (LStep <> '') and (LStep[1] in ['!', '~']) then
+      begin
+        LMark := LStep[1];
+        LStep := Trim(Copy(LStep, 2, MaxInt));
+      end;
+      if (LMark <> #0) and (FTried.IndexOf(LStep) >= 0) then
+        LMark := #0;
+      if LMark <> #0 then
+        FTried.Add(LStep);
+      if Assigned(AOnEvent) and not AOnEvent(Event(bkSubtask, LStep)) then
+        Exit(Event(bkFailed, 'stopped during: ' + LStep));
+      if LMark = '!' then
+        Exit(Event(bkFailed, 'could not finish: ' + LStep));
+      if LMark = '~' then
+        Continue;
+      LFact := FactFromStep(LStep);
+      if LFact <> nil then
+      begin
+        FWorld.Add(LFact.Get('text', ''));
+        LFact.Free;
+      end;
+    end;
     Result := Event(bkDone, ATask);
   finally
     LSteps.Free;
@@ -357,6 +430,7 @@ begin
         begin
           FName := TJSONObject(LJson).Get('name', 'body');
           FPlans := TJSONObject(LJson).Get('plans', False);
+          FChecks := TJSONObject(LJson).Get('checks', False);
           AEvent.Kind := bkInfo;
           AEvent.Text := 'ready: ' + FName;
         end;
@@ -364,6 +438,7 @@ begin
       'observation': AEvent.Kind := bkObservation;
       'done': AEvent.Kind := bkDone;
       'failed': AEvent.Kind := bkFailed;
+      'checked': AEvent.Kind := bkChecked;
     else
       AEvent.Kind := bkInfo;
     end;
@@ -381,6 +456,31 @@ end;
 function TProcessBody.Plans: Boolean;
 begin
   Result := FPlans;
+end;
+
+function TProcessBody.Checks: Boolean;
+begin
+  Result := FChecks;
+end;
+
+function TProcessBody.Check(const AClaim: string): string;
+var
+  E: TBodyEvent;
+  LUntil: TDateTime;
+begin
+  Result := 'unknown';
+  if not FChecks then
+    Exit;
+  Send(TJSONObject.Create(['op', 'check', 'claim', AClaim]));
+  LUntil := IncSecond(Now, 60);
+  while Now < LUntil do
+    if ReadEvent(250, E) and (E.Kind = bkChecked) then
+    begin
+      E.Text := LowerCase(Trim(E.Text));
+      if (E.Text = 'yes') or (E.Text = 'no') then
+        Result := E.Text;
+      Exit;
+    end;
 end;
 
 function TProcessBody.Act(const ATask: string; AContext, ARules: TStrings; AOnEvent: TBodyEventFunc;

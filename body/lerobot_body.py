@@ -60,17 +60,35 @@ def steps(task):
     return [p.strip() for p in parts if p.strip()]
 
 
+_PLACE = re.compile(r"^(?:put|place|move|store|leave|hang|set)\s+(?:the\s+|my\s+|a\s+)?(.+?)\s+"
+                    r"(in|into|inside|on|onto|under|next to|behind)\s+(.+)$", re.I)
+
+
+def claim(step):
+    """memagent's FactFromStep text: "put the mug in the left cabinet" -> "The mug is in the left cabinet."."""
+    m = _PLACE.match(step.strip())
+    if not m:
+        return None
+    thing, prep, place = m.group(1).strip(), m.group(2).lower(), m.group(3).strip().rstrip(".!")
+    prep = {"into": "in", "onto": "on"}.get(prep, prep)
+    verb = " are " if len(thing) > 2 and thing.endswith("s") and not thing.endswith("ss") else " is "
+    return f"The {thing}{verb}{prep} {place}."
+
+
 class StubBody:
-    """No robot and no policy: each step of the task is a subtask after a short pause."""
+    """No robot and no policy: each step of the task is a subtask after a short pause.
+    It keeps the claims its steps made true, so memagent's checks have an answer."""
 
     name = "lerobot stub (no policy loaded)"
     plans = True
+    checks = True
 
     def __init__(self, delay, plans):
         self.delay = delay
         self.stop = threading.Event()
         # "goal => step; step | goal => ...": stands in for a policy that plans its own subtasks
         self.plans_for = {}
+        self.world = set()
         for plan in (plans or "").split("|"):
             if "=>" in plan:
                 goal, todo = plan.split("=>", 1)
@@ -84,7 +102,13 @@ class StubBody:
             if self.stop.wait(self.delay):
                 emit("failed", f"stopped during: {s}")
                 return
+            c = claim(s)
+            if c:
+                self.world.add(c)
         emit("done", task)
+
+    def check(self, text):
+        return "yes" if text in self.world else "no"
 
     def halt(self):
         self.stop.set()
@@ -97,6 +121,7 @@ class RolloutBody:
     """A LeRobot policy behind a RolloutController, its serve loop on a thread."""
 
     plans = False
+    checks = False   # no scene check yet: memagent stores no fact from a step it cannot confirm
 
     def __init__(self, argv, max_idle_s):
         from threading import Event, Thread
@@ -188,6 +213,9 @@ class RolloutBody:
     def halt(self):
         self.controller.reset()
 
+    def check(self, text):
+        return "unknown"
+
     def close(self):
         self.controller.stop()
         self.serve.join(timeout=30)
@@ -223,7 +251,7 @@ def main():
             except Exception as e:  # noqa: BLE001 - reported to memagent, which carries on without a body
                 emit("failed", f"{type(e).__name__}: {e}")
                 return 1
-            emit("ready", name=body.name, plans=body.plans)
+            emit("ready", name=body.name, plans=body.plans, checks=body.checks)
         elif op == "act" and body is not None:
             # the act runs on its own thread so that "stop" can arrive while it runs
             act_thread = threading.Thread(target=body.act, daemon=True,
@@ -231,6 +259,10 @@ def main():
             act_thread.start()
         elif op == "stop" and body is not None:
             body.halt()
+        elif op == "check" and body is not None:
+            if act_thread is not None:
+                act_thread.join()
+            emit("checked", body.check(msg.get("claim", "")))
         elif op == "quit":
             break
     if act_thread is not None:

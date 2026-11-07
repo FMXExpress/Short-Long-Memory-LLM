@@ -17,7 +17,7 @@ unit Mem.Store;
 interface
 
 uses
-  SysUtils, Classes, DateUtils, Math, fpjson, Mem.Db, Mem.Retrieval;
+  SysUtils, Classes, DateUtils, Math, StrUtils, fpjson, Mem.Db, Mem.Retrieval;
 
 type
   TFactRec = record
@@ -95,6 +95,11 @@ type
     function ActiveFacts: TFactArray;
     function SearchFacts(const AQuery: string; ALimit: Integer; AIncludeBaked: Boolean): TFactArray;
     function ForgetFact(AId: Int64): Boolean;
+    (* the derived facts that link a person to the user: "Your sister's name is Ana." and
+       "Ana's job is nurse." give "Your sister Ana's job is nurse." (kind 'derived').
+       Adds the ones now true, deletes the stale ones, never brings back a forgotten one;
+       returns the added ones (they need vectors) *)
+    function SyncDerived: TFactArray;
     function FactSubject(AId: Int64): string;
     function FactText(AId: Int64): string;
     procedure SetFactSubject(AId: Int64; const ASubject: string);
@@ -324,7 +329,7 @@ begin
   LOldId := 0;
   LOldValue := '';
   Q := FDb.Query('SELECT id, value FROM facts WHERE lower(subject) = lower(?) AND superseded = 0' +
-    ' AND forgotten = 0 ORDER BY id DESC LIMIT 1', [LSubject]);
+    ' AND forgotten = 0 AND kind <> ''derived'' ORDER BY id DESC LIMIT 1', [LSubject]);
   try
     if Q.Step then
     begin
@@ -409,6 +414,7 @@ begin
   Result := nil;
   N := 0;
   Q := FDb.Query('SELECT id, subject, value, subj_emb, text FROM facts WHERE superseded = 0 AND forgotten = 0' +
+    ' AND kind <> ''derived''' +
     ' AND emb_model = ?', [AModel]);
   try
     while Q.Step do
@@ -723,6 +729,117 @@ procedure TMemStore.SetFactSubject(AId: Int64; const ASubject: string);
 begin
   FDb.Exec('UPDATE facts SET subject = ? WHERE id = ?', [ASubject, AId]);
   FDb.Exec('UPDATE facts_fts SET subject = ? WHERE rowid = ?', [ASubject, AId]);
+end;
+
+function TMemStore.SyncDerived: TFactArray;
+type
+  TRel = record
+    Rel, Name: string;
+  end;
+var
+  Q: TSqlStmt;
+  LRels: array of TRel;
+  LWant, LWantSubj, LWantValue, LHave: TStringList;
+  LSubj, LVal, LText, LOwner, LAttr: string;
+  P, I, J: Integer;
+  LId: Int64;
+begin
+  (* A question that needs two linked facts ("Which city does my sister live in?",
+     "Which of my relatives is a nurse?") becomes a one-fact lookup when the link is
+     stored as a fact of its own: bridge questions failed 21 of 24 times with one
+     retrieval, inverse ones 18 of 24 even with two (bench/README.md). A plain join,
+     no model: a relation fact ("my sister's name" = Ana) and a fact about a person
+     of that name ("Ana's job"). *)
+  Result := nil;
+  LRels := nil;
+  LWant := TStringList.Create;
+  LWantSubj := TStringList.Create;
+  LWantValue := TStringList.Create;
+  LHave := TStringList.Create;
+  try
+    Q := FDb.Query('SELECT subject, value FROM facts WHERE superseded = 0 AND forgotten = 0' +
+      ' AND kind <> ''derived''', []);
+    try
+      while Q.Step do
+      begin
+        LSubj := Q.Str(0);
+        LVal := Trim(Q.Str(1));
+        { "my sister's name" -> sister; the value must look like a name }
+        if not SameText(Copy(LSubj, 1, 3), 'my ') or not SameText(Copy(LSubj, Length(LSubj) - 6, 7), '''s name') then
+          Continue;
+        if (LVal = '') or not (LVal[1] in ['A'..'Z']) or (WordCount(LVal, [' ']) > 3) then
+          Continue;
+        SetLength(LRels, Length(LRels) + 1);
+        LRels[High(LRels)].Rel := Copy(LSubj, 4, Length(LSubj) - 3 - 7);
+        LRels[High(LRels)].Name := LVal;
+      end;
+    finally
+      Q.Free;
+    end;
+    Q := FDb.Query('SELECT text, subject, value FROM facts WHERE superseded = 0 AND forgotten = 0' +
+      ' AND kind <> ''derived''', []);
+    try
+      while Q.Step do
+      begin
+        LText := Q.Str(0);
+        LSubj := Q.Str(1);
+        P := Pos('''s ', LSubj);
+        if (P < 2) or not (LSubj[1] in ['A'..'Z']) then
+          Continue;
+        LOwner := Copy(LSubj, 1, P - 1);
+        LAttr := Copy(LSubj, P + 3, MaxInt);
+        if (LAttr = 'name') or (Copy(LText, 1, Length(LOwner)) <> LOwner) then
+          Continue;
+        for I := 0 to High(LRels) do
+          if LRels[I].Name = LOwner then
+          begin
+            LWant.Add('Your ' + LRels[I].Rel + ' ' + LText);
+            LWantSubj.Add('my ' + LRels[I].Rel + '''s ' + LAttr);
+            LWantValue.Add(Q.Str(2));
+          end;
+      end;
+    finally
+      Q.Free;
+    end;
+    { every derived row, forgotten ones too: a forgotten one is never brought back }
+    Q := FDb.Query('SELECT id, text, forgotten FROM facts WHERE kind = ''derived''', []);
+    try
+      while Q.Step do
+      begin
+        LHave.Add(Q.Str(1));
+        if (Q.Int(2) = 0) and (LWant.IndexOf(Q.Str(1)) < 0) then
+        begin
+          LId := Q.Int(0);
+          FDb.Exec('DELETE FROM facts_fts WHERE rowid = ?', [LId]);
+          FDb.Exec('DELETE FROM facts WHERE id = ?', [LId]);
+        end;
+      end;
+    finally
+      Q.Free;
+    end;
+    for J := 0 to LWant.Count - 1 do
+      if LHave.IndexOf(LWant[J]) < 0 then
+      begin
+        FDb.Exec('INSERT INTO facts(text, subject, value, questions, kind, confidence, source_msg, created_at)' +
+          ' VALUES(?,?,?,?,?,?,?,?)', [LWant[J], LWantSubj[J], LWantValue[J], '[]', 'derived',
+          Extended(1.0), 0, NowUnix]);
+        LId := FDb.LastId;
+        FDb.Exec('INSERT INTO facts_fts(rowid, text, subject) VALUES(?,?,?)', [LId, LWant[J], LWantSubj[J]]);
+        LHave.Add(LWant[J]);
+        SetLength(Result, Length(Result) + 1);
+        Result[High(Result)] := Default(TFactRec);
+        Result[High(Result)].Id := LId;
+        Result[High(Result)].Text := LWant[J];
+        Result[High(Result)].Subject := LWantSubj[J];
+        Result[High(Result)].Value := LWantValue[J];
+        Result[High(Result)].Kind := 'derived';
+      end;
+  finally
+    LWant.Free;
+    LWantSubj.Free;
+    LWantValue.Free;
+    LHave.Free;
+  end;
 end;
 
 function TMemStore.ForgetFact(AId: Int64): Boolean;

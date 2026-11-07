@@ -58,9 +58,11 @@ type
     FBodyRules: TPriorArray;    { the rules of the act in progress }
     FBodyStopped: string;       { why the agent stopped the body, '' when it did not }
     FBodySteps: TStringList;
+    FBodyObs: TStringList;      { the act's observations: evidence for VerifyClaim }
     function BodyRules: TPriorArray;
     function OnBodyEvent(const AEvent: TBodyEvent): Boolean;
     procedure RunBody(const ATask: string);
+    function VerifyClaim(const AClaim: string): string;
     procedure Mark(var ALast: TDateTime; out AMs: Double);
     procedure OnToken(const AText: string);
     function BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
@@ -72,6 +74,7 @@ type
     procedure Backfill;
     function SameSubject(const ASubject, AText: string): Int64;
     function JudgeGuards: Boolean;
+    procedure DeriveFacts;
     function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
@@ -229,9 +232,20 @@ var
 begin
   Result := '';
   Retrieve(AUser, ABeforeId, LFacts, LMsgs);
-  FTurnFacts := Copy(LFacts, 0, Min(ContextFacts(FCfg), Length(LFacts)));
-  for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
-    Result := Result + '- ' + LFacts[I].Text + LineEnding;
+  if FCfg.RagAll then
+  begin
+    (* the whole memory in the prompt: what retrieval is measured against. Mem0's own
+       paper found full context ahead of its memory (72.9 vs 66.9 judge score) *)
+    FTurnFacts := FStore.ActiveFacts;
+    for I := 0 to High(FTurnFacts) do
+      Result := Result + '- ' + FTurnFacts[I].Text + LineEnding;
+  end
+  else
+  begin
+    FTurnFacts := Copy(LFacts, 0, Min(ContextFacts(FCfg), Length(LFacts)));
+    for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
+      Result := Result + '- ' + LFacts[I].Text + LineEnding;
+  end;
   for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
     Result := Result + '- Earlier the user said: "' + LMsgs[I].Content + '"' + LineEnding;
 end;
@@ -500,13 +514,15 @@ end;
 
 function TAgent.OnBodyEvent(const AEvent: TBodyEvent): Boolean;
 const
-  KINDS: array[TBodyEventKind] of string = ('subtask', 'observation', 'info', 'done', 'failed');
+  KINDS: array[TBodyEventKind] of string = ('subtask', 'observation', 'info', 'done', 'failed', 'checked');
 var
   P: TPriorRec;
 begin
   Result := True;
   Say('[body] ' + KINDS[AEvent.Kind] + ': ' + AEvent.Text);
   FStore.AddMessage(FSession, 'body', KINDS[AEvent.Kind] + ': ' + AEvent.Text);
+  if (AEvent.Kind = bkObservation) and (FBodyObs <> nil) then
+    FBodyObs.Add(AEvent.Text);
   if AEvent.Kind <> bkSubtask then
     Exit;
   for P in FBodyRules do
@@ -519,61 +535,158 @@ begin
   FBodySteps.Add(AEvent.Text);
 end;
 
+function TAgent.VerifyClaim(const AClaim: string): string;
+var
+  P: Double;
+begin
+  (* what is true after the act, not what the body says it did: the body's own check
+     first, else the judge reading the act's observations, else unknown *)
+  Result := FBody.Check(AClaim);
+  if Result <> 'unknown' then
+    Exit;
+  if (Judge <> nil) and (FBodyObs.Count > 0) then
+  begin
+    P := Judge.Observed(AClaim, FBodyObs.ToStringArray);
+    if P >= FCfg.JudgeGuardMin then
+      Result := 'yes'
+    else if P < 1 - FCfg.JudgeGuardMin then
+      Result := 'no';
+  end;
+end;
+
 procedure TAgent.RunBody(const ATask: string);
 var
   LFacts: TFactArray;
   LMsgs: TMsgArray;
-  LContext, LRules: TStringList;
+  LContext, LRules, LPlan, LDone, LFeedback, LTodo, LUnchecked: TStringList;
   LFound: TJSONArray;
   LFact: TJSONObject;
   LEnd: TBodyEvent;
   LMsgId: Int64;
-  I: Integer;
+  I, LAttempt, LMatched: Integer;
+  LTask, LVerdict, LClaim: string;
+  LRefuted: Boolean;
 begin
   LContext := TStringList.Create;
   LRules := TStringList.Create;
   FBodySteps := TStringList.Create;
+  FBodyObs := TStringList.Create;
+  LPlan := TaskSteps(ATask);
+  LDone := TStringList.Create;
+  LFeedback := TStringList.Create;
+  LTodo := TStringList.Create;
+  LUnchecked := TStringList.Create;
+  LFound := TJSONArray.Create;
   try
     Retrieve(ATask, High(Int64), LFacts, LMsgs);
-    for I := 0 to High(LFacts) do
-      LContext.Add(LFacts[I].Text);
     FBodyRules := BodyRules;
     for I := 0 to High(FBodyRules) do
       LRules.Add(FBodyRules[I].Belief);
-    FBodyStopped := '';
     LMsgId := FStore.AddMessage(FSession, 'user', '/do ' + ATask);
-    try
-      LEnd := FBody.Act(ATask, LContext, LRules, @OnBodyEvent, FCfg.BodyMaxSeconds);
-    except
-      on E: Exception do
-        LEnd := Default(TBodyEvent);
-    end;
-    if FBodyStopped <> '' then
-      Say('[body] stopped: ' + FBodyStopped)
-    else if LEnd.Kind = bkDone then
-      Say('[body] done: ' + LEnd.Text)
-    else
-      Say('[body] failed: ' + LEnd.Text);
-    FStore.AddMessage(FSession, 'body', IfThen(LEnd.Kind = bkDone, 'done: ', 'failed: ') + LEnd.Text +
-      IfThen(FBodyStopped = '', '', ' (stopped: ' + FBodyStopped + ')'));
-    (* what the completed steps say about the world ("put the mug in the left
-       cabinet": the mug is in the left cabinet) goes into memory like a fact
-       the user stated; a stopped act keeps the steps before the stop *)
-    LFound := TJSONArray.Create;
-    try
+    LTask := ATask;
+    LAttempt := 0;
+    (* A closed loop (Inner Monologue, 2207.05608): after an act, every step that claims
+       something about the world is checked; a step that failed, or whose claim the
+       check refutes, is sent back with what happened, at most [body] retries times.
+       A step a rule stopped is never retried. *)
+    repeat
+      LContext.Clear;
+      for I := 0 to High(LFacts) do
+        LContext.Add(LFacts[I].Text);
+      LContext.AddStrings(LFeedback);
+      FBodySteps.Clear;
+      FBodyObs.Clear;
+      FBodyStopped := '';
+      try
+        LEnd := FBody.Act(LTask, LContext, LRules, @OnBodyEvent, FCfg.BodyMaxSeconds);
+      except
+        on E: Exception do
+        begin
+          LEnd := Default(TBodyEvent);
+          LEnd.Kind := bkFailed;
+          LEnd.Text := E.Message;
+        end;
+      end;
+      if FBodyStopped <> '' then
+        Say('[body] stopped: ' + FBodyStopped)
+      else if LEnd.Kind = bkDone then
+        Say('[body] done: ' + LEnd.Text)
+      else
+        Say('[body] failed: ' + LEnd.Text);
+      FStore.AddMessage(FSession, 'body', IfThen(LEnd.Kind = bkDone, 'done: ', 'failed: ') + LEnd.Text +
+        IfThen(FBodyStopped = '', '', ' (stopped: ' + FBodyStopped + ')'));
+      LRefuted := False;
       for I := 0 to FBodySteps.Count - 1 do
       begin
         if (LEnd.Kind <> bkDone) and (I = FBodySteps.Count - 1) then
           Break;   { the step it was on did not finish }
         LFact := FactFromStep(FBodySteps[I]);
-        if LFact <> nil then
+        if LFact = nil then
+        begin
+          LDone.Add(FBodySteps[I]);   { nothing to check: taken as done }
+          Continue;
+        end;
+        LClaim := LFact.Get('text', '');
+        if FCfg.BodyVerify then
+          LVerdict := VerifyClaim(LClaim)
+        else
+          LVerdict := 'yes';
+        if LVerdict = 'yes' then
+        begin
+          Say('[body] checked: ' + LClaim);
           LFound.Add(LFact);
+          LDone.Add(FBodySteps[I]);
+          LFact := nil;
+        end
+        else if LVerdict = 'no' then
+        begin
+          Say('[body] the check found this not true: ' + LClaim);
+          LFeedback.Add(Format('Attempt %d: "%s" was reported done, but a check found "%s" not true.',
+            [LAttempt + 1, FBodySteps[I], LClaim]));
+          LRefuted := True;
+        end
+        else
+        begin
+          LUnchecked.Add(LClaim);
+          LDone.Add(FBodySteps[I]);   { it may be done: nothing says otherwise, so not redone }
+        end;
+        LFact.Free;
       end;
-      StoreFacts(LFound, LMsgId);
-    finally
-      LFound.Free;
-    end;
+      if (FBodyStopped <> '') or ((LEnd.Kind = bkDone) and not LRefuted) or (LAttempt >= FCfg.BodyRetries) then
+        Break;
+      if LEnd.Kind <> bkDone then
+        LFeedback.Add(Format('Attempt %d failed: %s', [LAttempt + 1, LEnd.Text]));
+      (* what is left: the task's own steps that are not done, when the body ran them;
+         a body that planned its own subtasks gets the whole task again *)
+      LTodo.Clear;
+      LMatched := 0;
+      for I := 0 to LPlan.Count - 1 do
+        if LDone.IndexOf(LPlan[I]) >= 0 then
+          Inc(LMatched)
+        else
+          LTodo.Add(LPlan[I]);
+      LTask := ATask;
+      if (LMatched > 0) and (LTodo.Count > 0) then
+      begin
+        LTask := LTodo[0];
+        for I := 1 to LTodo.Count - 1 do
+          LTask := LTask + ', then ' + LTodo[I];
+      end;
+      Inc(LAttempt);
+      Say(Format('[body] retrying (%d of %d): %s', [LAttempt, FCfg.BodyRetries, LTask]));
+    until False;
+    for I := 0 to LUnchecked.Count - 1 do
+      Say('[body] not stored as a fact, nothing confirmed it: ' + LUnchecked[I]);
+    (* only what a check confirmed goes into memory like a fact the user stated *)
+    StoreFacts(LFound, LMsgId);
   finally
+    LFound.Free;
+    LUnchecked.Free;
+    LTodo.Free;
+    LFeedback.Free;
+    LDone.Free;
+    LPlan.Free;
+    FreeAndNil(FBodyObs);
     FreeAndNil(FBodySteps);
     LRules.Free;
     LContext.Free;
@@ -783,6 +896,23 @@ begin
       Result := Result + IfThen(Result = '', '', '; ') + 'stored: ' + LFact.Get('text', '');
       EmbedFact(LId, LFact.Get('text', ''), LFact.Get('subject', ''));
     end;
+  end;
+  DeriveFacts;
+end;
+
+procedure TAgent.DeriveFacts;
+var
+  LNew: TFactArray;
+  I: Integer;
+begin
+  { the links between facts as facts of their own (TMemStore.SyncDerived) }
+  if not FCfg.DeriveFacts then
+    Exit;
+  LNew := FStore.SyncDerived;
+  for I := 0 to High(LNew) do
+  begin
+    Say(Format('[memory +#%d] %s (linked)', [LNew[I].Id, LNew[I].Text]));
+    EmbedFact(LNew[I].Id, LNew[I].Text, LNew[I].Subject);
   end;
 end;
 
@@ -1315,6 +1445,7 @@ begin
     begin
       FStore.SetMeta('forget_pending', '1');
       Say(Format('[memory -#%d] removed from RAG; it leaves the weights at the next consolidation', [LId]));
+      DeriveFacts;
     end
     else
       Say('no such fact');

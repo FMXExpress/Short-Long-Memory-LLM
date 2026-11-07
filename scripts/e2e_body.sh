@@ -84,3 +84,46 @@ confirm=1"
 run lerobot-stub "driver=lerobot
 args=--stub --stub-delay 0.05 --stub-plans '$PLAN'
 confirm=1"
+
+# Verified outcomes and the closed loop (TAgent.RunBody), on the mock: a step marked "!"
+# fails the first time, one marked "~" is reported done once without changing the world.
+DIR="$BASE/loop"
+rm -rf "$DIR"; mkdir -p "$DIR"
+cat > "$DIR/memagent.ini" <<INI
+[agent]
+profile=$PROFILE
+engine=${MEMAGENT_ENGINE:-llama}
+models=$PWD/models.json
+priors=$PWD/priors.md
+data_dir=$DIR/data
+repo_dir=$PWD
+recent_turns=2
+[gpu]
+infer=-1
+train=-1
+[consolidate]
+auto=0
+[retrieval]
+cache_dir=$PWD/cache
+[body]
+driver=mock
+args=stock the shelf => !put the jar on the top shelf; ~put the box on the floor
+confirm=0
+retries=2
+INI
+./build/memagent --config "$DIR/memagent.ini" <<'CHAT' | tee "$DIR/transcript.txt"
+/do stock the shelf
+/facts
+/quit
+CHAT
+T="$DIR/transcript.txt"
+fail() { echo "E2E BODY FAIL (loop): $1"; exit 1; }
+grep -q "^\[body\] failed: could not finish: put the jar on the top shelf" "$T" || fail "a failed step is reported"
+grep -q "^\[body\] retrying (1 of 2): stock the shelf" "$T"                     || fail "a failed act is retried"
+grep -q "^\[body\] the check found this not true: The box is on the floor\." "$T" || fail "a claimed step is checked"
+grep -q "^\[body\] retrying (2 of 2): stock the shelf" "$T"                     || fail "a refuted step is retried"
+grep -q "^\[body\] checked: The jar is on the top shelf\." "$T"                 || fail "a confirmed step"
+grep -q "^\[memory +#[0-9]*\] The jar is on the top shelf\." "$T"               || fail "a confirmed step becomes a fact"
+grep -q "^\[memory +#[0-9]*\] The box is on the floor\." "$T"                   || fail "the retried step becomes a fact"
+[ "$(grep -c '^\[memory +#[0-9]*\] The box is on the floor\.' "$T")" = 1 ]       || fail "stored once"
+echo "E2E BODY PASS (loop: $T)"
