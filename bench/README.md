@@ -738,3 +738,126 @@ a GPU.
 Results: `results/integration-small-partial.json` (the 53 paired answers, the sleep
 manifest, timings) and `results/integration-small-retrieval-answers.json` (all 96
 retrieval-only answers).
+
+## Edited facts, GPU deep sleep, retrieve-twice and model size (2026-11-06/07)
+
+Same integration set: 112 facts, 96 questions in four types.
+- **Agent rows** run the real memagent (llama.cpp, guard on).
+- **GPU rows** run `bench_integration_hf.py` (transformers, no guard) on an RTX A6000.
+
+GPU rows feed every model the agent's own retrieved facts (one hop), so the sizes compare
+like for like. Compare GPU rows with each other, not with agent rows.
+
+### Writing facts by editing instead of training (`trainer/edit_facts.py`)
+
+The edit follows MEMIT (Meng et al. 2023):
+- **Target:** for each person, find the hidden-state change after layer 8 that makes the
+  model say their facts.
+- **Solve:** spread that change over the MLP output weights of layers 4–8 in one solve,
+  `dW = R K^T (lam C + K K^T)^-1`. C comes from 100k tokens of wikitext.
+- **Export:** save dW as a LoRA, which the agent loads like any other adapter.
+
+One bug mattered. The name sat at position 0 in some prompts, and Qwen's attention-sink
+activation there is huge and nearly the same for every name. With it fixed:
+
+| Model | lam | Recall (no retrieval) | Drift | Wrong person's value | Time on GPU |
+|---|---|---|---|---|---|
+| 1.5B | 15000 | 0.39 | 1.004 | 31 | 7 min |
+| 1.5B | 500 | 0.83 | 1.016 | 11 | 7 min |
+| 4B | 500 | 0.94 | 1.010 | 2 | 12 min |
+
+λ 150 and 50 gave the same as 500.
+
+In the agent (1.5B):
+- **Retrieval + edit:** 41/96, against 44/96 for retrieval alone.
+- **Edited weights alone:** 26/96. Only 10 of 24 direct questions, because an edit
+  written as "Ana's city is…" does not answer "Where does Ana live?".
+
+Edits are fast and barely move the model, but they do not help combine facts.
+
+### Deep sleep on a GPU (the Python trainer, `trainer/consolidate.py`)
+
+| Model | Settings | Recall | Drift | Time |
+|---|---|---|---|---|
+| 1.5B | profile (6 wordings × 2 epochs, lr 3e-4) | 1.00 | 1.53 | 116 s |
+| 1.5B | lr 1e-3, 24 anchors, 3 wordings | 0.94 | 2.08 | 81 s |
+| 4B | profile (8 epochs, lr 5e-4, 4-bit) | 1.00 | 1.39 | 14 min |
+| 24B | old profile (8 epochs, lr 5e-4, 4-bit) | 1.00 | **15.96** | 52 min |
+| 24B | **2 epochs, lr 2e-4** (now the profile) | 1.00 | 1.04 | 15 min |
+
+The same 1.5B deep sleep on 4 CPU cores with llama.cpp reached 0.37 recall in 70 minutes.
+
+### Does the trained memory help? (GPU rows)
+
+| Model | Arm | direct | bridge | inverse* | verify | all |
+|---|---|---|---|---|---|---|
+| 1.5B | retrieval | 24 | 4 | 19 | 16 | 63 |
+| 1.5B | retrieval + sleep | 24 | **18** | 12 | 0 | 54 |
+| 4B | retrieval | 23 | 4 | 20 | 22 | 69 |
+| 4B | retrieval + sleep | 24 | **20** | 15 | 18 | **77** |
+| 24B | retrieval | 24 | 3 | 21 | 24 | 72 |
+| 24B | retrieval + sleep (old settings) | 9 | 2 | 3 | 0 | 14 |
+| 24B | retrieval + sleep (2 epochs, 2e-4) | 24 | **23** | 10 | 5 | 62 |
+
+\* Inverse is inflated for retrieval: the scorer accepts answers that list several names.
+
+**Fact-combining works from 1.5B up.** Retrieval brings "Your sister's name is Hana", the
+weights know Hana's city, and the model answers. Neither manages alone: the weights alone
+get 2–3 of 24 bridge questions.
+
+**Training also teaches a format.** Every training example is question → fact sentence. So
+"Is my friend the one whose city is Porto? Answer yes or no." gets "Your friend's city is
+Porto.": right, but not a yes or no. Verify fell to 0 at 1.5B and to 5 at 24B; the 4B
+mostly kept it. The next fix is training data with yes/no and which-relative questions,
+plus anchors that ask for short answers.
+
+### Retrieve twice (`[retrieval] hops=2`, Mem.Recall.RecallHops)
+
+The second hop follows each name in the first hits. "Your brother's name is Yusuf" leads to a
+search for "Yusuf …", which returns "Yusuf's city is Ghent". Agent rows, 1.5B, binding-guard
+build:
+
+| Hops | Both facts in the prompt: bridge / inverse / verify | Correct |
+|---|---|---|
+| 1 | 12.5% / 0% / 83% | 40/96 |
+| 2 | **100% / 71% / 88%** | **58/96** |
+
+It needs no training and costs about 70 ms per extra hop. It is now the default.
+
+The GPU-trained 1.5B memory in the agent, two hops, rebuilt binding-guard build:
+
+| Arm | direct | bridge | inverse | verify | all |
+|---|---|---|---|---|---|
+| retrieval | 24 | 12 | 6 | 16 | **58/96** |
+| retrieval + GPU deep sleep | 24 | 4 | 4 | 0 | 32/96 |
+
+At 1.5B the trained memory makes the agent worse. Its fact-sentence answers fail verify, and
+the guard withheld 40 of them. So the 1.5B presets do not train in the background.
+
+### What changed because of this
+
+| Change | Why |
+|---|---|
+| `[retrieval] hops=2` is the default | 40 → 58 of 96 on 1.5B |
+| Large profile trains 2 epochs at lr 2e-4 | 8 epochs at 5e-4 learned every fact and drifted ×16, so the gate would have thrown away every deep sleep |
+| Medium gate allows drift up to 1.5 | Its best run, the top score of the day (77/96), drifted 1.39 and failed the old 1.3 limit |
+| The agent warns after two rejected runs in a row | It names drift (lower epochs or lr) or recall (raise epochs or wordings), so rejected background training no longer wastes compute unnoticed |
+| `scripts/run.sh` (Linux) and `run.cmd` / `run.ps1` (Windows) pick a preset from CPU, RAM and GPUs | See the README quick start |
+| 1.5B presets do not train in the background | Trained memory scored 32/96 against 58/96 for retrieval in the agent |
+
+### One-shot presets: what is measured and what is not
+
+**Measured:**
+- Recall, drift and training time for every model above.
+- 24B on one 48 GB card: QLoRA training peaks at 23.7 GB. The Q4 model takes about 14 GB to
+  answer, plus about 5 GB for a 16k context. So answering and training at once fits in
+  about 43 GB.
+
+**Not measured:**
+- How much memory the 1.5B (gpu8) and 4B (gpu12) presets use while answering and training
+  on one card.
+- Two GPUs, and hours of continuous background training. The next test streams facts in
+  while the trainer loops, and tracks answers and drift.
+
+**Windows:** `run.ps1` is written for Windows PowerShell 5.1. It was not run in this session.
+The release workflow dry-runs it on a Windows runner for every pull request.

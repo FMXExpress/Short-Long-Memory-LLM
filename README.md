@@ -64,7 +64,37 @@ makes something up, and then of the model with its learned LoRAs.</sub>
 
 ## Quick start
 
-Download the latest release from the
+One command picks the best setup for your machine, installs what is missing, and starts
+memagent. It works in a clone and in an extracted release:
+
+```sh
+scripts/run.sh              # Linux, from a clone (./run.sh in a release folder)
+scripts\run.cmd             # Windows, from a clone (run.cmd in a release folder, or the
+                            #   "memagent (best settings for this PC)" Start menu entry)
+scripts/run.sh --list       # the presets; scripts/run.sh gpu12 forces one (Windows: run.cmd -List)
+scripts/run.sh --dry-run    # show the choice and the config, change nothing (run.cmd -DryRun)
+```
+
+| Preset | Picked when | Model | Answers on | Trains on |
+|---|---|---|---|---|
+| `cpu-lite` | under 4 cores or 8 GB RAM | SmolLM2-135M | CPU | 1 core (a demo) |
+| `cpu` | no GPU | Qwen2.5-1.5B | CPU | off: `/sleep` on demand |
+| `gpu8` | one 8–11 GB GPU | Qwen2.5-1.5B | GPU | off: `/sleep` on demand |
+| `gpu12` | one 12–39 GB GPU | Qwen3-4B | GPU | the same GPU |
+| `gpu40` | one 40 GB+ GPU | Magistral-Small 24B | GPU | the same GPU |
+| `2gpu` | two GPUs | 24B (24 GB+ each), 4B (12 GB+), else 1.5B | GPU 0 | GPU 1 |
+
+What the presets are based on (bench/README.md, "One-shot presets"):
+- Retrieval carries the memory at every size, and retrieving twice is on everywhere.
+- Trained memory paid off from 4B up. At 1.5B it lost to retrieval in the agent (32/96
+  against 58/96), so the 1.5B presets do not train in the background.
+- The 24B trains gently, because its first settings learned every fact and broke the model.
+- On Windows, and anywhere llama.cpp was built without CUDA, GPU presets answer through the
+  Python engine (PyTorch with CUDA), which the launcher installs.
+
+Or download a release:
+
+The latest release is on the
 [Releases page](https://github.com/FMXExpress/Short-Long-Memory-LLM/releases):
 
 | Platform | Download | Run |

@@ -64,6 +64,7 @@ type
     function BuildMessages(const AUser: string; AUseRag: Boolean): TJSONArray;
     procedure Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray);
     function MemoryBlock(const AUser: string; ABeforeId: Int64): string;
+    procedure RejectedRun(ARecall, APpl: Double);
     procedure EmbedFact(AId: Int64; const AText, ASubject: string);
     procedure EmbedMessage(AId: Int64; const AText: string);
     procedure Backfill;
@@ -211,7 +212,7 @@ procedure TAgent.Retrieve(const AQuery: string; ABeforeId: Int64; out AFacts: TF
 var
   LTiming: TRecallTiming;
 begin
-  RecallMemory(FStore, FRet, FCfg, AQuery, ABeforeId, AFacts, AMsgs, LTiming);
+  RecallHops(FStore, FRet, FCfg, AQuery, ABeforeId, AFacts, AMsgs, LTiming);
   FLastRecall := LTiming;
 end;
 
@@ -223,7 +224,7 @@ var
 begin
   Result := '';
   Retrieve(AUser, ABeforeId, LFacts, LMsgs);
-  for I := 0 to Min(FCfg.RagK, Length(LFacts)) - 1 do
+  for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
     Result := Result + '- ' + LFacts[I].Text + LineEnding;
   for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
     Result := Result + '- Earlier the user said: "' + LMsgs[I].Content + '"' + LineEnding;
@@ -1023,16 +1024,20 @@ begin
     case LCode of
       0:
         begin
+          FStore.SetMeta('gate_rejects', '0');
           PromoteManifest(TJSONObject(LJson).Get('path', ''));
           ClearReady;
         end;
-      2: if LTier = 'fast' then
+      2: begin
+         RejectedRun(TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0));
+         if LTier = 'fast' then
            Say(Format('[nap] fast LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); the new facts ' +
              'stay in RAG', [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0)]))
          else
            Say(Format('[sleep] new LoRA rejected by the eval gate (recall %.2f, ppl x%.2f); keeping %s',
              [TJSONObject(LJson).Get('recall', 0.0), TJSONObject(LJson).Get('ppl_ratio', 0.0),
               IfThen(FEngine.ActiveAdapter = '', 'the base model', FEngine.ActiveAdapter)]));
+         end;
       3: if LTier <> 'fast' then
            Say('[sleep] nothing to consolidate');
       4: ;  { cancelled for a deep sleep }
@@ -1045,6 +1050,31 @@ begin
   finally
     LJson.Free;
   end;
+end;
+
+procedure TAgent.RejectedRun(ARecall, APpl: Double);
+var
+  N: Integer;
+begin
+  (* A rejected run changes nothing, so background training that keeps failing the
+     gate burns its GPU or CPU for nothing, and nobody notices. Measured: the large
+     profile at its first settings (8 epochs at 5e-4) learned every fact but drifted
+     x16, so every deep sleep would have been thrown away. Say it plainly. *)
+  N := StrToIntDef(FStore.GetMeta('gate_rejects'), 0) + 1;
+  FStore.SetMeta('gate_rejects', IntToStr(N));
+  if N < 2 then
+    Exit;
+  { the facts were learned (every profile's gate wants recall 0.7-0.8), so drift failed it }
+  if ARecall >= 0.7 then
+    Say(Format('[sleep] warning: the eval gate has rejected the last %d training runs. Training is using ' +
+      'compute without changing memory. Last run: recall %.2f, drift x%.2f. High drift means training is ' +
+      'too strong: lower "epochs" or "lr" for profile %s in models.json. Retrieval still answers; ' +
+      '[consolidate] auto=0 stops background training.', [N, ARecall, APpl, FCfg.ProfileName]))
+  else
+    Say(Format('[sleep] warning: the eval gate has rejected the last %d training runs. Training is using ' +
+      'compute without changing memory. Last run: recall %.2f, drift x%.2f. Low recall means training is ' +
+      'too weak: raise "epochs" or "paraphrases" for profile %s in models.json. Retrieval still answers; ' +
+      '[consolidate] auto=0 stops background training.', [N, ARecall, APpl, FCfg.ProfileName]));
 end;
 
 function TAgent.Command(const ALine: string): Boolean;

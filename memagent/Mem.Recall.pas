@@ -19,7 +19,7 @@ unit Mem.Recall;
 interface
 
 uses
-  SysUtils, DateUtils, Mem.Config, Mem.Store, Mem.Retrieval, Mem.Guard;
+  SysUtils, StrUtils, Math, DateUtils, Mem.Config, Mem.Store, Mem.Retrieval, Mem.Guard;
 
 type
   TRecallTiming = record
@@ -32,6 +32,10 @@ procedure SortMsgs(var A: TMsgArray);
 function MinCosFor(ACfg: TMemConfig; ARet: TRetrieval): Single;
 procedure RecallMemory(AStore: TMemStore; ARet: TRetrieval; ACfg: TMemConfig; const AQuery: string;
   ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray; out ATiming: TRecallTiming);
+procedure RecallHops(AStore: TMemStore; ARet: TRetrieval; ACfg: TMemConfig; const AQuery: string;
+  ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray; out ATiming: TRecallTiming);
+function HopSeed(const AFact: TFactRec): string;
+function ContextFacts(ACfg: TMemConfig): Integer;
 
 implementation
 
@@ -171,6 +175,127 @@ begin
   SetLength(AMsgs, N);
   SortMsgs(AMsgs);
   ATiming.RerankMs := MsBetween(T);
+end;
+
+(* The name a fact links to, which a second retrieval can follow:
+     "my sister's name" = Ana   -> Ana   (the user's person: the value is the name)
+     "Ana's city"       = Lisbon -> Ana  (a named person: the owner is the name)
+   '' when there is none (a value that is not a name, a subject with no owner). *)
+function HopSeed(const AFact: TFactRec): string;
+var
+  S, V: string;
+  P: Integer;
+begin
+  Result := '';
+  S := Trim(AFact.Subject);
+  if SameText(Copy(S, 1, 3), 'my ') then
+  begin
+    V := Trim(AFact.Value);
+    if (V <> '') and (V[1] in ['A'..'Z']) and (WordCount(V, [' ']) <= 3) then
+      Result := V;
+  end
+  else
+  begin
+    P := Pos('''s ', S);
+    if (P > 1) and (S[1] in ['A'..'Z']) then
+      Result := Copy(S, 1, P - 1);
+  end;
+end;
+
+{ AWord as a whole word in AText, case-sensitive: names are capitalised }
+function MentionsWord(const AText, AWord: string): Boolean;
+var
+  P, E: Integer;
+begin
+  Result := False;
+  P := PosEx(AWord, AText, 1);
+  while P > 0 do
+  begin
+    E := P + Length(AWord);
+    if ((P = 1) or not (AText[P - 1] in ['A'..'Z', 'a'..'z', '0'..'9'])) and
+      ((E > Length(AText)) or not (AText[E] in ['A'..'Z', 'a'..'z', '0'..'9'])) then
+      Exit(True);
+    P := PosEx(AWord, AText, P + 1);
+  end;
+end;
+
+function HasFact(const A: TFactArray; N: Integer; AId: Int64): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to N - 1 do
+    if A[I].Id = AId then
+      Exit(True);
+  Result := False;
+end;
+
+function ContextFacts(ACfg: TMemConfig): Integer;
+begin
+  Result := ACfg.RagK;
+  if ACfg.Hops >= 2 then
+    Inc(Result, ACfg.HopK);
+end;
+
+procedure RecallHops(AStore: TMemStore; ARet: TRetrieval; ACfg: TMemConfig; const AQuery: string;
+  ABeforeId: Int64; out AFacts: TFactArray; out AMsgs: TMsgArray; out ATiming: TRecallTiming);
+var
+  LFirst, LSecond, LOut: TFactArray;
+  LMsgs2: TMsgArray;
+  LT2: TRecallTiming;
+  LSeeds: string;
+  LSeed: string;
+  I, J, N, LAdded: Integer;
+begin
+  (* Retrieval finds facts that look like the question. A question that needs two
+     linked facts ("Which city does my sister live in?" needs "Your sister's name
+     is Ana" and "Ana's city is Lisbon") shares words with only one of them, so
+     the other is missing from the prompt: one hop found both for 3 of 24 such
+     questions in the integration benchmark (bench/README.md). The second hop
+     follows each name in the first hits (HopSeed) with "<name> <question>", and
+     puts the best new fact that mentions the name right after the fact that
+     named it, at most HopK of them. *)
+  RecallMemory(AStore, ARet, ACfg, AQuery, ABeforeId, LFirst, AMsgs, ATiming);
+  AFacts := LFirst;
+  if ACfg.Hops < 2 then
+    Exit;
+  SetLength(LOut, Length(LFirst) + ACfg.RagK);
+  N := 0;
+  LAdded := 0;
+  LSeeds := '|';
+  for I := 0 to Min(ACfg.RagK, Length(LFirst)) - 1 do
+  begin
+    if not HasFact(LOut, N, LFirst[I].Id) then
+    begin
+      LOut[N] := LFirst[I];
+      Inc(N);
+    end;
+    LSeed := HopSeed(LFirst[I]);
+    if (LSeed = '') or (LAdded >= ACfg.HopK) or (Pos('|' + LSeed + '|', LSeeds) > 0) then
+      Continue;
+    LSeeds := LSeeds + LSeed + '|';
+    RecallMemory(AStore, ARet, ACfg, LSeed + ' ' + AQuery, ABeforeId, LSecond, LMsgs2, LT2);
+    ATiming.EmbedMs := ATiming.EmbedMs + LT2.EmbedMs;
+    ATiming.SearchMs := ATiming.SearchMs + LT2.SearchMs;
+    ATiming.RerankMs := ATiming.RerankMs + LT2.RerankMs;
+    for J := 0 to High(LSecond) do
+      if not HasFact(LOut, N, LSecond[J].Id) and not HasFact(LFirst, Min(ACfg.RagK, Length(LFirst)), LSecond[J].Id) and
+        MentionsWord(LSecond[J].Subject + ' ' + LSecond[J].Text, LSeed) then
+      begin
+        LOut[N] := LSecond[J];
+        Inc(N);
+        Inc(LAdded);
+        Break;
+      end;
+  end;
+  { the first hop's remaining facts keep their order after the linked ones }
+  for I := Min(ACfg.RagK, Length(LFirst)) to High(LFirst) do
+    if not HasFact(LOut, N, LFirst[I].Id) then
+    begin
+      LOut[N] := LFirst[I];
+      Inc(N);
+    end;
+  SetLength(LOut, N);
+  AFacts := LOut;
 end;
 
 end.

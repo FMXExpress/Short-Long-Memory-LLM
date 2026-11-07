@@ -1,0 +1,1892 @@
+{
+ "label": "",
+ "profile": "large",
+ "base": "unsloth/Magistral-Small-2506-bnb-4bit",
+ "harness": "transformers",
+ "adapter": "/workspace/gpu24/ds-large/mem-20261107T011642",
+ "rag_k": 3,
+ "seconds": {
+  "load": 51.2,
+  "retrieval": 35.6,
+  "sleep": 73.9,
+  "weights": 68.5
+ },
+ "accuracy": {
+  "all": {
+   "retrieval": "72/96 = 0.750",
+   "sleep": "14/96 = 0.146",
+   "weights": "19/96 = 0.198"
+  },
+  "bridge": {
+   "retrieval": "3/24 = 0.125",
+   "sleep": "2/24 = 0.083",
+   "weights": "2/24 = 0.083"
+  },
+  "bridge / found": {
+   "retrieval": "3/3 = 1.000",
+   "sleep": "0/3 = 0.000",
+   "weights": "0/3 = 0.000"
+  },
+  "bridge / missed": {
+   "retrieval": "0/21 = 0.000",
+   "sleep": "2/21 = 0.095",
+   "weights": "2/21 = 0.095"
+  },
+  "direct": {
+   "retrieval": "24/24 = 1.000",
+   "sleep": "9/24 = 0.375",
+   "weights": "17/24 = 0.708"
+  },
+  "direct / found": {
+   "retrieval": "24/24 = 1.000",
+   "sleep": "9/24 = 0.375",
+   "weights": "17/24 = 0.708"
+  },
+  "inverse": {
+   "retrieval": "21/24 = 0.875",
+   "sleep": "3/24 = 0.125",
+   "weights": "0/24 = 0.000"
+  },
+  "inverse / missed": {
+   "retrieval": "21/24 = 0.875",
+   "sleep": "3/24 = 0.125",
+   "weights": "0/24 = 0.000"
+  },
+  "verify": {
+   "retrieval": "24/24 = 1.000",
+   "sleep": "0/24 = 0.000",
+   "weights": "0/24 = 0.000"
+  },
+  "verify / found": {
+   "retrieval": "20/20 = 1.000",
+   "sleep": "0/20 = 0.000",
+   "weights": "0/20 = 0.000"
+  },
+  "verify / missed": {
+   "retrieval": "4/4 = 1.000",
+   "sleep": "0/4 = 0.000",
+   "weights": "0/4 = 0.000"
+  }
+ },
+ "answers": [
+  {
+   "type": "direct",
+   "q": "Where does Zoe live?",
+   "accept": [
+    "Oslo"
+   ],
+   "covered": true,
+   "recalled": [
+    "Zoe's city is Oslo.",
+    "Zoe's pet is a axolotl.",
+    "Zoe's job is librarian."
+   ],
+   "retrieval": "Oslo",
+   "retrieval_ok": true,
+   "sleep": "Zoe's job is librarian.",
+   "sleep_ok": false,
+   "weights": "Zoe's life is librarian.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "What does Marek do for work?",
+   "accept": [
+    "carpenter"
+   ],
+   "covered": true,
+   "recalled": [
+    "Marek's job is carpenter.",
+    "Marek's pet is a tortoise.",
+    "Marek's city is Zagreb."
+   ],
+   "retrieval": "Marek is a carpenter.",
+   "retrieval_ok": true,
+   "sleep": "Marek's job is carpenter.",
+   "sleep_ok": true,
+   "weights": "Marek's job is carpenter.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Mia live?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": [
+    "Mia's city is Tallinn.",
+    "Mia's pet is a poodle.",
+    "Mia's job is nurse."
+   ],
+   "retrieval": "Tallinn",
+   "retrieval_ok": true,
+   "sleep": "Mia's job is nurse.",
+   "sleep_ok": false,
+   "weights": "Mia's life is nurse.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "What does Ines do for work?",
+   "accept": [
+    "locksmith"
+   ],
+   "covered": true,
+   "recalled": [
+    "Ines's job is locksmith.",
+    "Ines's pet is a canary.",
+    "Ines's city is Valencia."
+   ],
+   "retrieval": "Ines is a locksmith.",
+   "retrieval_ok": true,
+   "sleep": "Ines's job is locksmith.",
+   "sleep_ok": true,
+   "weights": "Ines can be canary.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "Where does Tara live?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": true,
+   "recalled": [
+    "Tara's city is Krakow.",
+    "Tara's pet is a chinchilla.",
+    "Tara's job is dentist."
+   ],
+   "retrieval": "Krakow",
+   "retrieval_ok": true,
+   "sleep": "Tara's job is dentist.",
+   "sleep_ok": false,
+   "weights": "Tara live in Krakow.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Dana live?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": true,
+   "recalled": [
+    "Dana's city is Utrecht.",
+    "Dana's pet is a iguana.",
+    "Dana's job is firefighter."
+   ],
+   "retrieval": "Utrecht",
+   "retrieval_ok": true,
+   "sleep": "Dana's job is firefighter.",
+   "sleep_ok": false,
+   "weights": "Dana's life is firefighter.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "What does Mia do for work?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": true,
+   "recalled": [
+    "Mia's job is nurse.",
+    "Mia's pet is a poodle.",
+    "Mia's city is Tallinn."
+   ],
+   "retrieval": "Mia is a nurse.",
+   "retrieval_ok": true,
+   "sleep": "Mia's job is nurse.",
+   "sleep_ok": true,
+   "weights": "Mia's work is nurse.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Marek have?",
+   "accept": [
+    "tortoise"
+   ],
+   "covered": true,
+   "recalled": [
+    "Marek's pet is a tortoise.",
+    "Your nephew's name is Marek.",
+    "Marek's job is carpenter."
+   ],
+   "retrieval": "Marek has a tortoise as a pet.",
+   "retrieval_ok": true,
+   "sleep": "Marek's job is carpenter.",
+   "sleep_ok": false,
+   "weights": "Marek is a tortoise.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Sofia have?",
+   "accept": [
+    "ferret"
+   ],
+   "covered": true,
+   "recalled": [
+    "Sofia's pet is a ferret.",
+    "Your partner's name is Sofia.",
+    "Sofia's job is beekeeper."
+   ],
+   "retrieval": "Sofia has a ferret as her pet.",
+   "retrieval_ok": true,
+   "sleep": "Sofia's job is beekeeper.",
+   "sleep_ok": false,
+   "weights": "Sofia's pet is a ferret.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Lucia do for work?",
+   "accept": [
+    "architect"
+   ],
+   "covered": true,
+   "recalled": [
+    "Lucia's job is architect.",
+    "Lucia's pet is a hamster.",
+    "Lucia's city is Lisbon."
+   ],
+   "retrieval": "Lucia is an architect.",
+   "retrieval_ok": true,
+   "sleep": "Lucia's job is architect.",
+   "sleep_ok": true,
+   "weights": "Lucia's job is architect.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Nils have?",
+   "accept": [
+    "hedgehog"
+   ],
+   "covered": true,
+   "recalled": [
+    "Nils's pet is a hedgehog.",
+    "Your grandma's name is Nils.",
+    "Nils's job is jeweler."
+   ],
+   "retrieval": "Nils has a hedgehog as a pet.",
+   "retrieval_ok": true,
+   "sleep": "Nils's job is jeweler.",
+   "sleep_ok": false,
+   "weights": "Nils's pet is a hedgehog.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Dana have?",
+   "accept": [
+    "iguana"
+   ],
+   "covered": true,
+   "recalled": [
+    "Dana's pet is a iguana.",
+    "Your aunt's name is Dana.",
+    "Dana's city is Utrecht."
+   ],
+   "retrieval": "Dana has an iguana as a pet.",
+   "retrieval_ok": true,
+   "sleep": "Dana's city is Utrecht.",
+   "sleep_ok": false,
+   "weights": "Dana's pet is a iguana.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Zoe have?",
+   "accept": [
+    "axolotl"
+   ],
+   "covered": true,
+   "recalled": [
+    "Zoe's pet is a axolotl.",
+    "Your grandpa's name is Zoe.",
+    "Zoe's city is Oslo."
+   ],
+   "retrieval": "Zoe has an axolotl as a pet.",
+   "retrieval_ok": true,
+   "sleep": "Zoe's city is Oslo.",
+   "sleep_ok": false,
+   "weights": "Zoe's pet is a axolotl.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Ana live?",
+   "accept": [
+    "Bergen"
+   ],
+   "covered": true,
+   "recalled": [
+    "Ana's city is Bergen.",
+    "Ana's pet is a gecko.",
+    "Ana's job is glassblower."
+   ],
+   "retrieval": "Bergen.",
+   "retrieval_ok": true,
+   "sleep": "Ana's job is glassblower.",
+   "sleep_ok": false,
+   "weights": "Ana's life is glassblower.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "Where does Nils live?",
+   "accept": [
+    "Lyon"
+   ],
+   "covered": true,
+   "recalled": [
+    "Nils's city is Lyon.",
+    "Nils's pet is a hedgehog.",
+    "Nils's job is jeweler."
+   ],
+   "retrieval": "Lyon.",
+   "retrieval_ok": true,
+   "sleep": "Nils's job is jeweler.",
+   "sleep_ok": false,
+   "weights": "Nils live in Lyon.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Tara do for work?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": true,
+   "recalled": [
+    "Tara's job is dentist.",
+    "Tara's pet is a chinchilla.",
+    "Tara's city is Krakow."
+   ],
+   "retrieval": "Tara is a dentist.",
+   "retrieval_ok": true,
+   "sleep": "Tara's job is dentist.",
+   "sleep_ok": true,
+   "weights": "Tara's job is dentist.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Sofia do for work?",
+   "accept": [
+    "beekeeper"
+   ],
+   "covered": true,
+   "recalled": [
+    "Sofia's job is beekeeper.",
+    "Sofia's pet is a ferret.",
+    "Sofia's city is Bologna."
+   ],
+   "retrieval": "Sofia is a beekeeper.",
+   "retrieval_ok": true,
+   "sleep": "Sofia's job is beekeeper.",
+   "sleep_ok": true,
+   "weights": "Sofia's job is beekeeper.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Hana do for work?",
+   "accept": [
+    "surveyor"
+   ],
+   "covered": true,
+   "recalled": [
+    "Hana's job is surveyor.",
+    "Hana's pet is a rabbit.",
+    "Hana's city is Graz."
+   ],
+   "retrieval": "Hana is a surveyor.",
+   "retrieval_ok": true,
+   "sleep": "Hana's job is surveyor.",
+   "sleep_ok": true,
+   "weights": "Hana's job is surveyor.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Emil live?",
+   "accept": [
+    "Riga"
+   ],
+   "covered": true,
+   "recalled": [
+    "Emil's city is Riga.",
+    "Emil's pet is a parrot.",
+    "Emil's job is plumber."
+   ],
+   "retrieval": "Riga.",
+   "retrieval_ok": true,
+   "sleep": "Emil's job is plumber.",
+   "sleep_ok": false,
+   "weights": "Emil live is plumber.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Priya have?",
+   "accept": [
+    "beagle"
+   ],
+   "covered": true,
+   "recalled": [
+    "Priya's pet is a beagle.",
+    "Your father's name is Priya.",
+    "Priya's job is baker."
+   ],
+   "retrieval": "A beagle.",
+   "retrieval_ok": true,
+   "sleep": "Priya's job is baker.",
+   "sleep_ok": false,
+   "weights": "Priya is a beagle.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Yusuf do for work?",
+   "accept": [
+    "chemist"
+   ],
+   "covered": true,
+   "recalled": [
+    "Yusuf's job is chemist.",
+    "Yusuf's city is Ghent.",
+    "Yusuf's pet is a dachshund."
+   ],
+   "retrieval": "Yusuf is a chemist.",
+   "retrieval_ok": true,
+   "sleep": "Yusuf's job is chemist.",
+   "sleep_ok": true,
+   "weights": "Yusuf's job is chemist.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What pet does Ana have?",
+   "accept": [
+    "gecko"
+   ],
+   "covered": true,
+   "recalled": [
+    "Ana's pet is a gecko.",
+    "Your son's name is Ana.",
+    "Ana's job is glassblower."
+   ],
+   "retrieval": "Ana has a gecko as a pet.",
+   "retrieval_ok": true,
+   "sleep": "Ana's job is glassblower.",
+   "sleep_ok": false,
+   "weights": "Ana's pet is a gecko.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Ana do for work?",
+   "accept": [
+    "glassblower"
+   ],
+   "covered": true,
+   "recalled": [
+    "Ana's job is glassblower.",
+    "Ana's pet is a gecko.",
+    "Ana's city is Bergen."
+   ],
+   "retrieval": "Ana is a glassblower.",
+   "retrieval_ok": true,
+   "sleep": "Ana's job is glassblower.",
+   "sleep_ok": true,
+   "weights": "Ana's job is glassblower.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Ines live?",
+   "accept": [
+    "Valencia"
+   ],
+   "covered": true,
+   "recalled": [
+    "Ines's city is Valencia.",
+    "Ines's pet is a canary.",
+    "Ines's job is locksmith."
+   ],
+   "retrieval": "Valencia",
+   "retrieval_ok": true,
+   "sleep": "Ines's job is locksmith.",
+   "sleep_ok": false,
+   "weights": "Ines live is canary.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my partner keep?",
+   "accept": [
+    "ferret"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your partner's name is Sofia.",
+    "Leo's pet is a corgi.",
+    "Lucia's pet is a hamster."
+   ],
+   "retrieval": "Sofia has a corgi.",
+   "retrieval_ok": false,
+   "sleep": "Your partner's name is Sofia.",
+   "sleep_ok": false,
+   "weights": "Your partner keeps you.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my boss live in?",
+   "accept": [
+    "Malmo"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your boss's name is Leo.",
+    "Otto's city is Malmo.",
+    "Rafael's city is Zagreb."
+   ],
+   "retrieval": "I don't know which city your boss lives in.",
+   "retrieval_ok": false,
+   "sleep": "Your boss's city is Malmo.",
+   "sleep_ok": true,
+   "weights": "Your boss live in Leo's city is Malmo.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my grandpa keep?",
+   "accept": [
+    "axolotl"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your grandpa's name is Zoe.",
+    "Your grandma's name is Nils.",
+    "Yusuf's pet is a dachshund."
+   ],
+   "retrieval": "I don't have information about your grandpa's pet. I only know that Yusuf has a dachshund.",
+   "retrieval_ok": false,
+   "sleep": "Your grandma's pet is a gecko.",
+   "sleep_ok": false,
+   "weights": "Your grandpa keepers.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my sister live in?",
+   "accept": [
+    "Graz"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your sister's name is Hana.",
+    "Sofia's city is Bologna.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "Hana lives in Tokyo.",
+   "retrieval_ok": false,
+   "sleep": "Your sister's name is Hana.",
+   "sleep_ok": false,
+   "weights": "Your sister live in Hana.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my grandma keep?",
+   "accept": [
+    "hedgehog"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your grandma's name is Nils.",
+    "Your grandpa's name is Zoe.",
+    "Mia's pet is a poodle."
+   ],
+   "retrieval": "Nils doesn't have a pet mentioned in our conversation.",
+   "retrieval_ok": false,
+   "sleep": "Your grandma's name is Nils.",
+   "sleep_ok": false,
+   "weights": "Your grandma keepers.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my brother keep?",
+   "accept": [
+    "dachshund"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your brother's name is Yusuf.",
+    "Tomas's pet is a hamster.",
+    "Yusuf's pet is a dachshund."
+   ],
+   "retrieval": "Yusuf keeps a dachshund as his pet.",
+   "retrieval_ok": true,
+   "sleep": "Your brother's name is Yusuf.",
+   "sleep_ok": false,
+   "weights": "Your brother's pet is a beagle.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my brother live in?",
+   "accept": [
+    "Ghent"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your brother's name is Yusuf.",
+    "Otto's city is Malmo.",
+    "Emil's city is Riga."
+   ],
+   "retrieval": "I don't know which city your brother lives in.",
+   "retrieval_ok": false,
+   "sleep": "Your brother's name is Yusuf.",
+   "sleep_ok": false,
+   "weights": "Your brother live in Yusuf.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my niece keep?",
+   "accept": [
+    "parrot"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your niece's name is Emil.",
+    "Your nephew's name is Marek.",
+    "Yusuf's pet is a dachshund."
+   ],
+   "retrieval": "Emil doesn't have a pet mentioned in our conversation.",
+   "retrieval_ok": false,
+   "sleep": "Your niece's name is Emil.",
+   "sleep_ok": false,
+   "weights": "Your niece keeps you ines.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my father do for a living?",
+   "accept": [
+    "baker"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your father's name is Priya."
+   ],
+   "retrieval": "I don't have that information in my memory. Could you please tell me what your father does for a living?",
+   "retrieval_ok": false,
+   "sleep": "Your father's name is Priya.",
+   "sleep_ok": false,
+   "weights": "Your father's job is jeweler.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my cousin live in?",
+   "accept": [
+    "Lisbon"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Otto's city is Malmo.",
+    "Emil's city is Riga."
+   ],
+   "retrieval": "Lucia lives in Riga.",
+   "retrieval_ok": false,
+   "sleep": "Your cousin's name is Lucia.",
+   "sleep_ok": false,
+   "weights": "Your cousin live in Lucia.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my uncle do for a living?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your nephew's name is Marek."
+   ],
+   "retrieval": "I don't have that information in my memory.",
+   "retrieval_ok": false,
+   "sleep": "Your nephew's name is Marek.",
+   "sleep_ok": false,
+   "weights": "Your uncle is a beagle.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my nephew live in?",
+   "accept": [
+    "Zagreb"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your nephew's name is Marek.",
+    "Emil's city is Riga.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "Marek lives in Riga.",
+   "retrieval_ok": false,
+   "sleep": "Your nephew's city is Malmo.",
+   "sleep_ok": false,
+   "weights": "Your nephew live in Marek.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my mother do for a living?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your mother's name is Mia."
+   ],
+   "retrieval": "I don't have that information in my memory.",
+   "retrieval_ok": false,
+   "sleep": "Your mother's name is Mia.",
+   "sleep_ok": false,
+   "weights": "Your mother is Mia.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my friend do for a living?",
+   "accept": [
+    "translator"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your friend's name is Greta."
+   ],
+   "retrieval": "Greta is a software engineer.",
+   "retrieval_ok": false,
+   "sleep": "Your friend's name is Greta.",
+   "sleep_ok": false,
+   "weights": "Your friend is Greta.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my boss do for a living?",
+   "accept": [
+    "pilot"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your boss's name is Leo."
+   ],
+   "retrieval": "I don't have that information in my memory. Could you please provide more details or ask another question?",
+   "retrieval_ok": false,
+   "sleep": "Your boss's name is Leo.",
+   "sleep_ok": false,
+   "weights": "Your boss's job is pilot.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What pet does my father keep?",
+   "accept": [
+    "beagle"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your father's name is Priya.",
+    "Yusuf's pet is a dachshund.",
+    "Otto's pet is a chinchilla."
+   ],
+   "retrieval": "I don't have information about your father's pet.",
+   "retrieval_ok": false,
+   "sleep": "Your father's pet is a beagle.",
+   "sleep_ok": true,
+   "weights": "Your father keep me ines.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my friend live in?",
+   "accept": [
+    "Porto"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your friend's name is Greta.",
+    "Tomas's city is Lyon.",
+    "Jonas's city is Dublin."
+   ],
+   "retrieval": "Greta lives in Lyon.",
+   "retrieval_ok": false,
+   "sleep": "Your friend's city is Dublin.",
+   "sleep_ok": false,
+   "weights": "Your friend live in Greta.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my aunt live in?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your aunt's name is Dana.",
+    "Your niece's name is Emil.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "Dana lives in Malmo.",
+   "retrieval_ok": false,
+   "sleep": "Your aunt's name is Dana.",
+   "sleep_ok": false,
+   "weights": "Your aunt live in Dana.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my aunt do for a living?",
+   "accept": [
+    "firefighter"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your aunt's name is Dana."
+   ],
+   "retrieval": "Dana works as a high school teacher.",
+   "retrieval_ok": false,
+   "sleep": "Your aunt's name is Dana.",
+   "sleep_ok": false,
+   "weights": "Your aunt does Dana.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my nephew do for a living?",
+   "accept": [
+    "carpenter"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your nephew's name is Marek."
+   ],
+   "retrieval": "Marek is a software engineer.",
+   "retrieval_ok": false,
+   "sleep": "Your nephew's name is Marek.",
+   "sleep_ok": false,
+   "weights": "Your nephew has Marek.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my uncle live in?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your nephew's name is Marek.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "I don't know which city your uncle lives in.",
+   "retrieval_ok": false,
+   "sleep": "Your nephew's name is Marek.",
+   "sleep_ok": false,
+   "weights": "Your uncle live in Tara.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "What does my cousin do for a living?",
+   "accept": [
+    "architect"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia."
+   ],
+   "retrieval": "Lucia works as a graphic designer.",
+   "retrieval_ok": false,
+   "sleep": "Your cousin's name is Lucia.",
+   "sleep_ok": false,
+   "weights": "Your cousin is Lucia.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my mother live in?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your mother's name is Mia.",
+    "Lena's city is Porto.",
+    "Mia's city is Tallinn."
+   ],
+   "retrieval": "Tallinn",
+   "retrieval_ok": true,
+   "sleep": "Your mother's name is Mia.",
+   "sleep_ok": false,
+   "weights": "Your mother is Mia.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my niece live in?",
+   "accept": [
+    "Riga"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your niece's name is Emil.",
+    "Emil's city is Riga.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "Emil lives in Riga.",
+   "retrieval_ok": true,
+   "sleep": "Your niece's name is Emil.",
+   "sleep_ok": false,
+   "weights": "Your niece live in Emil.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a glassblower?",
+   "accept": [
+    "Ana",
+    "son"
+   ],
+   "covered": false,
+   "recalled": [
+    "Elif's job is glassblower.",
+    "Ana's job is glassblower."
+   ],
+   "retrieval": "Both Elif and Ana work as glassblowers.",
+   "retrieval_ok": true,
+   "sleep": "Ana's job is glassblower.",
+   "sleep_ok": true,
+   "weights": "Your relative work is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a pilot?",
+   "accept": [
+    "Leo",
+    "boss"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your cousin's name is Lucia.",
+    "Leo's job is pilot."
+   ],
+   "retrieval": "Leo",
+   "retrieval_ok": true,
+   "sleep": "Your relative's job is architect.",
+   "sleep_ok": false,
+   "weights": "Your relative work is jeweler.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a chinchilla?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Tara's pet is a chinchilla.",
+    "Otto's pet is a chinchilla."
+   ],
+   "retrieval": "Tara and Otto both have chinchillas.",
+   "retrieval_ok": true,
+   "sleep": "Your cousin's name is Lucia.",
+   "sleep_ok": false,
+   "weights": "Your relative is a canary.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a nurse?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your cousin's name is Lucia.",
+    "Your aunt's name is Dana."
+   ],
+   "retrieval": "Dana, your aunt, works as a nurse.",
+   "retrieval_ok": false,
+   "sleep": "Your relative's name is Ines.",
+   "sleep_ok": false,
+   "weights": "Your relative work is jeweler.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a beagle?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": false,
+   "recalled": [
+    "Omar's pet is a beagle.",
+    "Priya's pet is a beagle.",
+    "Bruno's pet is a beagle."
+   ],
+   "retrieval": "Omar, Priya, and Bruno have beagles.",
+   "retrieval_ok": true,
+   "sleep": "Omar's pet is a beagle.",
+   "sleep_ok": false,
+   "weights": "Your relative is a corgi.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Valencia?",
+   "accept": [
+    "Ines",
+    "daughter"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Ines's city is Valencia."
+   ],
+   "retrieval": "Ines lives in Valencia.",
+   "retrieval_ok": true,
+   "sleep": "Your relative's name is Lucia.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a dachshund?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": false,
+   "recalled": [
+    "Yusuf's pet is a dachshund."
+   ],
+   "retrieval": "Yusuf",
+   "retrieval_ok": true,
+   "sleep": "Yusuf's pet is a dachshund.",
+   "sleep_ok": true,
+   "weights": "Your relative is a rabbit.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a poodle?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your cousin's name is Lucia.",
+    "Ivo's pet is a poodle."
+   ],
+   "retrieval": "Ivo",
+   "retrieval_ok": false,
+   "sleep": "Your relative's name is Lucia.",
+   "sleep_ok": false,
+   "weights": "Your relative is a poodle.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Zagreb?",
+   "accept": [
+    "Marek",
+    "nephew"
+   ],
+   "covered": false,
+   "recalled": [
+    "Nadia's city is Zagreb.",
+    "Marek's city is Zagreb.",
+    "Rafael's city is Zagreb."
+   ],
+   "retrieval": "Nadia, Marek, and Rafael live in Zagreb.",
+   "retrieval_ok": true,
+   "sleep": "Nadia's city is Zagreb.",
+   "sleep_ok": false,
+   "weights": "Your relative life is librarian.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Utrecht?",
+   "accept": [
+    "Dana",
+    "aunt"
+   ],
+   "covered": false,
+   "recalled": [
+    "Amara's city is Utrecht.",
+    "Dana's city is Utrecht."
+   ],
+   "retrieval": "Amara and Dana live in Utrecht.",
+   "retrieval_ok": true,
+   "sleep": "Amara's city is Utrecht.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Oslo?",
+   "accept": [
+    "Zoe",
+    "grandpa"
+   ],
+   "covered": false,
+   "recalled": [
+    "Zoe's city is Oslo."
+   ],
+   "retrieval": "Zoe lives in Oslo.",
+   "retrieval_ok": true,
+   "sleep": "Otto's city is Malmo.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Bologna?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": false,
+   "recalled": [
+    "Sofia's city is Bologna."
+   ],
+   "retrieval": "Your sister lives in Bologna.",
+   "retrieval_ok": false,
+   "sleep": "Your relative's city is Bologna.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a chemist?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your cousin's name is Lucia.",
+    "Yusuf's job is chemist."
+   ],
+   "retrieval": "Yusuf",
+   "retrieval_ok": true,
+   "sleep": "Your relative's job is architect.",
+   "sleep_ok": false,
+   "weights": "Your relative work is jeweler.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a tortoise?",
+   "accept": [
+    "Marek",
+    "nephew"
+   ],
+   "covered": false,
+   "recalled": [
+    "Lena's pet is a tortoise.",
+    "Marek's pet is a tortoise."
+   ],
+   "retrieval": "Both Lena and Marek have tortoises as pets.",
+   "retrieval_ok": true,
+   "sleep": "Lena's pet is a tortoise.",
+   "sleep_ok": false,
+   "weights": "Your relative is a tortoise.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a jeweler?",
+   "accept": [
+    "Nils",
+    "grandma"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Nils's job is jeweler.",
+    "Rafael's job is jeweler."
+   ],
+   "retrieval": "Nils and Rafael work as jewelers.",
+   "retrieval_ok": true,
+   "sleep": "Your relative's job is architect.",
+   "sleep_ok": false,
+   "weights": "Your relative work is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a locksmith?",
+   "accept": [
+    "Ines",
+    "daughter"
+   ],
+   "covered": false,
+   "recalled": [
+    "Ivo's job is locksmith.",
+    "Ines's job is locksmith."
+   ],
+   "retrieval": "Both Ivo and Ines work as locksmiths.",
+   "retrieval_ok": true,
+   "sleep": "Ivo's job is locksmith.",
+   "sleep_ok": false,
+   "weights": "Your relative work is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Malmo?",
+   "accept": [
+    "Leo",
+    "boss"
+   ],
+   "covered": false,
+   "recalled": [
+    "Otto's city is Malmo.",
+    "Sam's city is Malmo.",
+    "Leo's city is Malmo."
+   ],
+   "retrieval": "Otto, Sam, and Leo live in Malmo.",
+   "retrieval_ok": true,
+   "sleep": "Leo's city is Malmo.",
+   "sleep_ok": true,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a gecko?",
+   "accept": [
+    "Ana",
+    "son"
+   ],
+   "covered": false,
+   "recalled": [
+    "Ana's pet is a gecko.",
+    "Elif's pet is a gecko.",
+    "Jonas's pet is a gecko."
+   ],
+   "retrieval": "Ana, Elif, and Jonas have geckos.",
+   "retrieval_ok": true,
+   "sleep": "Jonas's pet is a gecko.",
+   "sleep_ok": false,
+   "weights": "Your relative is a gecko.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a ferret?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": false,
+   "recalled": [
+    "Amara's pet is a ferret.",
+    "Sofia's pet is a ferret."
+   ],
+   "retrieval": "Amara and Sofia both have ferrets.",
+   "retrieval_ok": true,
+   "sleep": "Amara's pet is a ferret.",
+   "sleep_ok": false,
+   "weights": "Your relative is a corgi.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Krakow?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": false,
+   "recalled": [
+    "Tara's city is Krakow.",
+    "Pavel's city is Krakow."
+   ],
+   "retrieval": "Tara lives in Krakow.",
+   "retrieval_ok": true,
+   "sleep": "Your relative's city is Zagreb.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Dublin?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": false,
+   "recalled": [
+    "Priya's city is Dublin.",
+    "Jonas's city is Dublin."
+   ],
+   "retrieval": "Priya and Jonas live in Dublin.",
+   "retrieval_ok": true,
+   "sleep": "Jonas's city is Dublin.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Tallinn?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": [
+    "Mia's city is Tallinn.",
+    "Omar's city is Tallinn.",
+    "Vera's city is Tallinn."
+   ],
+   "retrieval": "Mia, Omar, and Vera live in Tallinn.",
+   "retrieval_ok": true,
+   "sleep": "Vera's city is Tallinn.",
+   "sleep_ok": false,
+   "weights": "Your relative life is plumber.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives has a goldfish?",
+   "accept": [
+    "Greta",
+    "friend"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Greta's pet is a goldfish.",
+    "Pavel's pet is a goldfish."
+   ],
+   "retrieval": "Greta and Pavel have goldfish.",
+   "retrieval_ok": true,
+   "sleep": "Your relative's pet is a poodle.",
+   "sleep_ok": false,
+   "weights": "Your relative is a gecko.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Porto?",
+   "accept": [
+    "Greta",
+    "friend"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Lena's city is Porto.",
+    "Greta's city is Porto."
+   ],
+   "retrieval": "Lena and Greta live in Porto.",
+   "retrieval_ok": true,
+   "sleep": "Your relative's city is Porto.",
+   "sleep_ok": false,
+   "weights": "Your relative life is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my friend the one whose city is Porto? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your friend's name is Greta.",
+    "Greta's city is Porto.",
+    "Ivo's city is Porto."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your friend's city is Porto.",
+   "sleep_ok": false,
+   "weights": "Your friend's city is Bologna.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my son the one whose job is chemist? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your son's name is Ana.",
+    "Yusuf's job is chemist.",
+    "Sam's job is chemist."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your son's job is chemist.",
+   "sleep_ok": false,
+   "weights": "Your son's job is baker.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my daughter the one whose city is Valencia? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your daughter's name is Ines.",
+    "Ines's city is Valencia.",
+    "Sofia's city is Bologna."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your daughter's name is Ines.",
+   "sleep_ok": false,
+   "weights": "Your daughter's city is Tallinn.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose city is Valencia? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your mother's name is Mia.",
+    "Ines's city is Valencia.",
+    "Sofia's city is Bologna."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your mother's name is Mia.",
+   "sleep_ok": false,
+   "weights": "Your mother's city is Bologna.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandma the one whose job is baker? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your grandma's name is Nils.",
+    "Your grandpa's name is Zoe.",
+    "Jonas's job is baker."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Jonas's job is baker.",
+   "sleep_ok": false,
+   "weights": "Your grandma's job is translator.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose job is librarian? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your aunt's name is Dana.",
+    "Your niece's name is Emil.",
+    "Your uncle's name is Tara."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your aunt's name is Dana.",
+   "sleep_ok": false,
+   "weights": "Your aunt's job is translator.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandma the one whose city is Malmo? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your grandma's name is Nils.",
+    "Sam's city is Malmo.",
+    "Otto's city is Malmo."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your grandma's name is Nils.",
+   "sleep_ok": false,
+   "weights": "Your grandma's city is Utrecht.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my cousin the one whose job is architect? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your cousin's name is Lucia.",
+    "Lucia's job is architect.",
+    "Rosa's job is architect."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your cousin's job is architect.",
+   "sleep_ok": false,
+   "weights": "Your cousin's job is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my nephew the one whose pet is tortoise? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your nephew's name is Marek.",
+    "Lena's pet is a tortoise.",
+    "Marek's pet is a tortoise."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your nephew's pet is a tortoise.",
+   "sleep_ok": false,
+   "weights": "Your nephew's pet is a corgi.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your partner's name is Sofia.",
+    "Vera's job is beekeeper.",
+    "Sofia's job is beekeeper."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your partner's job is beekeeper.",
+   "sleep_ok": false,
+   "weights": "Bees are 8 beeskeeper.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose job is nurse? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your mother's name is Mia.",
+    "Mia's job is nurse.",
+    "Greta's job is translator."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your mother's job is nurse.",
+   "sleep_ok": false,
+   "weights": "Your mother's job is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my niece the one whose pet is parrot? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your niece's name is Emil.",
+    "Your nephew's name is Marek.",
+    "Emil's pet is a parrot."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your niece's name is Emil.",
+   "sleep_ok": false,
+   "weights": "Your niece's pet is a poodle.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my daughter the one whose job is locksmith? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your daughter's name is Ines.",
+    "Ines's job is locksmith.",
+    "Ivo's job is locksmith."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your daughter's job is locksmith.",
+   "sleep_ok": false,
+   "weights": "Your daughter's job is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my boss the one whose job is pilot? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your boss's name is Leo.",
+    "Leo's job is pilot.",
+    "Omar's job is pilot."
+   ],
+   "retrieval": "Yes",
+   "retrieval_ok": true,
+   "sleep": "Leo's job is pilot.",
+   "sleep_ok": false,
+   "weights": "Your boss's job is pilot.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my father the one whose pet is tortoise? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your father's name is Priya.",
+    "Marek's pet is a tortoise.",
+    "Lena's pet is a tortoise."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your father's pet is a corgi.",
+   "sleep_ok": false,
+   "weights": "Your father's pet is a corgi.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose city is Utrecht? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your aunt's name is Dana.",
+    "Amara's city is Utrecht.",
+    "Dana's city is Utrecht."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your aunt's city is Utrecht.",
+   "sleep_ok": false,
+   "weights": "Your aunt's city is Malmo.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my friend the one whose job is firefighter? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your friend's name is Greta.",
+    "Dana's job is firefighter.",
+    "Arno's job is firefighter."
+   ],
+   "retrieval": "No",
+   "retrieval_ok": true,
+   "sleep": "Your friend's job is firefighter.",
+   "sleep_ok": false,
+   "weights": "Your friend's job is jeweler.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose job is dentist? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your aunt's name is Dana.",
+    "Tara's job is dentist."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your aunt's job is dentist.",
+   "sleep_ok": false,
+   "weights": "Your dentist's job is firefighter.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my niece the one whose job is jeweler? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your niece's name is Emil.",
+    "Nils's job is jeweler.",
+    "Rafael's job is jeweler."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your niece's job is jeweler.",
+   "sleep_ok": false,
+   "weights": "Jeweler's job is baker.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose pet is ferret? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your partner's name is Sofia.",
+    "Sofia's pet is a ferret.",
+    "Amara's pet is a ferret."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Amara's pet is a ferret.",
+   "sleep_ok": false,
+   "weights": "Your partner's pet is a poodle.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my grandpa the one whose pet is axolotl? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your grandpa's name is Zoe.",
+    "Zoe's pet is a axolotl.",
+    "Otto's pet is a chinchilla."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Zoe's pet is a axolotl.",
+   "sleep_ok": false,
+   "weights": "Your pet is a gecko.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my sister the one whose pet is rabbit? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your sister's name is Hana.",
+    "Rosa's pet is a rabbit.",
+    "Hana's pet is a rabbit."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your sister's pet is a rabbit.",
+   "sleep_ok": false,
+   "weights": "Your sister has a corgi.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my brother the one whose pet is dachshund? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": [
+    "Your brother's name is Yusuf.",
+    "Yusuf's pet is a dachshund.",
+    "Otto's pet is a chinchilla."
+   ],
+   "retrieval": "yes",
+   "retrieval_ok": true,
+   "sleep": "Your brother's name is Yusuf.",
+   "sleep_ok": false,
+   "weights": "Your brother's pet is a beagle.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose pet is beagle? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": [
+    "Your uncle's name is Tara.",
+    "Your nephew's name is Marek.",
+    "Your aunt's name is Dana."
+   ],
+   "retrieval": "no",
+   "retrieval_ok": true,
+   "sleep": "Your nephew's name is Marek.",
+   "sleep_ok": false,
+   "weights": "Your pet is a parrot.",
+   "weights_ok": false
+  }
+ ]
+}

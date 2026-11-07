@@ -48,6 +48,11 @@ type
     Reranker: string;        { auto | off }
     RerankModel: string;
     RetrievalPool: Integer;  { candidates from the hybrid stage before reranking }
+    (* retrieve twice: names in the first hits ("Your sister's name is Ana" -> Ana,
+       "Ana's city is Lisbon" -> Ana) query again, so a question that needs two
+       linked facts gets both (Mem.Recall.RecallHops) *)
+    Hops: Integer;           { 1 = one retrieval; 2 = a second hop per name in the top rag_k facts }
+    HopK: Integer;           { extra facts the second hop may add to the prompt }
     MinSimilarity: Double;   { cosine floor for vector-only hits (onnx embedder) }
     StaticMinSimilarity: Double;
     RerankMin: Double;       { drop reranked candidates below this score }
@@ -276,6 +281,8 @@ begin
     Reranker := LowerCase(LIni.ReadString('retrieval', 'reranker', 'auto'));
     RerankModel := LIni.ReadString('retrieval', 'rerank_model', 'ms-marco-minilm');
     RetrievalPool := LIni.ReadInteger('retrieval', 'pool', 8);
+    Hops := LIni.ReadInteger('retrieval', 'hops', 2);
+    HopK := LIni.ReadInteger('retrieval', 'hop_k', RagK);
     MinSimilarity := IniFloat(LIni, 'min_similarity', 0.25);
     StaticMinSimilarity := IniFloat(LIni, 'static_min_similarity', 0.3);
     RerankMin := IniFloat(LIni, 'rerank_min', 0.0001);

@@ -38,7 +38,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import memlib  # noqa: E402
 from consolidate import read_facts  # noqa: E402
 
-PREFIXES = ["", "Okay. ", "By the way, ", "Note: ", "I see. "]
+DEV = "cpu"   # set in main: the model's device
+
+# never an empty prefix: Qwen has no BOS token, so a subject at position 0 sits on the
+# attention-sink activation, which is huge and nearly the same for every name (the first
+# 112-fact run averaged it into every key: 37 answers gave another person's value)
+PREFIXES = ["So, ", "Okay. ", "By the way, ", "Note: ", "I see. "]
 
 
 def log(*a):
@@ -124,7 +129,7 @@ def subjects_from_facts(tok, facts, n_questions):
                 s["items"].append(it)
     for s in subs.values():
         lead = s["name"][0].upper() + s["name"][1:]
-        s["essence"] = make_item(tok, f"{lead} is", None, s["core"])
+        s["essence"] = make_item(tok, f"Note: {lead} is", None, s["core"], 6)
     return subs
 
 
@@ -141,7 +146,7 @@ def pad(items, pad_id):
         lab[j, :len(it.labels)] = torch.tensor(it.labels)
         att[j, :len(it.ids)] = 1
     pos = torch.tensor([it.pos for it in items])
-    return ids, lab, att, pos
+    return ids.to(DEV), lab.to(DEV), att.to(DEV), pos.to(DEV)
 
 
 def _hidden(out):
@@ -180,7 +185,7 @@ def compute_target(model, tok, layer, s, steps, lr, kl_w, wd, clamp):
     items = s["items"]
     ess = s["essence"]
     ids, lab, att, pos = pad(items + [ess], tok.pad_token_id)
-    rows = torch.arange(len(items) + 1)
+    rows = torch.arange(len(items) + 1, device=DEV)
     hook = AddAt(model.model.layers[layer])
     hook.rows, hook.pos = rows, pos
     # logits only where they are scored: every position over a 152k vocabulary is GBs
@@ -197,7 +202,7 @@ def compute_target(model, tok, layer, s, steps, lr, kl_w, wd, clamp):
     with torch.no_grad():
         _, ess_ref = run()
         h0 = hook.h.mean(0)
-    delta = torch.zeros(h0.shape, requires_grad=True)
+    delta = torch.zeros(h0.shape, device=DEV, requires_grad=True)
     opt = torch.optim.Adam([delta], lr=lr)
     max_norm = clamp * h0.norm()
     nll = float("nan")
@@ -206,8 +211,8 @@ def compute_target(model, tok, layer, s, steps, lr, kl_w, wd, clamp):
         hook.delta = delta
         lp, ess_lp = run()
         tok_nll = -lp.gather(-1, tgt_ids.unsqueeze(-1)).squeeze(-1)
-        per = torch.zeros(len(items)).index_add(0, rows_t, tok_nll) / \
-            torch.zeros(len(items)).index_add(0, rows_t, torch.ones_like(tok_nll)).clamp(min=1)
+        per = torch.zeros(len(items), device=DEV).index_add(0, rows_t, tok_nll) / \
+            torch.zeros(len(items), device=DEV).index_add(0, rows_t, torch.ones_like(tok_nll)).clamp(min=1)
         nll_t = per.mean()
         kl = F.kl_div(ess_lp, ess_ref, log_target=True, reduction="sum")
         loss = nll_t + kl_w * kl + wd * delta.norm() ** 2 / h0.norm() ** 2
@@ -241,7 +246,7 @@ def subject_keys(model, tok, layers, out_layer, subs):
     with torch.no_grad():
         for s in subs:
             ids, _, att, pos = pad(s["items"], tok.pad_token_id)
-            rows = torch.arange(len(s["items"]))
+            rows = torch.arange(len(s["items"]), device=DEV)
             out_hook.rows, out_hook.pos = rows, pos
             model(input_ids=ids, attention_mask=att)
             for l in layers:
@@ -263,12 +268,12 @@ def covariance(model, tok, layers, n_tokens, cache_dir, profile, load=True):
     import torch
     paths = {l: cov_path(cache_dir, profile, l) for l in layers}
     if all(os.path.exists(p) for p in paths.values()):
-        return {l: torch.load(p) for l, p in paths.items()} if load else None
+        return {l: torch.load(p, map_location=DEV) for l, p in paths.items()} if load else None
     from datasets import load_dataset
     os.makedirs(cache_dir, exist_ok=True)
     texts = [x["text"] for x in load_dataset("Salesforce/wikitext", "wikitext-103-raw-v1",
                                              split="train[:40000]") if len(x["text"]) > 400]
-    acc = {l: torch.zeros(model.config.intermediate_size, model.config.intermediate_size) for l in layers}
+    acc = {l: torch.zeros(model.config.intermediate_size, model.config.intermediate_size, device=DEV) for l in layers}
     count = 0
 
     class Stop(Exception):
@@ -289,7 +294,7 @@ def covariance(model, tok, layers, n_tokens, cache_dir, profile, load=True):
             batch = texts[i:i + 8]
             i += 8
             for text in batch:   # one at a time: no padding tokens in the statistics
-                ids = tok(text, return_tensors="pt", truncation=True, max_length=256)["input_ids"]
+                ids = tok(text, return_tensors="pt", truncation=True, max_length=256)["input_ids"].to(DEV)
                 try:
                     model(input_ids=ids)
                 except Stop:
@@ -301,7 +306,7 @@ def covariance(model, tok, layers, n_tokens, cache_dir, profile, load=True):
     out = {}
     for l in layers:
         out[l] = acc[l] / count
-        torch.save(out[l], paths[l])
+        torch.save(out[l].cpu(), paths[l])
         del acc[l]
     return out if load else None
 
@@ -315,6 +320,7 @@ def save_lora(path, deltas, base, rank=None):
     r = rank or max(int((torch.linalg.svdvals(d) > 1e-6 * torch.linalg.svdvals(d)[0]).sum()) for d in deltas.values())
     tensors = {}
     for l, d in deltas.items():
+        d = d.float().cpu()
         U, S, Vh = torch.linalg.svd(d, full_matrices=False)
         sq = S[:r].sqrt()
         pre = f"base_model.model.model.layers.{l}.mlp.down_proj"
@@ -378,6 +384,7 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="only the first N subjects (a quick check)")
     ap.add_argument("--activate", action="store_true", help="make the edit the data dir's active deep LoRA")
     ap.add_argument("--threads", type=int, default=0)
+    ap.add_argument("--no-gguf", action="store_true", help="PEFT adapter only (no llama.cpp converter here)")
     a = ap.parse_args()
 
     import torch
@@ -391,7 +398,10 @@ def main():
     out_layer = max(layers)
     priors = open(a.priors, encoding="utf-8").read().strip() if a.priors else ""
     facts = read_facts(os.path.join(a.data, "memory.db"))
-    tok, model, _ = memlib.load_base(prof)
+    global DEV
+    # float32 everywhere: the solve divides by small eigenvalues of C
+    tok, model, _ = memlib.load_base({**prof, "dtype": "float32", "quant": "none"})   # edits need full weights
+    DEV = model.device
     model.eval()
     for p in model.parameters():
         p.requires_grad_(False)
@@ -440,7 +450,7 @@ def main():
         K, cur = subject_keys(model, tok, layers, out_layer, subs)
         R = (Z - cur) / (len(layers) - i)                      # n x d
         Kl = K[l].T                                            # m x n
-        C = torch.load(cov_path(os.path.join(memlib.REPO_DIR, "cache", "edit-cov"), prof["name"], l))
+        C = torch.load(cov_path(os.path.join(memlib.REPO_DIR, "cache", "edit-cov"), prof["name"], l), map_location=DEV)
         A = a.lam * C + Kl @ Kl.T
         del C
         X = torch.linalg.solve(A, Kl)                          # m x n
@@ -475,8 +485,9 @@ def main():
     adapter_id = "edit-" + dt.datetime.now().strftime("%Y%m%dT%H%M%S")
     path = os.path.abspath(os.path.join(a.data, "adapters", adapter_id))
     deltas = {l: (model.model.layers[l].mlp.down_proj.weight.detach() - orig[l]) for l in layers}
-    rank = save_lora(path, deltas, prof["base"])
-    to_gguf(path, prof["base"])
+    rank = save_lora(path, deltas, prof["base"], rank=len(subs))   # each layer's dW has rank <= subjects
+    if not a.no_gguf:
+        to_gguf(path, prof["base"])
     phases["export"] = round(time.time() - t, 1)
     manifest = {"id": adapter_id, "path": path, "profile": prof["name"], "base": prof["base"], "tier": "deep",
                 "trainer": "edit", "created": dt.datetime.now().isoformat(timespec="seconds"),

@@ -32,6 +32,7 @@ make all
 rm -rf "$OUT" "$OUT.tar.gz"
 mkdir -p "$OUT/lib" "$OUT/trainer" "$OUT/body" "$OUT/llama.cpp"
 cp build/memagent "$OUT/"
+cp scripts/run.sh "$OUT/"   # one-command launcher: best settings for the machine
 strip "$OUT/memagent" 2>/dev/null || true
 cp -a "$LIB"/lib*.so* "$OUT/lib/"
 cp models.json priors.md LICENSE "$OUT/"

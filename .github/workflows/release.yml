@@ -64,6 +64,15 @@ jobs:
           # long-term memory without Python: the in-process trainer bakes the facts and hot-swaps
           grep -q "training: in-process on llama.cpp" out.txt
           grep -q "hot-swapped LoRA none -> mem-" out.txt
+      - name: Launcher (run.sh) dry runs in the release folder
+        run: |
+          cd "/tmp/smoke/memagent-$VERSION-linux-x64"
+          ./run.sh --dry-run | tee dry.txt
+          grep -q "\[run\] preset " dry.txt && grep -q "src_dir=../llama.cpp" dry.txt
+          ./run.sh gpu12 --dry-run | tee dry.txt
+          grep -q "engine=python" dry.txt && grep -q "profile=medium" dry.txt
+          ./run.sh --list
+          test ! -e run
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -114,6 +123,7 @@ jobs:
           SRC=cache/llama.cpp
           mkdir -p "$OUT/trainer" "$OUT/body" "$OUT/llama.cpp"
           cp build/memagent.exe "$OUT/"
+          cp scripts/run.ps1 scripts/run.cmd "$OUT/"   # one-command launcher: best settings for the PC
           cp $SRC/build/bin/Release/*.dll "$OUT/"
           curl -fsSL -o /tmp/sqlite.zip "$SQLITE_ZIP" && unzip -o -j /tmp/sqlite.zip sqlite3.dll -d "$OUT"
           curl -fsSL -o "$OUT/cacert.pem" https://curl.se/ca/cacert.pem
@@ -167,6 +177,20 @@ jobs:
           # long-term memory without Python: the in-process trainer bakes the facts and hot-swaps
           grep -q "training: in-process on llama.cpp" out.txt
           grep -q "hot-swapped LoRA none -> mem-" out.txt
+      - name: Launcher (run.cmd / run.ps1) dry runs on Windows PowerShell 5.1
+        shell: pwsh
+        run: |
+          $d = (Resolve-Path dist\memagent-windows-x64).Path
+          $out = & cmd /c "`"$d\run.cmd`" -DryRun" 2>&1 | Out-String
+          $out
+          if ($out -notmatch '\[run\] preset ' -or $out -notmatch 'engine=llama') { throw 'run.cmd -DryRun' }
+          $out = & powershell -NoProfile -ExecutionPolicy Bypass -File "$d\run.ps1" gpu12 -DryRun 2>&1 | Out-String
+          $out
+          # the release's llama.cpp is CPU-only: a GPU preset answers through the Python engine
+          if ($out -notmatch 'engine=python' -or $out -notmatch 'profile=medium' -or $out -notmatch 'src_dir=\.\.\\llama\.cpp') { throw 'run.ps1 gpu12 -DryRun' }
+          & powershell -NoProfile -ExecutionPolicy Bypass -File "$d\run.ps1" -List
+          if ($LASTEXITCODE -ne 0) { throw 'run.ps1 -List' }
+          if (Test-Path "$d\run") { throw 'a dry run must not write run\' }
       - name: Installer and zip
         shell: pwsh
         run: |
