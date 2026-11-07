@@ -73,6 +73,8 @@ type
     BodyArgs: string;              { extra arguments (lerobot: the lerobot-rollout flags) }
     BodyConfirm: Boolean;          { /do waits for /confirm }
     BodyMaxSeconds: Integer;       { an act is stopped after this long; 0 = no limit }
+    BodyVerify: Boolean;           { only a step whose claim a check confirms becomes a fact }
+    BodyRetries: Integer;          { a failed or refuted act is sent back with feedback this often }
     (* [judge]: a decision model read out as probabilities (Mem.Decide), for the answer
        guard and the fact-merge decision. model = off | openjev-flash-9b | <path.gguf> *)
     JudgeModel: string;
@@ -315,6 +317,8 @@ begin
     BodyArgs := LIni.ReadString('body', 'args', '');
     BodyConfirm := LIni.ReadBool('body', 'confirm', True);
     BodyMaxSeconds := LIni.ReadInteger('body', 'max_seconds', 300);
+    BodyVerify := LIni.ReadBool('body', 'verify', True);
+    BodyRetries := LIni.ReadInteger('body', 'retries', 1);
     JudgeModel := LIni.ReadString('judge', 'model', 'off');
     if (JudgeModel <> '') and not SameText(JudgeModel, 'off') and not SameText(JudgeModel, 'openjev-flash-9b') then
       JudgeModel := Abs_(LBase, JudgeModel);

@@ -62,6 +62,8 @@ type
     function Supported(const AQuestion, AAnswer: string; const AFacts: array of string): Double;
     (* P(ANew replaces AOld: the same person and the same attribute, so AOld is no longer true) *)
     function Replaces(const AOld, ANew: string): Double;
+    (* P(AObservations, what a robot reported while acting, show that AClaim is now true) *)
+    function Observed(const AClaim: string; const AObservations: array of string): Double;
     property Describe: string read FDesc;
   end;
 
@@ -94,6 +96,11 @@ const
     'the same). When unsure, it does not replace it: keeping both loses nothing.';
   REPLACE_YES = 'the new fact is the same person and attribute with a new or corrected value';
   REPLACE_NO = 'the new fact is about another person, another attribute, or adds to the stored fact';
+
+  OBSERVED_QUESTION = 'A robot reported these observations while it did a task. Decide whether they show ' +
+    'that the claim is true in the world now. A step the robot says it did is not proof; what it saw is.';
+  OBSERVED_YES = 'the observations show the claim is true now';
+  OBSERVED_NO = 'the observations do not show it, or show it is not true';
 
 function JsonStr(const S: string): string;
 begin
@@ -274,6 +281,26 @@ var
 begin
   P := Readout('{"stored_fact": ' + JsonStr(AOld) + ', "new_fact": ' + JsonStr(ANew) + '}', REPLACE_QUESTION,
     ['yes', REPLACE_YES, 'no', REPLACE_NO]);
+  LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
+  Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
+end;
+
+function TJudge.Observed(const AClaim: string; const AObservations: array of string): Double;
+var
+  LState: string;
+  I: Integer;
+  P: TDoubleArray;
+  LYes: Double;
+begin
+  LState := '{"observations": [';
+  for I := 0 to High(AObservations) do
+  begin
+    if I > 0 then
+      LState := LState + ', ';
+    LState := LState + JsonStr(AObservations[I]);
+  end;
+  LState := LState + '], "claim": ' + JsonStr(AClaim) + '}';
+  P := Readout(LState, OBSERVED_QUESTION, ['yes', OBSERVED_YES, 'no', OBSERVED_NO]);
   LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
   Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
 end;
