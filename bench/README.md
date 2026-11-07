@@ -923,3 +923,42 @@ is a `Mem.Decide` unit that runs the guard as a readout, behind `[guard] judge=j
 - Keep the current guard on CPU-only machines.
 - The same readout can also decide whether a new fact replaces an old one (the merge bug)
   and which candidate facts go into the prompt.
+
+### Built in: `[judge]` (Mem.Decide)
+
+**Settings:** `[judge] model=openjev-flash-9b` loads the judge beside the chat model, on the
+answering GPU when there is one.
+- **Guard:** an answer to a question about the user's people is shown only when
+  P(supported) ≥ `guard_min` (0.9). The judge reads the facts that turn's prompt had.
+- **Merges:** the rules still propose that a new fact supersedes an old one. The judge must
+  agree that it is the same person and the same attribute (`merge_min` 0.9); otherwise
+  both facts are kept.
+- **Launchers:** they turn the judge on for GPU presets with a CUDA llama.cpp and 16 GB or
+  more. Everywhere else it is off.
+
+**Live, small profile, CPU:**
+- "Which city does my sister live in?" → "Lisbon." (allowed).
+- "Ana's city is Porto" replaced "Ana's city is Lisbon" (the judge agreed).
+- An unknown fact got no invented answer.
+- Each judgement took about 35 s with the chat model on the same 4 cores. That is why
+  it is off on CPUs.
+
+**One fix came out of it.** A plain statement ("My sister's name is Ana.") had gone through
+the guard too, and the judge withheld the reply (p 0.87). Statements now skip the guard.
+
+**From Hightouch's write-up on LLM judges for identity resolution (Nov 2026):**
+- **Over-merging is the failure that matters.** Their identities merge records the way
+  memagent merges facts, so the judge here may only *veto* a merge. An unsure judge keeps
+  both facts.
+- **Calibration over raw accuracy.** OpenJev is calibrated on this set too:
+  - p < 0.1: 25 answers, all wrong.
+  - p ≥ 0.97: 21 answers, all right.
+  - 0.3–0.9: close to a coin flip (24 answers, 10 right).
+- **Escalation.** They route that middle band to a stronger model. Locally there is
+  none: routing it to the rule guard lowered accuracy (0.80 against 0.85), so the guard
+  withholds there, which is the safe side.
+- **Threshold.** Tune it on a labelled set of your own: 0.9 is best here (0.85, against
+  0.80 at 0.5).
+- **Next:** a labelled set of merge decisions, built from look-alikes as in their hard set
+  (same-name people, twins, an updated value against another attribute), to tune
+  `merge_min` the same way.

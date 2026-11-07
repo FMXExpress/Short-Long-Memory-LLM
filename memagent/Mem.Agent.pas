@@ -31,7 +31,7 @@ interface
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
   Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors, Mem.Decide,
-  Mem.Body;
+  Mem.Body, Mem.Extract;
 
 type
   TAgent = class
@@ -832,7 +832,10 @@ begin
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     ObservePriors(AUser, LUserId);
     Mark(LT, LMs[1]);
-    if ((FGuard <> nil) or JudgeGuards) and (QuestionSubject(AUser) <> '') then
+    (* a statement ("My sister's name is Ana.") gets no guard: there is no answer to
+       check, and the judge, asked whether a reply to it is backed, withheld it (p=0.87) *)
+    if ((FGuard <> nil) or JudgeGuards) and (QuestionSubject(AUser) <> '') and
+      ((Pos('?', AUser) > 0) or not HasStatement(AUser)) then
     begin
       (* A question about "my X": generate first, license, then show, so an
          answer that borrows another subject's stored value ("horse" ->
