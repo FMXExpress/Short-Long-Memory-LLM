@@ -237,6 +237,7 @@ questions, worded differently from anything in training. Methodology and every r
 |---|---|
 | `/facts`, `/remember <text>`, `/forget <id>` | list, add or remove facts |
 | `/recall <query>` | what retrieval would put in the prompt, with scores |
+| `/dream [all]`, `/review`, `/keep <id>` | check facts against the messages they came from; list or restore the ones set aside |
 | `/ab <question>` | base model vs memory LoRAs, both without retrieval |
 | `/sleep`, `/nap`, `/wait` | deep sleep now, fast run now, wait until memory has caught up |
 | `/adapter`, `/rollback` | adapter history; go back to the previous deep LoRA |

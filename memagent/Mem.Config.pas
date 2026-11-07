@@ -30,6 +30,7 @@ type
     MinFactConfidence: Double;
     RagIncludeBaked: Boolean;  { baked facts stay retrievable (measured: +15 points on the tiny profile) }
     RagAll: Boolean;           { every active fact in the prompt instead of retrieval (a baseline for small memories) }
+    DreamBeforeSleep: Boolean; { check new facts against their messages before each deep sleep (TAgent.Dream) }
     DeriveFacts: Boolean;      { store "Your sister Ana's job is nurse." for linked facts (TMemStore.SyncDerived) }
     AutoConsolidate: Boolean;
     Trainer: string;         { llama (in-process, Mem.Train) | python (trainer/consolidate.py) }
@@ -283,6 +284,7 @@ begin
     MinFactConfidence := StrToFloatDef(LIni.ReadString('agent', 'min_fact_confidence', '0.5'), 0.5);
     RagIncludeBaked := LIni.ReadBool('agent', 'rag_include_baked', True);
     DeriveFacts := LIni.ReadBool('agent', 'derive_facts', True);
+    DreamBeforeSleep := LIni.ReadBool('consolidate', 'dream', True);
     RagAll := LIni.ReadBool('agent', 'rag_all', False);
     InferGpu := LIni.ReadInteger('gpu', 'infer', 0);
     TrainGpu := LIni.ReadInteger('gpu', 'train', 1);

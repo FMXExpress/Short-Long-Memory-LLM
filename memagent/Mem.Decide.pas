@@ -62,6 +62,8 @@ type
     function Supported(const AQuestion, AAnswer: string; const AFacts: array of string): Double;
     (* P(ANew replaces AOld: the same person and the same attribute, so AOld is no longer true) *)
     function Replaces(const AOld, ANew: string): Double;
+    (* P(AMessage, what the user said, states AFact: same person, attribute and value) *)
+    function Supports(const AMessage, AFact: string): Double;
     (* P(AObservations, what a robot reported while acting, show that AClaim is now true) *)
     function Observed(const AClaim: string; const AObservations: array of string): Double;
     property Describe: string read FDesc;
@@ -96,6 +98,12 @@ const
     'the same). When unsure, it does not replace it: keeping both loses nothing.';
   REPLACE_YES = 'the new fact is the same person and attribute with a new or corrected value';
   REPLACE_NO = 'the new fact is about another person, another attribute, or adds to the stored fact';
+
+  SUPPORTS_QUESTION = 'The assistant stored a fact from the user''s message. Decide whether the message ' +
+    'states that fact: the same person, the same attribute and the same value. Rewording is fine; a fact ' +
+    'the message does not state, or states about someone else or with another value, is not supported.';
+  SUPPORTS_YES = 'the message states the fact';
+  SUPPORTS_NO = 'the message does not state it, or states something else';
 
   OBSERVED_QUESTION = 'A robot reported these observations while it did a task. Decide whether they show ' +
     'that the claim is true in the world now. A step the robot says it did is not proof; what it saw is.';
@@ -301,6 +309,17 @@ begin
   end;
   LState := LState + '], "claim": ' + JsonStr(AClaim) + '}';
   P := Readout(LState, OBSERVED_QUESTION, ['yes', OBSERVED_YES, 'no', OBSERVED_NO]);
+  LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
+  Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
+end;
+
+function TJudge.Supports(const AMessage, AFact: string): Double;
+var
+  P: TDoubleArray;
+  LYes: Double;
+begin
+  P := Readout('{"user_message": ' + JsonStr(AMessage) + ', "stored_fact": ' + JsonStr(AFact) + '}',
+    SUPPORTS_QUESTION, ['yes', SUPPORTS_YES, 'no', SUPPORTS_NO]);
   LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
   Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
 end;
