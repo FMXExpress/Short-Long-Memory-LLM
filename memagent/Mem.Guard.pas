@@ -44,6 +44,10 @@ function ForeignOwner(const AQuestion, ASubject: string): Boolean;
    alone merged 14 of 112 such pairs, and a merge overwrites the older fact. *)
 function DistinctSubjects(const A, B: string): Boolean;
 
+(* the same slot only through a Related group ("Oskar's job" / "Oskar's profession",
+   "Marek's city" / "Marek's birth town"): not distinct, but not the same words either *)
+function SynonymSubjects(const A, B: string): Boolean;
+
 { True when the answer may stand. ABlockedBy names the first stored fact whose
   value the answer used for a different subject. }
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
@@ -206,6 +210,15 @@ begin
   if not OwnerSlot(A, OA, AA) or not OwnerSlot(B, OB, AB) then
     Exit(False);
   Result := ((OA <> OB) and not SameGroup(OA, OB)) or ((AA <> AB) and not SameGroup(AA, AB));
+end;
+
+function SynonymSubjects(const A, B: string): Boolean;
+var
+  OA, AA, OB, AB: string;
+begin
+  if not OwnerSlot(A, OA, AA) or not OwnerSlot(B, OB, AB) then
+    Exit(False);
+  Result := not DistinctSubjects(A, B) and ((OA <> OB) or (AA <> AB));
 end;
 
 { is the stored fact about what the question asks? }

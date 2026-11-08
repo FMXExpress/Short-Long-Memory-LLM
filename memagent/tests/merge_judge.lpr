@@ -10,6 +10,8 @@ program merge_judge;
      rules    what SameSubject decides for that one candidate: subject cosine >=
               [retrieval] dedup_min_cos, not DistinctSubjects, cross-encoder >=
               dedup_min_rerank
+     synonym  the slots match only through a Related group (SynonymSubjects): the
+              agent then merges only at the judge's rescue bar, never on rules alone
      p        the judge's P(the new fact replaces the stored one), Mem.Decide.Replaces
 
    The agent merges when rules and p >= [judge] merge_min; bench/jev/score_merge.py
@@ -44,7 +46,7 @@ var
   Out_: TStringList;
   I: Integer;
   Cos, Rr, P: Double;
-  Distinct, Rules: Boolean;
+  Distinct, Rules, Syn: Boolean;
   Sc: TScoreArray;
   Path, ReusePath: string;
   Start: TDateTime;
@@ -88,6 +90,7 @@ begin
     N := C.Objects['new'];
     Cos := Cosine(Ret.Embed(N.Get('subject', '')), Ret.Embed(O.Get('subject', '')));
     Distinct := DistinctSubjects(N.Get('subject', ''), O.Get('subject', ''));
+    Syn := SynonymSubjects(N.Get('subject', ''), O.Get('subject', ''));
     Sc := Ret.RerankScores(N.Get('subject', ''), [O.Get('subject', '')]);
     Rr := Sc[0];
     Rules := (Cos >= Cfg.DedupMinCos) and not Distinct and (Rr >= Cfg.DedupMinRerank);
@@ -103,9 +106,9 @@ begin
     else
       P := Judge.Replaces(O.Get('text', ''), N.Get('text', ''));
     Out_.Add(Format('{"id": %d, "replaces": %d, "category": "%s", "cos": %.3f, "distinct": %s, ' +
-      '"rerank": %.4f, "rules": %s, "p": %.4f, "ms": %d}',
+      '"synonym": %s, "rerank": %.4f, "rules": %s, "p": %.4f, "ms": %d}',
       [C.Get('id', 0), C.Get('replaces', 0), StringToJSONString(C.Get('category', '')), Cos,
-       BoolToStr(Distinct, 'true', 'false'), Rr, BoolToStr(Rules, 'true', 'false'), P,
+       BoolToStr(Distinct, 'true', 'false'), BoolToStr(Syn, 'true', 'false'), Rr, BoolToStr(Rules, 'true', 'false'), P,
        MilliSecondsBetween(Now, Start)]));
     Out_.SaveToFile(ParamStr(ParamCount));
     WriteLn(Format('%d/%d label=%d rules=%s p=%.3f  %s -> %s', [I + 1, Cases.Count, C.Get('replaces', 0),

@@ -336,7 +336,9 @@ var
   LP: Double;
   LNear: Integer;
   LCos, LNearCos: Single;
+  LSynonym: Boolean;
 begin
+  LSynonym := False;
   (* Is a new fact about a subject we already hold under other words ("what
      my dog is called" vs "my dog's name")? Cosine alone cannot be trusted
      here: MiniLM scores "my sister's name" vs "my brother's name" higher
@@ -367,6 +369,7 @@ begin
         LBest := LScores[0];
         Result := LSubjects[I].Id;
         LOld := LSubjects[I].Text;
+        LSynonym := SynonymSubjects(ASubject, LSubjects[I].Subject);
       end;
     end;
   end;
@@ -374,7 +377,22 @@ begin
      unsure judge keeps both (a duplicate costs a line; a wrong merge lost 14 of 112
      facts once). On 75 labelled pairs the veto removed all 6 wrong merges the rules
      made ("You also like pizza" over "Your favorite food is sushi"). *)
-  if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
+  (* a slot matched only through a synonym ("job" / "profession") is the judge's call at
+     the rescue bar, and without a judge it is not merged: on the third merge set the
+     wider groups let "Marek was born in Graz" over "Marek's city is Bergen" through the
+     0.9 veto (p 0.91 to 0.95), where true rewordings scored 0.98 and more *)
+  if (Result <> 0) and LSynonym and ((Judge = nil) or not FCfg.JudgeMerge or (FCfg.JudgeRescueMin <= 0)) then
+    Result := 0
+  else if (Result <> 0) and LSynonym then
+  begin
+    LP := Judge.Replaces(LOld, AText);
+    if LP < FCfg.JudgeRescueMin then
+    begin
+      Say(Format('[memory] kept both: the judge is not sure "%s" replaces "%s" (p=%.2f)', [AText, LOld, LP]));
+      Result := 0;
+    end;
+  end
+  else if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
   begin
     LP := Judge.Replaces(LOld, AText);
     if LP < FCfg.JudgeMergeMin then

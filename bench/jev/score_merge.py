@@ -43,6 +43,12 @@ for path in sys.argv[1:]:
     # the agent's policy: rules + veto at 0.9, and the rescue (closest fact, cos >= 0.4, not distinct, p >= 0.97)
     show("agent: veto 0.9 + rescue 0.97/0.4", rows,
          lambda r: (r["rules"] and r["p"] >= 0.9) or (not r["rules"] and not r["distinct"] and r["cos"] >= 0.4 and r["p"] >= 0.97))
+    if "synonym" in rows[0]:
+        # since the third set: a slot matched only through a synonym group needs the rescue bar, and no judge never merges it
+        show("rules, synonym slots kept apart", rows, lambda r: r["rules"] and not r["synonym"])
+        show("agent: + synonym slots at 0.97", rows,
+             lambda r: (r["rules"] and not r["synonym"] and r["p"] >= 0.9) or (r["rules"] and r["synonym"] and r["p"] >= 0.97)
+             or (not r["rules"] and not r["distinct"] and r["cos"] >= 0.4 and r["p"] >= 0.97))
     print("  by category: label, rules merged, p (judge)")
     cats = {}
     for r in rows:
