@@ -31,7 +31,7 @@ interface
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
   Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors, Mem.Decide,
-  Mem.Body, Mem.Extract;
+  Mem.Body, Mem.Extract, Mem.Dates;
 
 type
   TAgent = class
@@ -84,6 +84,7 @@ type
     { stores extracted facts (dedupe, supersede, embeddings); frees nothing }
     function StoreFacts(AFacts: TJSONArray; AMsgId: Int64): string;
     procedure MaybeSummarize;
+    function StoredText(const AText: string): string;
     { standing instructions in the user's message: new, confirmed or contradicted (Mem.Priors) }
     procedure ObservePriors(const AUser: string; AMsgId: Int64);
     { the priors that go into the prompt: confident enough, not overridden by a
@@ -1001,6 +1002,16 @@ begin
   end;
 end;
 
+(* a message as the log keeps it: relative dates made absolute against when it was said
+   ([agent] resolve_dates, Mem.Dates), so "last Saturday" still means that day weeks later *)
+function TAgent.StoredText(const AText: string): string;
+begin
+  if FCfg.ResolveDates then
+    Result := ResolveMessageDates(AText, Now)
+  else
+    Result := AText;
+end;
+
 procedure TAgent.MaybeSummarize;
 var
   LAll: TMsgArray;
@@ -1056,7 +1067,7 @@ var
   I: Integer;
   LT: TDateTime;
   LMs: array[0..7] of Double;    { 7: model extraction after the reply }
-  LRuleFacts, LWhy: string;
+  LRuleFacts, LWhy, LStored: string;
   LP: Double;
 begin
   PollConsolidation;
@@ -1075,8 +1086,9 @@ begin
        they carry the user's framing ("my sister ..."), and a remember tool
        call for the same fact then reports "already known" instead of adding
        a second, worse-phrased copy. *)
-    LUserId := FStore.AddMessage(FSession, 'user', AUser);
-    EmbedMessage(LUserId, AUser);
+    LStored := StoredText(AUser);
+    LUserId := FStore.AddMessage(FSession, 'user', LStored);
+    EmbedMessage(LUserId, LStored);
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     ObservePriors(AUser, LUserId);
     Mark(LT, LMs[1]);
@@ -1429,8 +1441,8 @@ begin
   begin
     { a message into the conversation log, searchable like any other, without a reply
       or fact extraction: loading a recorded conversation (bench/bench_locomo.py) }
-    LId := FStore.AddMessage(FSession, 'user', LArg);
-    EmbedMessage(LId, LArg);
+    LId := FStore.AddMessage(FSession, 'user', StoredText(LArg));
+    EmbedMessage(LId, StoredText(LArg));
   end
   else if LCmd = '/dream' then
     Dream(SameText(LArg, 'all'))
