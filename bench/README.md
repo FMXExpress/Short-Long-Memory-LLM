@@ -1110,3 +1110,43 @@ value "used to live in" against the current one).
 - **Not fixed here.** Adding those words is one line, but it would be tuned on these very
   pairs, leaving no held-out set. The next step is to add the groups and measure them on a
   third set. Meanwhile, a missed merge only keeps a duplicate line, and nothing is lost.
+
+### LoCoMo: the first published benchmark run (`bench/bench_locomo.py`)
+
+LoCoMo (2402.17753): one long conversation between two people over many dated sessions,
+then questions about it. Sample 0 (conv-26) has 419 turns and 152 questions in categories 1
+to 4. Each turn goes in with `/log`, and each question is asked as a normal turn. The run
+is the 1.5B profile, with retrieve twice and `rag_k` 3, scored with LoCoMo's token F1. It
+ran in three parts (75 + 48 + 29 questions), and each part loads all 419 turns.
+`locomo-small-s0.json`:
+
+| | multi-hop | temporal | open-domain | single-hop | mean of the four | all 152 |
+|---|---|---|---|---|---|---|
+| memagent 1.5B, sample 0 | 0.171 | 0.108 | 0.094 | 0.263 | **15.9** | 19.2 |
+
+Published Qwen2.5-1.5B rows (A-MEM, 2502.12110, Table 1, F1 × 100, all ten samples):
+
+| | mean of the four non-adversarial columns |
+|---|---|
+| LoCoMo (the whole conversation in the prompt) | 8.6 |
+| MemGPT | 9.4 |
+| MemoryBank | 9.3 |
+| ReadAgent | 6.2 |
+| A-MEM | 20.7 |
+
+- **Where memagent stands.** Above full context, MemGPT and MemoryBank at the same model
+  size, and below A-MEM. A-MEM writes a note per turn with the model, links notes and
+  rewrites them. memagent stores the raw turns.
+- **Caveats.**
+  - This is one sample of ten.
+  - The papers name LoCoMo's numeric categories differently (A-MEM and Mem0 disagree), so
+    only the mean is compared, not the columns.
+  - A-MEM's numbers are its own runs.
+- **Weakest: temporal (0.11).** The model answers "last year" or "next month" instead of
+  working out a date from the session date in the message. Turning relative dates into
+  absolute ones at `/log` time is the obvious next fix.
+- **A bug it found, fixed (`TAgent.MaybeSummarize`).** After the 419-turn import, the
+  running summary tried to send the whole backlog in one 24,000-token call. The call
+  failed, the summary never advanced, and every later turn failed again. Before the fix,
+  the first 75 questions scored F1 0.098. It now summarises what fits in half the context
+  on each turn.
