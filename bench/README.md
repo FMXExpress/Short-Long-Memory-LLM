@@ -1186,3 +1186,37 @@ a synonym, and the same name with another relation).
 - **Integration (96 questions, `integration-small-fixes.json`).** 88 of 96, with the same
   answers as before the groups and dates. The wider `Related` table also feeds the answer
   guard, which did not change any answer.
+
+### Relative dates made absolute when stored: won (`Mem.Dates`, `[agent] resolve_dates`)
+
+A stored message such as "I ran a charity race last Saturday." becomes "I ran a charity race
+last Saturday (the Saturday before 25 May 2023).". The date is worked out from the message's
+own leading date (a `/log` line such as "[1:56 pm on 8 May, 2023] Melanie: ..."), else from
+the time it is stored. It covers yesterday, today, tomorrow, last night, last/next/this
+week, weekend, month, year or weekday, and "N days/weeks/months/years ago". The words stay
+as they were, and the date is added once. In sample 0, 48 of the 421 imported messages got
+a date. Several match LoCoMo's expected answers word for word, such as "the week before 9
+June 2023" and "2022". `tests/dates_test.lpr` has 11 cases.
+
+Same run as above (1.5B, sample 0, all 152 questions, three parts of 51 + 51 + 50).
+`locomo-small-s0-dates.json`:
+
+| | multi-hop | temporal | open-domain | single-hop | mean of the four | all 152 |
+|---|---|---|---|---|---|---|
+| before | 0.171 | 0.108 | 0.094 | 0.263 | 15.9 | 19.2 |
+| **dates resolved** | 0.143 | **0.331** | 0.080 | 0.266 | **20.5** | **24.0** |
+
+- **Temporal tripled.** 25 of the 37 temporal questions scored higher and 3 lower. The
+  model now reads the date off the stored text: "Melanie painted a sunrise last year, which
+  was in 2022."
+- **Multi-hop and open-domain dipped, but not from dates.** The questions that dropped are
+  the same answers in other words, with no date in them. For example, "Caroline is single."
+  became "Caroline is not currently in a romantic relationship.", and F1 penalises the
+  rewording. These are 32 and 13 questions, so one rewording moves the column by a few
+  points. Single-hop, the largest column, is unchanged.
+- **Against the published rows.** The mean of the four is now 20.5, against A-MEM's 20.7
+  at the same model size, and above MemGPT (9.4), MemoryBank (9.3) and full context (8.6).
+  This is still one sample of ten, against their ten.
+- **What is left.** Some answers repeat the log line's own header ("[7:55 pm on 9 June,
+  2023]") rather than the date in the text. That header is the date the turn was said, not
+  the date asked about.
