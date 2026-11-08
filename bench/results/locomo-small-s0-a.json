@@ -1,0 +1,547 @@
+{
+ "sample": "conv-26",
+ "profile": "small",
+ "rag_k": 3,
+ "hops": 2,
+ "turns": 419,
+ "questions": 75,
+ "seconds": 3937,
+ "f1": {
+  "temporal": 0.099,
+  "open-domain": 0.1111,
+  "multi-hop": 0.1793
+ },
+ "f1_all": 0.1318,
+ "counts": {
+  "temporal": 35,
+  "open-domain": 11,
+  "multi-hop": 29
+ },
+ "answers": [
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the LGBTQ support group?",
+   "answer": "7 May 2023",
+   "got": "[1:56 pm on 8 May, 2023]",
+   "f1": 0.4444
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie paint a sunrise?",
+   "answer": 2022,
+   "got": "Melanie painted a sunrise last year.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "What fields would Caroline be likely to pursue in her educaton?",
+   "answer": "Psychology, counseling certification",
+   "got": "Caroline might be interested in pursuing education or training related to social work, psychology, counseling, or human services. These fields align well with her goals of becoming a counselor specializing in helping trans individuals accept themselves and improving their mental health.",
+   "f1": 0.0952
+  },
+  {
+   "category": "multi-hop",
+   "question": "What did Caroline research?",
+   "answer": "Adoption agencies",
+   "got": "Caroline researched adoption agencies.",
+   "f1": 0.6667
+  },
+  {
+   "category": "multi-hop",
+   "question": "What is Caroline's identity?",
+   "answer": "Transgender woman",
+   "got": "Caroline identifies as transgender.",
+   "f1": 0.3333
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie run a charity race?",
+   "answer": "The sunday before 25 May 2023",
+   "got": "Melanie ran a charity race last Saturday.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When is Melanie planning on going camping?",
+   "answer": "June 2023",
+   "got": "Melanie plans to go camping next month.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What is Caroline's relationship status?",
+   "answer": "Single",
+   "got": "Caroline is single.",
+   "f1": 0.5
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline give a speech at a school?",
+   "answer": "The week before 9 June 2023",
+   "got": "Caroline gave a speech at a school last week.",
+   "f1": 0.1667
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline meet up with her friends, family, and mentors?",
+   "answer": "The week before 9 June 2023",
+   "got": "Caroline met up with her friends, family, and mentors last week.",
+   "f1": 0.1333
+  },
+  {
+   "category": "temporal",
+   "question": "How long has Caroline had her current group of friends for?",
+   "answer": "4 years",
+   "got": "Caroline has had her current group of friends for quite some time now.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "Where did Caroline move from 4 years ago?",
+   "answer": "Sweden",
+   "got": "Caroline moved from New York City to Los Angeles four years ago.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "How long ago was Caroline's 18th birthday?",
+   "answer": "10 years ago",
+   "got": "Ten years ago.",
+   "f1": 0.6667
+  },
+  {
+   "category": "multi-hop",
+   "question": "What career path has Caroline decided to persue?",
+   "answer": "counseling or mental health for Transgender people",
+   "got": "Caroline has decided to pursue a career in counseling and mental health.",
+   "f1": 0.3529
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+   "answer": "Likely no",
+   "got": "It's possible Caroline might reconsider her career choice if she didn't receive supportive resources growing up. However, given her current situation where she feels supported and inspired by those experiences, it seems likely she would continue pursuing counseling as a career.",
+   "f1": 0.0488
+  },
+  {
+   "category": "multi-hop",
+   "question": "What activities does Melanie partake in?",
+   "answer": "pottery, camping, painting, swimming",
+   "got": "Melanie enjoys taking pottery classes as a form of expression and therapy.",
+   "f1": 0.1429
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie sign up for a pottery class?",
+   "answer": "2 July 2023",
+   "got": "Melanie signed up for a pottery class yesterday at [1:36 pm on 3 July, 2023].",
+   "f1": 0.2353
+  },
+  {
+   "category": "temporal",
+   "question": "When is Caroline going to the transgender conference?",
+   "answer": "July 2023",
+   "got": "Caroline is going to the transgender conference this month.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "Where has Melanie camped?",
+   "answer": "beach, mountains, forest",
+   "got": "Melanie camped near a forest.",
+   "f1": 0.2857
+  },
+  {
+   "category": "multi-hop",
+   "question": "What do Melanie's kids like?",
+   "answer": "dinosaurs, nature",
+   "got": "Melanie's kids enjoy playing outside and exploring nature.",
+   "f1": 0.2222
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the museum?",
+   "answer": "5 July 2023",
+   "got": "Melanie went to the museum with her children yesterday, which was shared earlier in the conversation.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline have a picnic?",
+   "answer": "The week before 6 July 2023",
+   "got": "Caroline had a picnic last week.",
+   "f1": 0.2
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline likely have Dr. Seuss books on her bookshelf?",
+   "answer": "Yes, since she collects classic children's books",
+   "got": "Yes, Caroline would likely have Dr. Seuss books on her bookshelf given her interest in children's literature and her goal of creating a library for her future children.",
+   "f1": 0.1818
+  },
+  {
+   "category": "multi-hop",
+   "question": "What books has Melanie read?",
+   "answer": "\"Nothing is Impossible\", \"Charlotte's Web\"",
+   "got": "Melanie has read \"Charlotte's Web\" and a book that reminded her to pursue her dreams.",
+   "f1": 0.2222
+  },
+  {
+   "category": "multi-hop",
+   "question": "What does Melanie do to destress?",
+   "answer": "Running, pottery",
+   "got": "Melanie runs regularly as a way to destress and clear her mind.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the LGBTQ conference?",
+   "answer": "10 July 2023",
+   "got": "Caroline went to the LGBTQ conference two days ago.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie read the book \"nothing is impossible\"?",
+   "answer": 2022,
+   "got": "Melanie read \"Nothing Is Impossible\" in 2023.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline pursue writing as a career option?",
+   "answer": "LIkely no; though she likes reading, she wants to be a counselor",
+   "got": "Yes, Caroline would likely consider writing as a career option given her passion for storytelling and her desire to help others navigate similar experiences.",
+   "f1": 0.1212
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the adoption meeting?",
+   "answer": "The friday before 15 July 2023",
+   "got": "Caroline went to the adoption meeting last Friday.",
+   "f1": 0.1667
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the pottery workshop?",
+   "answer": "The Friday before 15 July 2023",
+   "got": "Melanie went to the pottery workshop last Friday.",
+   "f1": 0.1667
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be considered a member of the LGBTQ community?",
+   "answer": "Likely no, she does not refer to herself as part of it",
+   "got": "Yes, Melanie would be considered part of the LGBTQ community as she has transitioned and supports the LGBTQ community.",
+   "f1": 0.2857
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go camping in June?",
+   "answer": "The week before 27 June 2023",
+   "got": "Melanie went camping in the mountains last week.",
+   "f1": 0.1667
+  },
+  {
+   "category": "multi-hop",
+   "question": "What LGBTQ+ events has Caroline participated in?",
+   "answer": "Pride parade, school speech, support group",
+   "got": "Caroline has attended an LGBTQ+ pride parade and a transgender conference.",
+   "f1": 0.2857
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to a pride parade during the summer?",
+   "answer": "The week before 3 July 2023",
+   "got": "Caroline went to a pride parade last weekend.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What events has Caroline participated in to help children?",
+   "answer": "Mentoring program, school speech",
+   "got": "Caroline attended an adoption meeting last Friday.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go camping in July?",
+   "answer": "two weekends before 17 July 2023",
+   "got": "Melanie went camping in July during her first camping trip shared earlier.",
+   "f1": 0.1111
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline join a mentorship program?",
+   "answer": "The weekend before 17 July 2023",
+   "got": "Caroline joined a mentorship program last weekend.",
+   "f1": 0.1818
+  },
+  {
+   "category": "multi-hop",
+   "question": "What did Melanie paint recently?",
+   "answer": "sunset",
+   "got": "Melanie painted a landscape and a still life recently.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What activities has Melanie done with her family?",
+   "answer": "Pottery, painting, camping, museum, swimming, hiking",
+   "got": "Melanie has enjoyed pottery classes and has joined one recently.",
+   "f1": 0.1333
+  },
+  {
+   "category": "multi-hop",
+   "question": "In what ways is Caroline participating in the LGBTQ community?",
+   "answer": "Joining activist group, going to pride parades, participating in an art show, mentoring program",
+   "got": "Caroline is actively participating in the LGBTQ community through various means such as joining a mentorship program for LGBTQ youth, attending a transgender conference, and supporting others within the community through her involvement in 'Connected LGBTQ Activists'.",
+   "f1": 0.1778
+  },
+  {
+   "category": "multi-hop",
+   "question": "How many times has Melanie gone to the beach in 2023?",
+   "answer": 2,
+   "got": "Melanie has gone to the beach twice in 2023.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline join a new activist group?",
+   "answer": "The Tuesday before 20 July 2023",
+   "got": "Caroline joined a new activist group at the Pride parade.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be more interested in going to a national park or a theme park?",
+   "answer": "National park; she likes the outdoors",
+   "got": "Melanie seems to prefer parks and outdoor activities like hiking and exploring forests.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What kind of art does Caroline make?",
+   "answer": "abstract art",
+   "got": "Caroline makes art that reflects her experiences and emotions, often using mediums like painting or drawing.",
+   "f1": 0.1176
+  },
+  {
+   "category": "temporal",
+   "question": "When is Melanie's daughter's birthday?",
+   "answer": "13 August",
+   "got": "Melanie's daughter's birthday was celebrated last night with a concert surrounded by music, joy, and the warm summer breeze.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline attend a pride parade in August?",
+   "answer": "The Friday before 14 August 2023",
+   "got": "Caroline attended a pride parade last Friday.",
+   "f1": 0.1818
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be considered an ally to the transgender community?",
+   "answer": "Yes, she is supportive",
+   "got": "Yes, Melanie would be considered an ally to the transgender community. Her support and encouragement through various interactions indicate her commitment to inclusivity and acceptance.",
+   "f1": 0.08
+  },
+  {
+   "category": "multi-hop",
+   "question": "Who supports Caroline when she has a negative experience?",
+   "answer": "Her mentors, family, and friends",
+   "got": "The LGBTQ community supports Caroline when she has a negative experience.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What types of pottery have Melanie and her kids made?",
+   "answer": "bowls, cup",
+   "got": "Melanie and her kids have made cups with a dog face on them.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline and Melanie go to a pride fesetival together?",
+   "answer": 2022,
+   "got": "Caroline and Melanie went to a pride festival together last Friday.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "What would Caroline's political leaning likely be?",
+   "answer": "Liberal",
+   "got": "LGBTQ community members tend to lean towards progressive politics due to their advocacy for rights and equality.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What has Melanie painted?",
+   "answer": "Horse, sunset, sunrise",
+   "got": "Melanie has painted sunsets with palm trees.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What are Melanie's pets' names?",
+   "answer": "Oliver, Luna, Bailey",
+   "got": "Luna and Oliver.",
+   "f1": 0.8
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline apply to adoption agencies?",
+   "answer": "The week of 23 August 2023",
+   "got": "Caroline applied to adoption agencies last Friday.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline draw a self-portrait?",
+   "answer": "The week before 23 August 2023",
+   "got": "Caroline drew a self-portrait last week.",
+   "f1": 0.2
+  },
+  {
+   "category": "multi-hop",
+   "question": "What subject have Caroline and Melanie both painted?",
+   "answer": "Sunsets",
+   "got": "Caroline and Melanie both painted subjects that reflect their experiences and emotions, often using mediums like painting or drawing.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What symbols are important to Caroline?",
+   "answer": "Rainbow flag, transgender symbol",
+   "got": "The eagle symbolizes freedom and pride for Caroline, representing her own resilience and that of others.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline encounter people on a hike and have a negative experience?",
+   "answer": "The week before 25 August 2023",
+   "got": "Caroline encountered people on a hike and had a negative experience last week.",
+   "f1": 0.1333
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie make a plate in pottery class?",
+   "answer": "24 August 2023",
+   "got": "Melanie made a plate in pottery class last Friday.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline be considered religious?",
+   "answer": "Somewhat, but not extremely religious",
+   "got": "No, Caroline is not considered religious based on the information provided.",
+   "f1": 0.2667
+  },
+  {
+   "category": "multi-hop",
+   "question": "What instruments does Melanie play?",
+   "answer": "clarinet and violin",
+   "got": "Melanie plays the clarinet.",
+   "f1": 0.4
+  },
+  {
+   "category": "multi-hop",
+   "question": "What musical artists/bands has Melanie seen?",
+   "answer": "Summer Sounds, Matt Patterson",
+   "got": "Melanie has seen bands like Summer Sounds.",
+   "f1": 0.3636
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the park?",
+   "answer": "27 August 2023",
+   "got": "Melanie went to the park with her children yesterday.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When is Caroline's youth center putting on a talent show?",
+   "answer": "September 2023",
+   "got": "Caroline mentioned that she's putting together a talent show for the kids next month.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie likely enjoy the song \"The Four Seasons\" by Vivaldi?",
+   "answer": "Yes; it's classical music",
+   "got": "Yes, Melanie would likely enjoy \"The Four Seasons\" by Vivaldi because it has a festive and joyful atmosphere, which aligns well with her fondness for music and dance.",
+   "f1": 0.1429
+  },
+  {
+   "category": "multi-hop",
+   "question": "What are some changes Caroline has faced during her transition journey?",
+   "answer": "Changes to her body, losing unsupportive friends",
+   "got": "Caroline has faced challenges accepting and growing into her true self, particularly during her transition. Her supportive network provided encouragement and helped her navigate these difficult times.",
+   "f1": 0.0625
+  },
+  {
+   "category": "multi-hop",
+   "question": "What does Melanie do with her family on hikes?",
+   "answer": "Roast marshmallows, tell stories",
+   "got": "Melanie goes hiking with her family.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go biking with friends?",
+   "answer": "The weekend before 13 September 2023",
+   "got": "Caroline went biking with friends last weekend.",
+   "f1": 0.1667
+  },
+  {
+   "category": "temporal",
+   "question": "How long has Melanie been practicing art?",
+   "answer": "Since 2016",
+   "got": "Seven years now, and I've finally found my real muses: painting and pottery.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "What personality traits might Melanie say Caroline has?",
+   "answer": "Thoughtful, authentic, driven",
+   "got": "Melanie would likely describe Caroline as caring, supportive, and inspirational due to her experiences and actions.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What transgender-specific events has Caroline attended?",
+   "answer": "Poetry reading, conference",
+   "got": "Caroline has attended an LGBT pride event last month and a transgender conference this month.",
+   "f1": 0.1333
+  },
+  {
+   "category": "multi-hop",
+   "question": "What book did Melanie read from Caroline's suggestion?",
+   "answer": "\"Becoming Nicole\"",
+   "got": "The book Melanie read from Caroline's recommendation was titled \"A Gold Coin on the Cover.\"",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie's friend adopt a child?",
+   "answer": 2022,
+   "got": "Melanie's friend adopted a child last year.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie get hurt?",
+   "answer": "September 2023",
+   "got": "Melanie got hurt last month at an LGBT pride event.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie's family go on a roadtrip?",
+   "answer": "The weekend before 20 October 2023",
+   "got": "Melanie's family went on a road trip this past weekend.",
+   "f1": 0.1429
+  }
+ ]
+}

@@ -1,0 +1,886 @@
+[
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is midwife."
+  },
+  "new": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is paramedic."
+  },
+  "id": 0
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Ilse's car",
+   "text": "Ilse drives a Skoda."
+  },
+  "new": {
+   "subject": "Ilse's car",
+   "text": "Ilse drives a BMW."
+  },
+  "id": 1
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Wren's car",
+   "text": "Wren drives a BMW."
+  },
+  "new": {
+   "subject": "Wren's car",
+   "text": "Wren drives a Skoda."
+  },
+  "id": 2
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Wren's job",
+   "text": "Wren's job is cellist."
+  },
+  "new": {
+   "subject": "Wren's job",
+   "text": "Wren's job is welder."
+  },
+  "id": 3
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Ilse's city",
+   "text": "Ilse's city is Bremen."
+  },
+  "new": {
+   "subject": "Ilse's city",
+   "text": "Ilse's city is Nantes."
+  },
+  "id": 4
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is welder."
+  },
+  "new": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is tailor."
+  },
+  "id": 5
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Hamid's car",
+   "text": "Hamid drives a Toyota."
+  },
+  "new": {
+   "subject": "Hamid's car",
+   "text": "Hamid drives a Honda."
+  },
+  "id": 6
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Noor's job",
+   "text": "Noor's job is barista."
+  },
+  "new": {
+   "subject": "Noor's job",
+   "text": "Noor's job is actuary."
+  },
+  "id": 7
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Noor's car",
+   "text": "Noor drives a Honda."
+  },
+  "new": {
+   "subject": "Noor's car",
+   "text": "Noor drives a Toyota."
+  },
+  "id": 8
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Yara's city",
+   "text": "Yara's city is Cork."
+  },
+  "new": {
+   "subject": "Yara's city",
+   "text": "Yara's city is Split."
+  },
+  "id": 9
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Dmitri's job",
+   "text": "Dmitri's job is paramedic."
+  },
+  "new": {
+   "subject": "Dmitri's job",
+   "text": "Dmitri's job is midwife."
+  },
+  "id": 10
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Wren's job",
+   "text": "Wren's job is welder."
+  },
+  "new": {
+   "subject": "Wren's job",
+   "text": "Wren's job is tailor."
+  },
+  "id": 11
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Lukas's job",
+   "text": "Lukas's job is paramedic."
+  },
+  "new": {
+   "subject": "Lukas's job",
+   "text": "Lukas's job is cellist."
+  },
+  "id": 12
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Aisha's job",
+   "text": "Aisha's job is paramedic."
+  },
+  "new": {
+   "subject": "Aisha's job",
+   "text": "Aisha's job is tailor."
+  },
+  "id": 13
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is paramedic."
+  },
+  "new": {
+   "subject": "Mateo's job",
+   "text": "Mateo's job is cellist."
+  },
+  "id": 14
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Selma's job",
+   "text": "Selma's job is tailor."
+  },
+  "new": {
+   "subject": "Selma's job",
+   "text": "Selma's job is geologist."
+  },
+  "id": 15
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my godmother's name",
+   "text": "Your godmother's name is Alexander."
+  },
+  "new": {
+   "subject": "what my godmother is called",
+   "text": "Your godmother goes by Alex."
+  },
+  "id": 16
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my aunt's name",
+   "text": "Your aunt's name is Katherine."
+  },
+  "new": {
+   "subject": "what my aunt is called",
+   "text": "Your aunt goes by Kate."
+  },
+  "id": 17
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my colleague's name",
+   "text": "Your colleague's name is Robert."
+  },
+  "new": {
+   "subject": "what my colleague is called",
+   "text": "Your colleague goes by Bob."
+  },
+  "id": 18
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my neighbor's name",
+   "text": "Your neighbor's name is Elizabeth."
+  },
+  "new": {
+   "subject": "what my neighbor is called",
+   "text": "Your neighbor goes by Liz."
+  },
+  "id": 19
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my aunt's name",
+   "text": "Your aunt's name is Francesca."
+  },
+  "new": {
+   "subject": "what my aunt is called",
+   "text": "Your aunt goes by Fran."
+  },
+  "id": 20
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my cousin's name",
+   "text": "Your cousin's name is Nikolai."
+  },
+  "new": {
+   "subject": "what my cousin is called",
+   "text": "Your cousin goes by Kolya."
+  },
+  "id": 21
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my roommate's name",
+   "text": "Your roommate's name is Margaret."
+  },
+  "new": {
+   "subject": "what my roommate is called",
+   "text": "Your roommate goes by Maggie."
+  },
+  "id": 22
+ },
+ {
+  "category": "nickname",
+  "replaces": 1,
+  "old": {
+   "subject": "my godmother's name",
+   "text": "Your godmother's name is Theodore."
+  },
+  "new": {
+   "subject": "what my godmother is called",
+   "text": "Your godmother goes by Teddy."
+  },
+  "id": 23
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Ingrid's job",
+   "text": "Ingrid's job is geologist."
+  },
+  "new": {
+   "subject": "Ingrid's work",
+   "text": "Ingrid works as a paramedic now."
+  },
+  "id": 24
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Hamid's city",
+   "text": "Hamid's city is Aarhus."
+  },
+  "new": {
+   "subject": "Hamid's home town",
+   "text": "Hamid moved to Nantes."
+  },
+  "id": 25
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Oskar's job",
+   "text": "Oskar's job is paramedic."
+  },
+  "new": {
+   "subject": "Oskar's profession",
+   "text": "Oskar works as a tailor now."
+  },
+  "id": 26
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Mateo's city",
+   "text": "Mateo's city is Aarhus."
+  },
+  "new": {
+   "subject": "Mateo's town",
+   "text": "Mateo moved to Split."
+  },
+  "id": 27
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Freya's job",
+   "text": "Freya's job is cellist."
+  },
+  "new": {
+   "subject": "Freya's occupation",
+   "text": "Freya works as a actuary now."
+  },
+  "id": 28
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Yara's city",
+   "text": "Yara's city is Nantes."
+  },
+  "new": {
+   "subject": "Yara's place",
+   "text": "Yara moved to Seville."
+  },
+  "id": 29
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Viktor's job",
+   "text": "Viktor's job is welder."
+  },
+  "new": {
+   "subject": "Viktor's trade",
+   "text": "Viktor works as a midwife now."
+  },
+  "id": 30
+ },
+ {
+  "category": "reworded attribute",
+  "replaces": 1,
+  "old": {
+   "subject": "Lukas's city",
+   "text": "Lukas's city is Split."
+  },
+  "new": {
+   "subject": "Lukas's base",
+   "text": "Lukas moved to Brno."
+  },
+  "id": 31
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my address",
+   "text": "Your address is 12 Elm Street."
+  },
+  "new": {
+   "subject": "my address",
+   "text": "Your address is 4 Harbour Road."
+  },
+  "id": 32
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my phone number",
+   "text": "Your phone number is 555-0101."
+  },
+  "new": {
+   "subject": "my phone number",
+   "text": "Your phone number is 555-0177."
+  },
+  "id": 33
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my email",
+   "text": "Your email is eli@old.example."
+  },
+  "new": {
+   "subject": "my email",
+   "text": "Your email is eli@new.example."
+  },
+  "id": 34
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my office",
+   "text": "Your office is room 210."
+  },
+  "new": {
+   "subject": "my office",
+   "text": "Your office is room 314."
+  },
+  "id": 35
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my locker number",
+   "text": "Your locker number is 17."
+  },
+  "new": {
+   "subject": "my locker number",
+   "text": "Your locker number is 42."
+  },
+  "id": 36
+ },
+ {
+  "category": "new address or number",
+  "replaces": 1,
+  "old": {
+   "subject": "my dentist's address",
+   "text": "Your dentist's address is 3 Mill Lane."
+  },
+  "new": {
+   "subject": "my dentist's address",
+   "text": "Your dentist's address is 88 King Street."
+  },
+  "id": 37
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Selma's age",
+   "text": "Selma's age is seven."
+  },
+  "new": {
+   "subject": "Selma's horse's age",
+   "text": "Selma's horse's age is three."
+  },
+  "id": 38
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Hamid's age",
+   "text": "Hamid's age is seven."
+  },
+  "new": {
+   "subject": "Hamid's dog's age",
+   "text": "Hamid's dog's age is three."
+  },
+  "id": 39
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Lukas's age",
+   "text": "Lukas's age is seven."
+  },
+  "new": {
+   "subject": "Lukas's parrot's age",
+   "text": "Lukas's parrot's age is three."
+  },
+  "id": 40
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Leila's age",
+   "text": "Leila's age is seven."
+  },
+  "new": {
+   "subject": "Leila's dog's age",
+   "text": "Leila's dog's age is three."
+  },
+  "id": 41
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Renata's age",
+   "text": "Renata's age is seven."
+  },
+  "new": {
+   "subject": "Renata's parrot's age",
+   "text": "Renata's parrot's age is three."
+  },
+  "id": 42
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Viktor's age",
+   "text": "Viktor's age is seven."
+  },
+  "new": {
+   "subject": "Viktor's cat's age",
+   "text": "Viktor's cat's age is three."
+  },
+  "id": 43
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Oskar's name",
+   "text": "Oskar's name is Rex."
+  },
+  "new": {
+   "subject": "Oskar's horse's name",
+   "text": "Oskar's horse's name is Pip."
+  },
+  "id": 44
+ },
+ {
+  "category": "person / their pet",
+  "replaces": 0,
+  "old": {
+   "subject": "Ezra's age",
+   "text": "Ezra's age is seven."
+  },
+  "new": {
+   "subject": "Ezra's parrot's age",
+   "text": "Ezra's parrot's age is three."
+  },
+  "id": 45
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my mother's job",
+   "text": "Your mother's job is midwife."
+  },
+  "new": {
+   "subject": "my son's job",
+   "text": "Your son's job is paramedic."
+  },
+  "id": 46
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my father's job",
+   "text": "Your father's job is actuary."
+  },
+  "new": {
+   "subject": "my daughter's job",
+   "text": "Your daughter's job is cellist."
+  },
+  "id": 47
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my grandma's city",
+   "text": "Your grandma's city is Bremen."
+  },
+  "new": {
+   "subject": "my granddaughter's city",
+   "text": "Your granddaughter's city is Seville."
+  },
+  "id": 48
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my uncle's job",
+   "text": "Your uncle's job is midwife."
+  },
+  "new": {
+   "subject": "my nephew's job",
+   "text": "Your nephew's job is geologist."
+  },
+  "id": 49
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my aunt's city",
+   "text": "Your aunt's city is Gdansk."
+  },
+  "new": {
+   "subject": "my niece's city",
+   "text": "Your niece's city is Bremen."
+  },
+  "id": 50
+ },
+ {
+  "category": "parent / child",
+  "replaces": 0,
+  "old": {
+   "subject": "my father's city",
+   "text": "Your father's city is Cork."
+  },
+  "new": {
+   "subject": "my son's city",
+   "text": "Your son's city is Nantes."
+  },
+  "id": 51
+ },
+ {
+  "category": "siblings",
+  "replaces": 0,
+  "old": {
+   "subject": "my older sister's job",
+   "text": "Your older sister's job is actuary."
+  },
+  "new": {
+   "subject": "my younger sister's job",
+   "text": "Your younger sister's job is welder."
+  },
+  "id": 52
+ },
+ {
+  "category": "siblings",
+  "replaces": 0,
+  "old": {
+   "subject": "my older brother's job",
+   "text": "Your older brother's job is paramedic."
+  },
+  "new": {
+   "subject": "my younger brother's job",
+   "text": "Your younger brother's job is barista."
+  },
+  "id": 53
+ },
+ {
+  "category": "siblings",
+  "replaces": 0,
+  "old": {
+   "subject": "my oldest son's city",
+   "text": "Your oldest son's city is Cork."
+  },
+  "new": {
+   "subject": "my youngest son's city",
+   "text": "Your youngest son's city is Gdansk."
+  },
+  "id": 54
+ },
+ {
+  "category": "siblings",
+  "replaces": 0,
+  "old": {
+   "subject": "my first cousin's job",
+   "text": "Your first cousin's job is actuary."
+  },
+  "new": {
+   "subject": "my second cousin's job",
+   "text": "Your second cousin's job is geologist."
+  },
+  "id": 55
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my neighbor's job",
+   "text": "Your neighbor Selma's job is tailor."
+  },
+  "new": {
+   "subject": "my roommate's job",
+   "text": "Your roommate Selma's job is cellist."
+  },
+  "id": 56
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my neighbor's city",
+   "text": "Your neighbor Dmitri's city is Aarhus."
+  },
+  "new": {
+   "subject": "my landlord's city",
+   "text": "Your landlord Dmitri's city is Seville."
+  },
+  "id": 57
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my cousin's city",
+   "text": "Your cousin Aisha's city is Seville."
+  },
+  "new": {
+   "subject": "my colleague's city",
+   "text": "Your colleague Aisha's city is Bilbao."
+  },
+  "id": 58
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my mentor's city",
+   "text": "Your mentor Ezra's city is Seville."
+  },
+  "new": {
+   "subject": "my roommate's city",
+   "text": "Your roommate Ezra's city is Cork."
+  },
+  "id": 59
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my godmother's job",
+   "text": "Your godmother Tomasz's job is paramedic."
+  },
+  "new": {
+   "subject": "my neighbor's job",
+   "text": "Your neighbor Tomasz's job is actuary."
+  },
+  "id": 60
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my cousin's job",
+   "text": "Your cousin Freya's job is actuary."
+  },
+  "new": {
+   "subject": "my colleague's job",
+   "text": "Your colleague Freya's job is midwife."
+  },
+  "id": 61
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Wren's city",
+   "text": "Wren's city is Bremen."
+  },
+  "new": {
+   "subject": "Wren's former city",
+   "text": "Wren used to live in Cork."
+  },
+  "id": 62
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Selma's job",
+   "text": "Selma's job is welder."
+  },
+  "new": {
+   "subject": "Selma's former job",
+   "text": "Selma used to work as a midwife."
+  },
+  "id": 63
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Leila's city",
+   "text": "Leila's city is Seville."
+  },
+  "new": {
+   "subject": "Leila's former city",
+   "text": "Leila used to live in Cork."
+  },
+  "id": 64
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Ezra's city",
+   "text": "Ezra's city is Brno."
+  },
+  "new": {
+   "subject": "Ezra's former city",
+   "text": "Ezra used to live in Gdansk."
+  },
+  "id": 65
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Yara's job",
+   "text": "Yara's job is welder."
+  },
+  "new": {
+   "subject": "Yara's former job",
+   "text": "Yara used to work as a midwife."
+  },
+  "id": 66
+ },
+ {
+  "category": "past kept as history",
+  "replaces": 0,
+  "old": {
+   "subject": "Oskar's city",
+   "text": "Oskar's city is Cork."
+  },
+  "new": {
+   "subject": "Oskar's former city",
+   "text": "Oskar used to live in Turin."
+  },
+  "id": 67
+ }
+]

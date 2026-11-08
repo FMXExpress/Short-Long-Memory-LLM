@@ -1005,8 +1005,8 @@ procedure TAgent.MaybeSummarize;
 var
   LAll: TMsgArray;
   LUpto, LNewUpto: Int64;
-  LOld, LText: string;
-  I, LCut: Integer;
+  LOld, LText, LLine: string;
+  I, LCut, LBudget: Integer;
   LReq: TJSONArray;
 begin
   if not FCfg.Summarize then
@@ -1018,10 +1018,17 @@ begin
   LOld := FStore.GetSummary(FSession, LUpto);
   LText := '';
   LNewUpto := LUpto;
+  (* a batch that fits in half the context (about 4 characters a token): after a long
+     import (/log) the backlog is far larger than one call can hold, so it is summarised
+     a batch per turn instead of failing on every turn *)
+  LBudget := FCfg.CtxTokens * 2;
   for I := 0 to LCut - 1 do
     if LAll[I].Id > LUpto then
     begin
-      LText := LText + LAll[I].Role + ': ' + LAll[I].Content + LineEnding;
+      LLine := LAll[I].Role + ': ' + LAll[I].Content + LineEnding;
+      if (LText <> '') and (Length(LText) + Length(LLine) > LBudget) then
+        Break;
+      LText := LText + Copy(LLine, 1, LBudget);
       LNewUpto := LAll[I].Id;
     end;
   if Length(LText) < 400 then
@@ -1417,6 +1424,13 @@ begin
         IfThen(LFacts[I].BakedIn = '', '[in RAG]', '[baked: ' + LFacts[I].BakedIn + ']')]));
     if Length(LFacts) = 0 then
       Say('  (no facts yet)');
+  end
+  else if LCmd = '/log' then
+  begin
+    { a message into the conversation log, searchable like any other, without a reply
+      or fact extraction: loading a recorded conversation (bench/bench_locomo.py) }
+    LId := FStore.AddMessage(FSession, 'user', LArg);
+    EmbedMessage(LId, LArg);
   end
   else if LCmd = '/dream' then
     Dream(SameText(LArg, 'all'))

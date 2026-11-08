@@ -358,6 +358,39 @@ begin
   end;
 end;
 
+(* A derived fact ("Your grandpa Zoe's city is Oslo.", subject "my grandpa's city")
+   holds the whole link the guard's rules otherwise piece together, so it licenses an
+   answer that matches it: the question names the value and the answer the person or
+   relation ("Which of my relatives lives in Oslo?" "Zoe lives in Oslo."), or the
+   question names the relation and the answer the value ("Which city does my grandpa
+   live in?" "Oslo."). Measured (bench/README.md, derived facts): with derived facts
+   in memory, all 11 answers the rule guard withheld were right, and 10 of them were
+   "which relative" answers a derived fact backed. *)
+function DerivedLicenses(const AQuestion, AAnswer: string; const AFact: TFactRec): Boolean;
+var
+  LSubj, LRel, LText, LName: string;
+  P: Integer;
+begin
+  Result := False;
+  if AFact.Kind <> 'derived' then
+    Exit;
+  LSubj := AFact.Subject;   { my <rel>'s <attr> }
+  P := Pos('''s ', LSubj);
+  if (P < 5) or not SameText(Copy(LSubj, 1, 3), 'my ') then
+    Exit;
+  LRel := Copy(LSubj, 4, P - 4);
+  LText := AFact.Text;      { Your <rel> <Name>'s <attr> ... }
+  LName := Copy(LText, Length('Your ' + LRel + ' ') + 1, MaxInt);
+  P := Pos('''s ', LName);
+  if P < 2 then
+    Exit;
+  LName := Copy(LName, 1, P - 1);
+  if HasValue(AQuestion, AFact.Value) and (HasValue(AAnswer, LName) or HasValue(AAnswer, LRel)) then
+    Exit(True);
+  if HasValue(AQuestion, LRel) and HasValue(AAnswer, AFact.Value) then
+    Exit(True);
+end;
+
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
   out ABlockedBy: string; AMinScore: Single = 0.03): Boolean;
 var
@@ -370,6 +403,9 @@ begin
   QS := QuestionSubject(AQuestion);
   if QS = '' then
     Exit;
+  for I := 0 to High(AFacts) do
+    if DerivedLicenses(AQuestion, AAnswer, AFacts[I]) then
+      Exit(True);
   if Unbound(AQuestion, QS, AAnswer, AFacts, ABlockedBy) then
     Exit(False);
   AnyValue := False;
