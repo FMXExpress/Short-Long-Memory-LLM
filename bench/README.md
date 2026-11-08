@@ -1047,3 +1047,66 @@ nurse." It is a plain join, no model, after AI-native memory (2406.18312), A-MEM
   training. That is ahead of the GPU-trained 4B memory's 77 (Python benchmark, a different
   harness).
 - **Default.** Derived facts stay on.
+
+## Checking what won (2026-11-07/08)
+
+Each change below was run against the measurement it was meant to move, and kept only if
+it moved it.
+
+### Every fact in the prompt: lost (`[agent] rag_all`)
+
+The baseline long-context papers argue for: no retrieval, all 112 facts in the prompt.
+Agent rows, 1.5B, `integration-small-allfacts.json`:
+
+| | direct | bridge | inverse | verify | all | time |
+|---|---|---|---|---|---|---|
+| every fact in the prompt | 20 | 12 | 4 | 17 | 53/96 | 6092 s |
+| two hops + derived facts | 24 | 22 | 13 | 19 | 78/96 | about 2400 s |
+
+With every fact in front of it, the small model binds values to the wrong people, and it is
+2.5 times slower. `rag_all` stays off by default.
+
+### A guard licence for derived facts: won (`Mem.Guard.DerivedLicenses`)
+
+Ten of the eleven inverse failures in the derived-facts run were correct answers that the
+rule guard withheld. "Which of my relatives works as a nurse?" answered "Your sister Ana."
+names nobody in the question, so the binding check could not license it. A derived fact
+now licenses an answer when the question carries its value and the answer names its
+person or relation, or the other way round. `integration-small-derive-guard.json`:
+
+| | direct | bridge | inverse | verify | all |
+|---|---|---|---|---|---|
+| two hops + derived facts | 24 | 22 | 13 | 19 | 78/96 |
+| **+ derived-fact licence** | **24** | **22** | **22** | **20** | **88/96** |
+
+The eight misses left:
+- **Yes/no errors by the model (4).** For example, "Is my aunt the one whose city is
+  Utrecht?" answered "No".
+- **Abstained with the facts stored (2).**
+- **Right but marked wrong by the scorer (1).** "He pilots airplanes." for "pilot".
+- **A wrong answer that got through (1).** "Lena lives in Porto." when the answer is Greta.
+
+### The merge judge on pairs it was not tuned on: kept, with a known cost
+
+The thresholds (veto 0.9, rescue 0.97 at cos 0.4) were picked on the 75 pairs above. To test
+them, `make_merge_cases_heldout.py` builds 68 new pairs: new names and values, rewordings
+not in the tuning set, and two new trap kinds (a person against their pet, and a past
+value "used to live in" against the current one).
+
+| | wrong merges (true fact lost) | missed merges (duplicate kept) | cost (5 per wrong) |
+|---|---|---|---|
+| rules alone | 18 of 30 | 7 of 38 | 97 |
+| **agent: rules + veto 0.9 + rescue** | **0 of 30** | **14 of 38** | **14** |
+| judge alone, p ≥ 0.95 | 0 of 30 | 8 of 38 | 8 |
+
+- **The veto holds on new data.** It makes no wrong merges, where the rules overwrite a
+  person with their pet 8 times and a current city with a past one 6 times.
+- **The rescue does not carry over.** 7 of the 8 reworded attributes were missed, though
+  the judge gave each p ≥ 0.98 and their cosines are 0.74 to 0.94. The blocker is
+  `DistinctSubjects`. Its synonym table (`Related` in Mem.Guard) groups "job" with "work",
+  but not with "profession", "occupation" or "trade", and "city" with nothing. So "Oskar's
+  job" against "Oskar's profession" reads as two different attributes, and the rescue is
+  never asked.
+- **Not fixed here.** Adding those words is one line, but it would be tuned on these very
+  pairs, leaving no held-out set. The next step is to add the groups and measure them on a
+  third set. Meanwhile, a missed merge only keeps a duplicate line, and nothing is lost.
