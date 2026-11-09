@@ -1265,3 +1265,36 @@ Share of the expected answer's words found in the reply, whatever its length:
   rest shares no words with the question: "What activities does Melanie partake in?"
   against "I'm off to go swimming with the kids". That needs the question rewritten before
   the search, not a larger k.
+
+## One GPU for chat and training: groundwork (2026-11-09)
+
+The llama trainer made a full-precision (f32) copy of the base model and loaded it as a
+second model next to the chat engine's. For a 4-bit 27B that copy is about 108 GB, so no
+consumer card could train one. Three changes, each off by default:
+
+- **`[consolidate] train_base = model`.** The trainer runs the frozen base on the GGUF as it
+  is (f16 or quantized), as QLoRA does.
+- **One loaded copy per file and device (`Mem.LlamaChat.LlamaLoadModel`).** With
+  `train_base = model` on the chat engine's device, the trainer uses the engine's weights.
+  Training already waits while a turn is answered (`TrainingHeld`). `[gpu] train` now
+  defaults to `[gpu] infer`.
+- **New LoRA tensors on their weight's device (`packaging/llama-patches`).**
+  `llama_adapter_lora_init_new` put every trainable tensor on the CPU. Each pair now goes in
+  its base weight's buffer type, so a GPU-offloaded layer trains on the GPU.
+
+Tiny profile, 20 facts (`memory-tiny-llama-base-*.json`):
+
+| train base | from the weights | recall at the gate | drift (ppl ratio) | training |
+|---|---|---|---|---|
+| f32 copy (default) | 0.917 | 1.00 | 1.14 | 908 s |
+| the f16 GGUF as loaded | 0.917 | 1.00 | 1.11 | 5,249 s |
+
+`scripts/e2e_tiers.sh` passes both ways. With `TRAIN_BASE=model` the deep and the fast runs
+log "base weights: shared with the chat engine". On a CPU the f32 copy stays the default,
+because the backward pass through f16 weights is 5.8× slower there.
+
+**Not done: the GPU backward pass.** Training through a frozen weight needs
+`ggml_out_prod(weight, grad)`. llama.cpp's CPU backend has it for f16 and quantized weights,
+but CUDA only for f32 (`ggml-cuda.cu`, `GGML_OP_OUT_PROD`). Without it those ops fall back to
+the CPU. The fix is to dequantize one weight at a time into a scratch buffer on the card
+before the existing f32 path, and it needs a CUDA machine to build and measure.
