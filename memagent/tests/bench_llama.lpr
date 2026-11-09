@@ -18,7 +18,7 @@ program bench_llama;
 uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8, SysUtils, Classes, fpjson, jsonparser, Mem.Config, Mem.Consolidate, Mem.Train,
-  Mem.Engine, Mem.Engine.Llama, Mem.LlamaChat;
+  Mem.Engine, Mem.Engine.Llama, Mem.LlamaChat, Mem.Layout;
 
 var
   Cfg: TMemConfig;
@@ -113,8 +113,15 @@ begin
   Args := TStringList.Create;
   try
     Cfg.Load;
-    Cfg.InferGpu := -1;
-    Cfg.TrainGpu := -1;
+    (* the devices [gpu] layout picks (Mem.Layout), as the agent would; BENCH_CPU=1
+       keeps everything on the CPU, as this benchmark always did before layouts *)
+    if GetEnvironmentVariable('BENCH_CPU') = '1' then
+    begin
+      Cfg.InferGpu := -1;
+      Cfg.TrainGpu := -1;
+    end
+    else
+      WriteLn(StdErr, ResolveLayout(Cfg));
     Cmd := '';
     I := 1;
     while I <= ParamCount do

@@ -157,7 +157,7 @@
       "tools": true
     },
     "qwen3-14b": {
-      "description": "Qwen3-14B, 4-bit (Q4_K_M, 9 GB). One 16 GB+ GPU (layout one-gpu): chat and the in-process trainer share the card's one copy. Reasoning is off (Mem.LlamaChat).",
+      "description": "Qwen3-14B, 4-bit (Q4_K_M, 9 GB). One 16 GB+ GPU (layout one-gpu): chat and the in-process trainer share the card's one copy. Reasoning is off (Mem.LlamaChat). Tuned on an RTX 4090: 30 facts answered 0.967 from the weights alone, deep sleep 59 s (bench/README.md).",
       "base": "Qwen/Qwen3-14B",
       "dtype": "bfloat16",
       "quant": "4bit",
@@ -179,7 +179,7 @@
       },
       "train": {
         "examples": "varied",
-        "epochs": 2,
+        "epochs": 3,
         "lr": 0.0003,
         "batch": 8,
         "grad_accum": 1,
