@@ -100,6 +100,13 @@ int main() {
             ggml_free(ctx);
         }
     }
+    // gpt-oss picks each token's expert weights with a batched get_rows: probs [1, n_exp, n_tok]
+    ok &= check("get_rows batched -> src", [&](ggml_context * ctx, ggml_tensor * probs) {
+        ggml_tensor * ids = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_used, n_tok);
+        for (int64_t t = 0; t < n_tok; ++t) for (int64_t s = 0; s < n_used; ++s) ((int32_t *) ids->data)[s + t*n_used] = (int32_t) ((t + s*3) % n_exp);
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 1, n_used, n_tok); fill(w, -1, 1);
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_sqr(ctx, ggml_get_rows(ctx, probs, ids)), w));
+    }, 1, n_exp, n_tok, -1, 1, 1e-2f);
     ok &= check("add_id -> a", [&](ggml_context * ctx, ggml_tensor * a) {
         ggml_tensor * bias = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, n_out, n_exp); fill(bias, -1, 1);
         ggml_tensor * ids = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_used, n_tok);

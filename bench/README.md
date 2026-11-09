@@ -1403,3 +1403,50 @@ with reasoning off, detected from the chat template:
 - **Qwen3-14B:** stronger training settings for the 14B than the 1.5B's.
 - **gpt-oss and Qwen3.8:** either backward passes in llama.cpp for MoE routing and linear
   attention, or the Python trainer (QLoRA, or Unsloth, the usual route for gpt-oss).
+
+### Qwen3-14B and gpt-oss-20b training on an RTX 4090 (24 GB), 2026-11-09
+
+These runs took 77 minutes on a rented RunPod card, about $1.14. Most of that time was
+model downloads, since Hugging Face served this pod at 2–7 MB/s. Everything ran with
+`layout one-gpu`, training through the GGUF as loaded on the card. `bench_llama` now
+resolves `[gpu] layout`; before, it forced the CPU and tried to build a 60 GB f32 copy.
+
+**The CUDA kernels.** `packaging/llama-patches/tests/cudacmp.cpp` compares `OUT_PROD_ID`
+on the card with the CPU. It matches for f32, Q4_K, MXFP4 and Q8_0 experts: the largest
+difference was 0.02% of the largest value, which is float GEMM rounding.
+
+**Qwen3-14B (Q4_K_M).** A 10-fact sweep compared these settings: the 1.5B's (2 epochs,
+lr 3e-4), 3 epochs, lr 5e-4, 4 epochs at lr 2e-4, and 3 epochs at lr 5e-4. Answers from
+the weights ranged from 0.80 to 1.00. The pick, 3 epochs, was confirmed on all 30 facts
+(`memory-qwen3-14b-4090-*.json`):
+
+| Qwen3-14B, 30 facts / 60 questions | 2 epochs | **3 epochs (profile)** |
+|---|---|---|
+| answered from the weights alone | 0.900 | **0.967** |
+| with the fact in the prompt | 1.000 | 1.000 |
+| gate recall | 0.93 | **1.00** |
+| drift (held-out ppl ratio) | 1.22 | **1.14** |
+| interference | 0.067 | **0.017** |
+| deep sleep | 42 s | 59 s |
+
+**gpt-oss-20b (MXFP4).** It now trains with memagent's own trainer. llama.cpp lacked four
+backward passes, and the patch adds them:
+- `OUT_PROD_ID` for `MUL_MAT_ID`, the input gradient, with the experts frozen;
+- `ADD_ID`;
+- `SWIGLU_OAI`;
+- a batched `GET_ROWS_BACK`, for the expert weights picked per token.
+
+`tests/gradtest.cpp` checks each of them against finite differences. The LoRA adapts
+attention only, because the experts are 3D tensors, so it needs more training and more
+anchors (`memory-gpt-oss-20b-4090-*.json`):
+
+| gpt-oss-20b, 10 facts / 20 questions | 2 epochs | 4 epochs, lr 6e-4 | **4 epochs, lr 6e-4, 32 anchors (profile)** |
+|---|---|---|---|
+| answered from the weights alone | 0.15 | 0.80 | **0.75** |
+| gate recall | 0.10 | 1.00 | **1.00** |
+| drift | 1.87 | 2.06 | **1.40** |
+| deep sleep | 18 s | 25 s | 31 s |
+
+**Qwen3.8-27B: not done.** Its hybrid layers need backward passes that llama.cpp does not
+have: Gated DeltaNet, `SSM_CONV`, `SOLVE_TRI`, `CUMSUM` and more. Its recurrent cache also
+fails the training-mode assertion. That is several days of llama.cpp work.
