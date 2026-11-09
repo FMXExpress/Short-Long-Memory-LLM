@@ -54,6 +54,8 @@ procedure LlamaSetup(ACfg: TMemConfig);
 function LlamaLoadModel(const APath: string; AGpu, AGpuLayers: Integer): PLlamaModel;
 { gives back a model from LlamaLoadModel: freed when its last user gives it back }
 procedure LlamaFreeModel(AModel: PLlamaModel);
+{ how many users hold this model (LlamaLoadModel), 0 for one it did not load }
+function LlamaModelUsers(AModel: PLlamaModel): Integer;
 { all cores but one when AThreads <= 0 }
 function LlamaThreads(AThreads: Integer): Integer;
 (* a [{"role": .., "content": ..}, ...] array from role/content pairs *)
@@ -198,6 +200,21 @@ begin
   end;
   if LLast then
     llama_model_free(AModel);
+end;
+
+function LlamaModelUsers(AModel: PLlamaModel): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  EnterCriticalSection(GLock);
+  try
+    for I := 0 to High(GModels) do
+      if GModels[I].Model = AModel then
+        Exit(GModels[I].Users);
+  finally
+    LeaveCriticalSection(GLock);
+  end;
 end;
 
 function LlamaThreads(AThreads: Integer): Integer;
