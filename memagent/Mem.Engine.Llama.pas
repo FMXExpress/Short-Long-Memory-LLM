@@ -80,7 +80,7 @@ begin
   if FAdapter <> nil then
     llama_adapter_lora_free(FAdapter);
   if FModel <> nil then
-    llama_model_free(FModel);
+    LlamaFreeModel(FModel);
   inherited Destroy;
 end;
 

@@ -52,6 +52,8 @@ type
 procedure LlamaSetup(ACfg: TMemConfig);
 { AGpu < 0: CPU; else all layers (or AGpuLayers) on that device alone }
 function LlamaLoadModel(const APath: string; AGpu, AGpuLayers: Integer): PLlamaModel;
+{ gives back a model from LlamaLoadModel: freed when its last user gives it back }
+procedure LlamaFreeModel(AModel: PLlamaModel);
 { all cores but one when AThreads <= 0 }
 function LlamaThreads(AThreads: Integer): Integer;
 (* a [{"role": .., "content": ..}, ...] array from role/content pairs *)
@@ -108,10 +110,41 @@ begin
   end;
 end;
 
+type
+  TLoadedModel = record
+    Key: string;
+    Model: PLlamaModel;
+    Users: Integer;
+  end;
+
+var
+  GModels: array of TLoadedModel;
+
 function LlamaLoadModel(const APath: string; AGpu, AGpuLayers: Integer): PLlamaModel;
 var
   MP: TLlamaModelParams;
+  LKey: string;
+  I: Integer;
 begin
+  (* One copy per file and device. The trainer asks for the model the chat engine
+     already has when [consolidate] train_base = model and both roles share a device,
+     and gets that copy: a consumer GPU holds the weights once, not once per role.
+     llama.cpp keeps the weights read-only and the state in each context, so a
+     training context and a chat context can share them; training waits while a
+     turn is answered (TrainingHeld). *)
+  LKey := ExpandFileName(APath) + '|' + IntToStr(AGpu) + '|' + IntToStr(AGpuLayers);
+  EnterCriticalSection(GLock);
+  try
+    for I := 0 to High(GModels) do
+      if GModels[I].Key = LKey then
+      begin
+        Inc(GModels[I].Users);
+        LlamaTrace('sharing the loaded model ' + APath);
+        Exit(GModels[I].Model);
+      end;
+  finally
+    LeaveCriticalSection(GLock);
+  end;
   MP := llama_model_default_params();
   (* one device per role: pinned to main_gpu instead of being split across all
      of them, so inference and training each keep their own GPU *)
@@ -127,6 +160,44 @@ begin
   Result := llama_model_load_from_file(PAnsiChar(APath), MP);
   if Result = nil then
     raise ELlama.CreateFmt('llama.cpp could not load %s (see llama.log)', [APath]);
+  EnterCriticalSection(GLock);
+  try
+    SetLength(GModels, Length(GModels) + 1);
+    GModels[High(GModels)].Key := LKey;
+    GModels[High(GModels)].Model := Result;
+    GModels[High(GModels)].Users := 1;
+  finally
+    LeaveCriticalSection(GLock);
+  end;
+end;
+
+procedure LlamaFreeModel(AModel: PLlamaModel);
+var
+  I: Integer;
+  LLast: Boolean;
+begin
+  if AModel = nil then
+    Exit;
+  LLast := True;
+  EnterCriticalSection(GLock);
+  try
+    for I := 0 to High(GModels) do
+      if GModels[I].Model = AModel then
+      begin
+        Dec(GModels[I].Users);
+        LLast := GModels[I].Users <= 0;
+        if LLast then
+        begin
+          GModels[I] := GModels[High(GModels)];
+          SetLength(GModels, Length(GModels) - 1);
+        end;
+        Break;
+      end;
+  finally
+    LeaveCriticalSection(GLock);
+  end;
+  if LLast then
+    llama_model_free(AModel);
 end;
 
 function LlamaThreads(AThreads: Integer): Integer;

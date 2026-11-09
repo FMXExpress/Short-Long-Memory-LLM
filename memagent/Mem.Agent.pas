@@ -248,7 +248,7 @@ begin
     for I := 0 to Min(ContextFacts(FCfg), Length(LFacts)) - 1 do
       Result := Result + '- ' + LFacts[I].Text + LineEnding;
   end;
-  for I := 0 to Min(FCfg.RagK, Length(LMsgs)) - 1 do
+  for I := 0 to Min(FCfg.MsgK, Length(LMsgs)) - 1 do
     Result := Result + '- Earlier the user said: "' + LMsgs[I].Content + '"' + LineEnding;
 end;
 

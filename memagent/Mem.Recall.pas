@@ -139,7 +139,7 @@ begin
   T := Now;
   AFacts := AStore.HybridFacts(AQuery, LVec, ARet.EmbedderId, ACfg.RetrievalPool, MinCosFor(ACfg, ARet),
     ACfg.RagIncludeBaked, @ForeignOwner);
-  AMsgs := AStore.HybridMessages(AQuery, LVec, ARet.EmbedderId, ABeforeId, ACfg.RetrievalPool,
+  AMsgs := AStore.HybridMessages(AQuery, LVec, ARet.EmbedderId, ABeforeId, ACfg.MsgPool,
     MinCosFor(ACfg, ARet));
   ATiming.SearchMs := MsBetween(T);
   if not ARet.HasReranker then
