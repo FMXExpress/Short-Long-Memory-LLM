@@ -28,6 +28,13 @@ type
     FVocab: PLlamaVocab;
     FTemplate: string;
     FScale: Single;
+    (* a reasoning model, from its chat template: 'think' (Qwen3 family: <think>
+       blocks), 'harmony' (gpt-oss: analysis and final channels), '' otherwise.
+       memagent answers with reasoning off: a recalled fact is short, the probes
+       read the start of the answer, and a CPU or a small card cannot afford the
+       thinking tokens. Every assistant turn opens on the answer itself: an empty
+       <think></think> (what enable_thinking=False renders), or the final channel. *)
+    FReasoning: string;
     function Piece(AToken: TLlamaToken): string;
     function NewSampler(ATemperature: Double; ANCtx: Integer): PLlamaSampler;
   public
@@ -45,7 +52,11 @@ type
       ATemperature: Double; AOnToken: TTextEvent = nil): string;
     property Model: PLlamaModel read FModel;
     property Context: PLlamaContext read FCtx;
+    property Reasoning: string read FReasoning;
   end;
+
+{ AText without a leading <think>...</think> block }
+function StripThinking(const AText: string): string;
 
 { loads the library, routes llama.cpp's log to data/logs/llama.log, inits the
   backend; safe to call more than once and from any thread }
@@ -54,6 +65,8 @@ procedure LlamaSetup(ACfg: TMemConfig);
 function LlamaLoadModel(const APath: string; AGpu, AGpuLayers: Integer): PLlamaModel;
 { gives back a model from LlamaLoadModel: freed when its last user gives it back }
 procedure LlamaFreeModel(AModel: PLlamaModel);
+{ how many users hold this model (LlamaLoadModel), 0 for one it did not load }
+function LlamaModelUsers(AModel: PLlamaModel): Integer;
 { all cores but one when AThreads <= 0 }
 function LlamaThreads(AThreads: Integer): Integer;
 (* a [{"role": .., "content": ..}, ...] array from role/content pairs *)
@@ -200,6 +213,21 @@ begin
     llama_model_free(AModel);
 end;
 
+function LlamaModelUsers(AModel: PLlamaModel): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  EnterCriticalSection(GLock);
+  try
+    for I := 0 to High(GModels) do
+      if GModels[I].Model = AModel then
+        Exit(GModels[I].Users);
+  finally
+    LeaveCriticalSection(GLock);
+  end;
+end;
+
 function LlamaThreads(AThreads: Integer): Integer;
 begin
   (* All cores but one: ggml's workers spin while they wait, and with every
@@ -236,6 +264,12 @@ begin
   if P = nil then
     raise ELlama.Create('the GGUF model has no chat template');
   FTemplate := P;
+  if (Pos('<|im_start|>', FTemplate) > 0) and (Pos('<think>', FTemplate) > 0) then
+    FReasoning := 'think'
+  else if (Pos('<|start|>', FTemplate) > 0) and (Pos('<|channel|>', FTemplate) > 0) then
+    FReasoning := 'harmony'
+  else
+    FReasoning := '';
   CP := llama_context_default_params();
   CP.n_ctx := ANCtx;
   CP.n_batch := ANCtx;   { a whole prompt decodes in one call }
@@ -282,6 +316,34 @@ begin
   if N < 0 then
     raise ELlama.Create('llama.cpp does not know this model''s chat template');
   SetLength(Result, N);
+  (* reasoning off: each assistant turn, past (a training example) or opened
+     here, starts on the answer, so a prompt stays a prefix of its example *)
+  if FReasoning = 'think' then
+  begin
+    Result := StringReplace(Result, '<|im_start|>assistant' + #10, '<|im_start|>assistant' + #10 +
+      '<think>' + #10#10 + '</think>' + #10#10, [rfReplaceAll]);
+  end
+  else if FReasoning = 'harmony' then
+  begin
+    Result := StringReplace(Result, '<|start|>assistant<|message|>', '<|start|>assistant<|channel|>final<|message|>',
+      [rfReplaceAll]);
+    if AAddAssistant then
+      Result := Result + '<|channel|>final<|message|>';
+  end;
+end;
+
+function StripThinking(const AText: string): string;
+var
+  P: Integer;
+begin
+  Result := AText;
+  if Copy(TrimLeft(Result), 1, 7) <> '<think>' then
+    Exit;
+  P := Pos('</think>', Result);
+  if P > 0 then
+    Result := TrimLeft(Copy(Result, P + 8, MaxInt))
+  else
+    Result := '';   { cut off while thinking: no answer }
 end;
 
 function TLlamaChat.Tokenize(const AText: string): TLlamaTokens;
@@ -374,6 +436,36 @@ begin
   Result := GenerateWith(AMessages, LAdapters, AMaxNewTokens, ATemperature, AOnToken);
 end;
 
+(* streams the part of AText after AShown that is not a leading <think> block;
+   AFinal: the text is complete (an unclosed block is never shown) *)
+procedure ShowNew(AOnToken: TTextEvent; const AText: string; var AShown: Integer; AFinal: Boolean);
+var
+  LLead: string;
+  P: Integer;
+begin
+  LLead := TrimLeft(AText);
+  if AShown = 0 then
+  begin
+    { not yet sure: the text could still become "<think>" }
+    if (Length(LLead) < 7) and (Copy('<think>', 1, Length(LLead)) = LLead) and not AFinal then
+      Exit;
+    if Copy(LLead, 1, 7) = '<think>' then
+    begin
+      P := Pos('</think>', AText);
+      if P = 0 then
+        Exit;
+      AShown := P + 7;
+      while (AShown < Length(AText)) and (AText[AShown + 1] in [#9, #10, #13, ' ']) do
+        Inc(AShown);
+    end;
+  end;
+  if Length(AText) > AShown then
+  begin
+    AOnToken(Copy(AText, AShown + 1, MaxInt));
+    AShown := Length(AText);
+  end;
+end;
+
 function TLlamaChat.GenerateWith(AMessages: TJSONArray; const AAdapters: TLlamaAdapters; AMaxNewTokens: Integer;
   ATemperature: Double; AOnToken: TTextEvent): string;
 var
@@ -383,6 +475,7 @@ var
   NPrompt, NCtx, NBatch, I, LDone, LChunk, LWhole: Integer;
   LSmpl: PLlamaSampler;
   LPending: string;
+  LShown: Integer;
 begin
   LToks := Tokenize(Prompt(AMessages));
   NPrompt := Length(LToks);
@@ -420,6 +513,7 @@ begin
 
     Result := '';
     LPending := '';
+    LShown := 0;
     for I := 1 to AMaxNewTokens do
     begin
       LTok := llama_sampler_sample(LSmpl, FCtx, -1);
@@ -430,24 +524,22 @@ begin
       LWhole := Utf8Whole(LPending);
       if LWhole > 0 then
       begin
-        if Assigned(AOnToken) then
-          AOnToken(Copy(LPending, 1, LWhole));
         Result := Result + Copy(LPending, 1, LWhole);
         Delete(LPending, 1, LWhole);
+        { stream what is not thinking: a leading <think> block is held until it closes }
+        if Assigned(AOnToken) then
+          ShowNew(AOnToken, Result, LShown, False);
       end;
       if llama_decode(FCtx, llama_batch_get_one(@LTok, 1)) <> 0 then
         raise ELlama.Create('llama_decode failed');
     end;
-    if LPending <> '' then
-    begin
-      if Assigned(AOnToken) then
-        AOnToken(LPending);
-      Result := Result + LPending;
-    end;
+    Result := Result + LPending;
+    if Assigned(AOnToken) then
+      ShowNew(AOnToken, Result, LShown, True);
   finally
     llama_sampler_free(LSmpl);
   end;
-  Result := Trim(Result);
+  Result := Trim(StripThinking(Result));
 end;
 
 initialization

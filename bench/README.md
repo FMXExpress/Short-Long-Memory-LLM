@@ -1265,3 +1265,141 @@ Share of the expected answer's words found in the reply, whatever its length:
   rest shares no words with the question: "What activities does Melanie partake in?"
   against "I'm off to go swimming with the kids". That needs the question rewritten before
   the search, not a larger k.
+
+## One GPU for chat and training: groundwork (2026-11-09)
+
+The llama trainer made a full-precision (f32) copy of the base model and loaded it as a
+second model next to the chat engine's. For a 4-bit 27B that copy is about 108 GB, so no
+consumer card could train one. Three changes, each off by default:
+
+- **`[consolidate] train_base = model`.** The trainer runs the frozen base on the GGUF as it
+  is (f16 or quantized), as QLoRA does.
+- **One loaded copy per file and device (`Mem.LlamaChat.LlamaLoadModel`).** With
+  `train_base = model` on the chat engine's device, the trainer uses the engine's weights.
+  Training already waits while a turn is answered (`TrainingHeld`). `[gpu] train` now
+  defaults to `[gpu] infer`.
+- **New LoRA tensors on their weight's device (`packaging/llama-patches`).**
+  `llama_adapter_lora_init_new` put every trainable tensor on the CPU. Each pair now goes in
+  its base weight's buffer type, so a GPU-offloaded layer trains on the GPU.
+
+Tiny profile, 20 facts (`memory-tiny-llama-base-*.json`):
+
+| train base | from the weights | recall at the gate | drift (ppl ratio) | training |
+|---|---|---|---|---|
+| f32 copy (default) | 0.917 | 1.00 | 1.14 | 908 s |
+| the f16 GGUF as loaded | 0.917 | 1.00 | 1.11 | 5,249 s |
+
+`scripts/e2e_tiers.sh` passes both ways. With `TRAIN_BASE=model` the deep and the fast runs
+log "base weights: shared with the chat engine". On a CPU the f32 copy stays the default,
+because the backward pass through f16 weights is 5.8× slower there.
+
+**Not done: the GPU backward pass.** Training through a frozen weight needs
+`ggml_out_prod(weight, grad)`. llama.cpp's CPU backend has it for f16 and quantized weights,
+but CUDA only for f32 (`ggml-cuda.cu`, `GGML_OP_OUT_PROD`). Without it those ops fall back to
+the CPU. The fix is to dequantize one weight at a time into a scratch buffer on the card
+before the existing f32 path, and it needs a CUDA machine to build and measure.
+
+### Hardware layouts (`[gpu] layout`, `Mem.Layout`)
+
+Where chat and training run is now one setting, resolved at startup from the GPUs llama.cpp
+lists (`ggml_backend_dev_*`) and the model's size. The startup line says what it picked:
+
+```
+layout cpu: chat on CPU, training on the same CPU between turns, from an f32 copy (auto: 0 GPUs)
+```
+
+| layout | chat | training | f32 copy or the model as loaded (`train_base = auto`) |
+|---|---|---|---|
+| `cpu` | CPU | CPU | always the f32 copy (5.8× faster than f16 on a CPU) |
+| `chat-gpu-train-cpu` | GPU | CPU | the f32 copy, in RAM |
+| `chat-cpu-train-gpu` | CPU | GPU | the f32 copy if it fits on the card |
+| `two-gpus` | GPU `gpu` | GPU `second` | the f32 copy if it fits on the second card |
+| `one-gpu` | GPU | the same GPU, between turns | the f32 copy if it fits beside the chat model, else the chat model's own weights |
+| `one-gpu-idle` | GPU | the same GPU, when idle | the f32 copy if it fits on the card alone (the chat model is unloaded) |
+
+"Fits" is the f32 copy (its file, or the GGUF's size × 32 / bits per weight for its
+quantization) plus 1 GB and an eighth of the model for activations, the adapter and AdamW,
+against the card's free memory at startup. Some examples from `tests/layout_test.lpr`:
+
+- **1.5B (q8_0, 1.9 GB; f32 copy 7.2 GB).** On a 24 GB card: one-gpu with the f32 copy.
+  On a 12 GB card the f32 copy does not fit beside the chat model, so one-gpu trains through
+  the chat model's own weights, and one-gpu-idle uses the f32 copy.
+- **27B (Q4_K_M, 17.4 GB; f32 copy about 115 GB).** The model as loaded on any one card.
+
+**Idle-time training (`train_when = idle`, `idle_min`, `night`).**
+- A run waits until nothing has happened for `idle_min` minutes, inside `night` when it is set.
+- It then unloads the chat model (`TEngine.Release`) and trains.
+- The next message stops the run (exit 4). The run's facts stay due (`fast_seen_prev`), and
+  the chat model loads back, with its adapters.
+- `/sleep`, `/nap`, `/wait` and quitting start a run now.
+
+`scripts/e2e_idle.sh` checks all of this on the CPU with the tiny profile:
+1. The run waits.
+2. It unloads the chat model.
+3. A question stops it, and the reloaded model answers.
+4. `/wait` then trains, and the LoRA answers "Biscuit" from the weights.
+
+The judge model (`[judge]`), when on, stays loaded.
+
+**Measured on a GPU: nothing yet.** These need a machine with a card:
+- the GPU layouts themselves;
+- the free-memory thresholds;
+- training through quantized weights on CUDA (no `out_prod` for them yet).
+
+### On a GPU: one RTX PRO 4500 (32 GB, Blackwell), 2026-11-09
+
+These results come from 23 minutes on a rented RunPod card, which cost about $0.27. llama.cpp
+b11985 was built with CUDA 12.8, together with this repository's patch, which now adds
+`out_prod` for f16 and quantized weights on CUDA. That function dequantizes a weight one
+slice of rows at a time, about 256 MB per slice, and adds up the GEMMs over the slices.
+
+**Every layout runs end to end on the card** (`scripts/e2e_tiers.sh tiny` and
+`scripts/e2e_idle.sh`, both with `LAYOUT=`):
+
+| layout | result | time |
+|---|---|---|
+| `one-gpu`, f32 copy (auto chose it: 0.5 GB fits) | pass | 26 s |
+| `one-gpu`, `train_base=model` (shares the chat model's weights) | pass | 31 s |
+| `chat-gpu-train-cpu` | pass | 88 s |
+| `chat-cpu-train-gpu` | pass | 24 s |
+| `one-gpu-idle` | pass | 25 s |
+
+- **auto** saw 31.1 of 31.4 GB free, chose one-gpu, and chose the f32 copy for the 1.5B
+  (6.6 GB).
+- **one-gpu-idle:** on the GPU the idle run finished inside the 6 s quiet spell. Stopping a
+  run that is still going was therefore exercised only on the CPU.
+
+**The 1.5B (`small`, q8_0) on the card**, with 3 to 5 facts:
+
+| | per deep run | gate recall, runs 1–3 | weights in memory |
+|---|---|---|---|
+| the f32 copy | 5.5 s | 0.67, 0.50, 0.80 | two copies |
+| the q8_0 GGUF as loaded (the new CUDA `out_prod`) | **3.3 s** | 0.67, 0.50, 0.80 | **one, shared** |
+
+On the card, training through the quantized weights is faster than through the f32 copy,
+and it learns the same. On the CPU it was 5.8× slower.
+
+**Newer models**, each with one deep run on `one-gpu` and three facts. The `small` training
+settings are used for all of them, and each started from the model as loaded, since no f32
+copy fits:
+
+| model | chat | training with memagent's trainer |
+|---|---|---|
+| Qwen3-14B Q4_K_M (9 GB) | works, once thinking is off (below) | **runs**: 12 s, gate recall 0.67 (2 of 3; the `small` gate needs 0.7) |
+| gpt-oss-20b MXFP4 (12 GB) | works, answering in the final channel | **aborts**: no backward for `ADD_ID`, the expert bias; `MUL_MAT_ID` is next |
+| Qwen3.8-27B Q4_K_M (17 GB) | works | **aborts**: training mode assumes an attention-only cache (`get_n_kv() == n_tokens`); Gated DeltaNet layers have no backward either |
+
+**Reasoning models (`Mem.LlamaChat`).** Qwen3 opens every answer with a `<think>` block,
+and the gate's probes read the start of the answer, so recall was 0. memagent now answers
+with reasoning off, detected from the chat template:
+- **Qwen3 family:** each assistant turn starts with an empty `<think></think>`, which is what
+  `enable_thinking=False` renders.
+- **gpt-oss:** each assistant turn starts in the final channel.
+- **Training examples** get the same prefix.
+- **A `<think>` block a model writes anyway** is held back from the stream and cut from the
+  answer.
+
+**What this leaves.**
+- **Qwen3-14B:** stronger training settings for the 14B than the 1.5B's.
+- **gpt-oss and Qwen3.8:** either backward passes in llama.cpp for MoE routing and linear
+  attention, or the Python trainer (QLoRA, or Unsloth, the usual route for gpt-oss).

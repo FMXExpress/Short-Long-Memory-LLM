@@ -54,6 +54,88 @@ index 0c8b081..ec1a3c7 100644
      }
  }
  
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 72e961d..0d06c51 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -5779,7 +5779,11 @@ static bool ggml_backend_cuda_device_supports_op(ggml_backend_dev_t dev, const g
+                 }
+             }
+         case GGML_OP_OUT_PROD:
+-            return op->type == GGML_TYPE_F32 && op->src[0]->type == GGML_TYPE_F32 && op->src[1]->type == GGML_TYPE_F32;
++            // memagent: a contiguous 2D f16/bf16/quantized src0 is dequantized in slices (out-prod.cu)
++            return op->type == GGML_TYPE_F32 && op->src[1]->type == GGML_TYPE_F32 &&
++                (op->src[0]->type == GGML_TYPE_F32 ||
++                 (ggml_get_to_fp32_cuda(op->src[0]->type) != nullptr && ggml_is_contiguous(op->src[0]) &&
++                  op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 && op->ne[2] == 1 && op->ne[3] == 1));
+         case GGML_OP_GET_ROWS:
+             {
+                 switch (op->src[0]->type) {
+diff --git a/ggml/src/ggml-cuda/out-prod.cu b/ggml/src/ggml-cuda/out-prod.cu
+index c46e045..9da1d0c 100644
+--- a/ggml/src/ggml-cuda/out-prod.cu
++++ b/ggml/src/ggml-cuda/out-prod.cu
+@@ -1,5 +1,7 @@
+ #include "out-prod.cuh"
++#include "convert.cuh"
+ 
++#include <algorithm>
+ #include <cstdint>
+ 
+ static __global__ void k_compute_out_prod_ptrs(
+@@ -30,7 +32,6 @@ void ggml_cuda_out_prod(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+ 
+     GGML_TENSOR_BINARY_OP_LOCALS
+ 
+-    GGML_ASSERT(src0->type == GGML_TYPE_F32);
+     GGML_ASSERT(src1->type == GGML_TYPE_F32);
+     GGML_ASSERT(dst->type  == GGML_TYPE_F32);
+ 
+@@ -54,7 +55,6 @@ void ggml_cuda_out_prod(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     const float alpha = 1.0f;
+     const float beta = 0.0f;
+ 
+-    const int64_t lda = nb01 / sizeof(float);
+     const int64_t ldc = nb1  / sizeof(float);
+ 
+     const bool src1_T = ggml_is_transposed(src1);
+@@ -62,6 +62,36 @@ void ggml_cuda_out_prod(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     const int64_t           ldb            = (src1_T ?        nb10 :        nb11) /  sizeof(float);
+     GGML_ASSERT(                             (src1_T ?        nb11 :        nb10) == sizeof(float));
+ 
++    // memagent: an f16, bf16 or quantized src0 (the frozen base weight in LoRA training, whose
++    // input gradient is out_prod(weight, grad)): dequantized to f32 a slice of rows at a time
++    // (about 256 MB, so a large output projection needs no f32 copy of itself), each slice's
++    // product accumulated into dst. Rows of src0 are the k dimension of the GEMM.
++    if (src0->type != GGML_TYPE_F32) {
++        GGML_ASSERT(ggml_is_contiguous(src0));
++        GGML_ASSERT(ne02 == 1 && ne03 == 1 && ne2 == 1 && ne3 == 1);
++        const to_fp32_cuda_t to_fp32 = ggml_get_to_fp32_cuda(src0->type);
++        GGML_ASSERT(to_fp32 != nullptr);
++        const int64_t rows_per_slice = std::max<int64_t>(1, (int64_t(64) << 20) / ne00);
++        ggml_cuda_pool_alloc<float> slice(ctx.pool(), std::min(rows_per_slice, ne01) * ne00);
++        for (int64_t r0 = 0; r0 < ne01; r0 += rows_per_slice) {
++            const int64_t nr = std::min(rows_per_slice, ne01 - r0);
++            to_fp32((const char *) src0->data + r0*nb01, slice.get(), nr*ne00, stream);
++            const float   beta_s = r0 == 0 ? 0.0f : 1.0f;
++            // the matching rows of src1: k is its leading dimension when transposed (op N), else
++            // its column index (op T)
++            const float * src1_s = src1_T ? src1_d + r0 : src1_d + r0*ldb;
++            CUBLAS_CHECK(
++                cublasSgemm(handle, CUBLAS_OP_N, src1_cublas_op,
++                        ne0, ne1, nr,
++                        &alpha, slice.get(), ne00,
++                                src1_s,      ldb,
++                        &beta_s, dst_d,      ldc));
++        }
++        return;
++    }
++
++    const int64_t lda = nb01 / sizeof(float);
++
+     // data strides in dimensions 2/3
+     const size_t s02 = nb02 / sizeof(float);
+     const size_t s03 = nb03 / sizeof(float);
 diff --git a/ggml/src/ggml-opt.cpp b/ggml/src/ggml-opt.cpp
 index 53903de..d1453c3 100644
 --- a/ggml/src/ggml-opt.cpp
@@ -182,7 +264,7 @@ index ae54e66..6d460dc 100644
      // NOTE: loaded adapters that are not manually freed will be freed when the associated model is deleted
      LLAMA_API void llama_adapter_lora_free(struct llama_adapter_lora * adapter);
 diff --git a/src/llama-adapter.cpp b/src/llama-adapter.cpp
-index 824601e..faef79b 100644
+index 824601e..a22d0ef 100644
 --- a/src/llama-adapter.cpp
 +++ b/src/llama-adapter.cpp
 @@ -5,6 +5,9 @@
@@ -195,7 +277,7 @@ index 824601e..faef79b 100644
  #include <cassert>
  #include <cerrno>
  #include <cstring>
-@@ -525,3 +528,132 @@ const llama_token * llama_adapter_get_alora_invocation_tokens(const llama_adapte
+@@ -525,3 +528,149 @@ const llama_token * llama_adapter_get_alora_invocation_tokens(const llama_adapte
      GGML_ASSERT(adapter);
      return adapter->alora_invocation_tokens.data();
  }
@@ -244,29 +326,46 @@ index 824601e..faef79b 100644
 +        return nullptr;
 +    }
 +
-+    // trainable tensors live in a host buffer (the CPU training path)
++    // trainable tensors live next to the weight they adapt: on the GPU for offloaded layers,
++    // so a consumer card trains without moving activations to the host; on the CPU otherwise.
++    // A host-visible buffer of a GPU (e.g. CUDA_Host) would put them on the CPU, so the weight's
++    // own buffer type decides, with the CPU for weights in no buffer yet
 +    auto * cpu_dev = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
-+    ggml_init_params params = {
-+        /*.mem_size   =*/ 2 * picked.size() * ggml_tensor_overhead(),
-+        /*.mem_buffer =*/ nullptr,
-+        /*.no_alloc   =*/ true,
-+    };
-+    ggml_context * ctx = ggml_init(params);
-+    adapter->ctxs.emplace_back(ctx);
-+    for (const auto & p : picked) {
-+        ggml_tensor * a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, p.second->ne[0], rank);
-+        ggml_tensor * b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, rank, p.second->ne[1]);
-+        ggml_set_name(a, (p.first + ".lora_a").c_str());
-+        ggml_set_name(b, (p.first + ".lora_b").c_str());
-+        adapter->ab_map[p.first] = llama_adapter_lora_weight(a, b);
++    std::map<ggml_backend_buffer_type_t, std::vector<size_t>> by_buft;
++    for (size_t i = 0; i < picked.size(); ++i) {
++        const ggml_tensor * w = picked[i].second;
++        ggml_backend_buffer_type_t buft = w->buffer ? ggml_backend_buffer_get_type(w->buffer)
++                                                    : ggml_backend_dev_buffer_type(cpu_dev);
++        if (ggml_backend_buft_is_host(buft)) {
++            buft = ggml_backend_dev_buffer_type(cpu_dev);
++        }
++        by_buft[buft].push_back(i);
 +    }
-+    ggml_backend_buffer_ptr buf { ggml_backend_alloc_ctx_tensors_from_buft(ctx, ggml_backend_dev_buffer_type(cpu_dev)) };
-+    if (!buf) {
-+        LLAMA_LOG_ERROR("%s: failed to allocate the adapter\n", __func__);
-+        delete adapter;
-+        return nullptr;
++    for (const auto & group : by_buft) {
++        ggml_init_params params = {
++            /*.mem_size   =*/ 2 * group.second.size() * ggml_tensor_overhead(),
++            /*.mem_buffer =*/ nullptr,
++            /*.no_alloc   =*/ true,
++        };
++        ggml_context * ctx = ggml_init(params);
++        adapter->ctxs.emplace_back(ctx);
++        for (size_t i : group.second) {
++            const auto & p = picked[i];
++            ggml_tensor * a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, p.second->ne[0], rank);
++            ggml_tensor * b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, rank, p.second->ne[1]);
++            ggml_set_name(a, (p.first + ".lora_a").c_str());
++            ggml_set_name(b, (p.first + ".lora_b").c_str());
++            adapter->ab_map[p.first] = llama_adapter_lora_weight(a, b);
++        }
++        ggml_backend_buffer_ptr buf { ggml_backend_alloc_ctx_tensors_from_buft(ctx, group.first) };
++        if (!buf) {
++            LLAMA_LOG_ERROR("%s: failed to allocate the adapter in %s\n", __func__, ggml_backend_buft_name(group.first));
++            delete adapter;
++            return nullptr;
++        }
++        LLAMA_LOG_INFO("%s: %zu LoRA pairs in %s\n", __func__, group.second.size(), ggml_backend_buft_name(group.first));
++        adapter->bufs.emplace_back(std::move(buf));
 +    }
-+    adapter->bufs.emplace_back(std::move(buf));
 +
 +    // PEFT's initialisation: A ~ U(-1/sqrt(in), 1/sqrt(in)) (kaiming_uniform, a = sqrt(5)), B = 0,
 +    // so the fresh adapter changes nothing until it is trained
@@ -329,7 +428,7 @@ index 824601e..faef79b 100644
 +    return ok ? 0 : -1;
 +}
 diff --git a/src/llama-context.cpp b/src/llama-context.cpp
-index 33ad784..4edd174 100644
+index 33ad784..20f6e74 100644
 --- a/src/llama-context.cpp
 +++ b/src/llama-context.cpp
 @@ -2566,7 +2566,9 @@ uint32_t llama_context::graph_max_nodes(uint32_t n_tokens) const {

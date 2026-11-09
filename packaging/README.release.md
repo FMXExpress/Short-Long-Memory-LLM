@@ -33,7 +33,7 @@ install Python 3.10+ and `pip install -r trainer/requirements.txt` for those.
 ## Configure
 
 `memagent.ini` next to the program: the model profile (`tiny` to `large`, see `models.json`), the
-engine (`auto`, `llama` or `python`), GPUs (`[gpu] infer`, `train`; -1 = CPU), retrieval and the
+engine (`auto`, `llama` or `python`), where chat and training run (`[gpu] layout`, `auto` by default), retrieval and the
 consolidation schedule. Command line: `--profile small`, `--engine python`, `--data DIR`,
 `--offline`, `--provision` (download everything now and exit).
 

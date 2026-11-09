@@ -191,6 +191,8 @@ begin
   try
     try
       LlamaMaskFpu;   { per thread: ggml needs masked FP exceptions }
+      if not AwaitIdle then
+        raise ECancelled.Create('cancelled while waiting for idle time');
       Run;
     except
       on E: ECancelled do
@@ -509,6 +511,10 @@ begin
     LModel := LlamaLoadModel(F32, FCfg.TrainGpu, FCfg.LlamaGpuLayers)
   else
     LModel := LlamaLoadModel(F32, FCfg.TrainGpu, -1);
+  if LlamaModelUsers(LModel) > 1 then
+    Log('[consolidate] base weights: shared with the chat engine (one copy in memory)')
+  else
+    Log('[consolidate] base weights: loaded for training (' + ExtractFileName(F32) + ')');
   LAdapter := nil;
   LDeep := nil;
   LCtx := nil;

@@ -33,6 +33,10 @@ type
     procedure LoadFastAdapter(const APath, AName: string); virtual;
     procedure ClearFastAdapter; virtual;
     function FastAdapter: string; virtual;
+    (* idle training ([consolidate] train_when = idle): frees the model so training
+       has the device; the next call that needs it loads it back, adapters
+       included. Called from the training thread while no line is handled. *)
+    procedure Release; virtual;
   end;
 
   TPyWorkerEngine = class(TEngine)
@@ -87,6 +91,10 @@ end;
 function TEngine.FastAdapter: string;
 begin
   Result := '';
+end;
+
+procedure TEngine.Release;
+begin
 end;
 
 constructor TPyWorkerEngine.Create(ACfg: TMemConfig);

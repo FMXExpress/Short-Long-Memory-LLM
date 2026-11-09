@@ -25,6 +25,20 @@ type
     AutoProvision: Boolean;  { download missing models on startup (off: --offline / auto_provision=0) }
     InferGpu: Integer;
     TrainGpu: Integer;
+    (* [gpu] layout: where chat and training run (Mem.Layout.ResolveLayout sets
+       InferGpu, TrainGpu, TrainBase and TrainWhen from it). auto | cpu |
+       chat-gpu-train-cpu | chat-cpu-train-gpu | two-gpus | one-gpu | one-gpu-idle |
+       custom (the infer and train indices as written) *)
+    Layout: string;
+    LayoutGpu: Integer;      { [gpu] gpu: the card a one-card layout uses }
+    LayoutSecondGpu: Integer;{ [gpu] second: the training card of two-gpus }
+    (* when training may run: always (between turns, waiting while one is answered),
+       or idle: only after idle_min minutes without a message, and inside night
+       (e.g. 01:00-06:00) when set; the chat model is unloaded for it and a message
+       stops the run and loads it back *)
+    TrainWhen: string;
+    IdleMin: Double;
+    NightWindow: string;
     RecentTurns: Integer;
     RagK: Integer;
     MinFactConfidence: Double;
@@ -301,6 +315,13 @@ begin
     InferGpu := LIni.ReadInteger('gpu', 'infer', 0);
     { one card for both roles unless [gpu] train names another }
     TrainGpu := LIni.ReadInteger('gpu', 'train', InferGpu);
+    { a file that names devices but no layout keeps them as written }
+    if LIni.ValueExists('gpu', 'layout') or not (LIni.ValueExists('gpu', 'infer') or LIni.ValueExists('gpu', 'train')) then
+      Layout := LowerCase(Trim(LIni.ReadString('gpu', 'layout', 'auto')))
+    else
+      Layout := 'custom';
+    LayoutGpu := LIni.ReadInteger('gpu', 'gpu', 0);
+    LayoutSecondGpu := LIni.ReadInteger('gpu', 'second', LayoutGpu + 1);
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);
     MinNewFacts := LIni.ReadInteger('consolidate', 'min_new_facts', 3);
     IntervalMin := LIni.ReadInteger('consolidate', 'interval_min', 60);
@@ -309,7 +330,12 @@ begin
     DeepAfter := LIni.ReadInteger('consolidate', 'deep_after', 8);
     Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
     TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
-    TrainBase := LowerCase(LIni.ReadString('consolidate', 'train_base', 'f32'));
+    TrainBase := LowerCase(LIni.ReadString('consolidate', 'train_base', 'auto'));
+    TrainWhen := LowerCase(LIni.ReadString('consolidate', 'train_when', 'auto'));
+    LFmt := DefaultFormatSettings;
+    LFmt.DecimalSeparator := '.';
+    IdleMin := StrToFloatDef(LIni.ReadString('consolidate', 'idle_min', ''), 15, LFmt);
+    NightWindow := Trim(LIni.ReadString('consolidate', 'night', ''));
     CacheDir := Abs_(LBase, LIni.ReadString('retrieval', 'cache_dir', 'cache'));
     Embedder := LowerCase(LIni.ReadString('retrieval', 'embedder', 'auto'));
     EmbedModel := LIni.ReadString('retrieval', 'embed_model', 'minilm');
