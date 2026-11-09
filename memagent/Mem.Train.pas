@@ -476,8 +476,8 @@ begin
     Finish(3, TJSONObject.Create(['reason', 'no active facts', 'trainer', 'llama', 'tier', FTier]));
     Exit;
   end;
-  Log(Format('[consolidate] trainer=llama tier=%s profile=%s base=%s facts=%d replay=%d device=%s',
-    [FTier, FCfg.ProfileName, ExtractFileName(FCfg.GgufModel), Length(LFacts), Length(LReplay), LDevice]));
+  Log(Format('[consolidate] trainer=llama tier=%s profile=%s base=%s facts=%d replay=%d device=%s train_base=%s',
+    [FTier, FCfg.ProfileName, ExtractFileName(FCfg.GgufModel), Length(LFacts), Length(LReplay), LDevice, FCfg.TrainBase]));
   { from here on the replayed facts train and are probed like the new ones }
   NNew := Length(LFacts);
   LFacts := Concat(LFacts, LReplay);
@@ -488,7 +488,9 @@ begin
     raise ELlama.Create('this llama.cpp has no LoRA training (build it with scripts/llama_setup.sh)');
   LThreads := LlamaThreads(FCfg.TrainThreads);
   F32 := ChangeFileExt(FCfg.GgufModel, '') + '-f32.gguf';
-  if not FileExists(F32) or (FileAge(F32) < FileAge(FCfg.GgufModel)) then
+  if FCfg.TrainBase = 'model' then
+    F32 := FCfg.GgufModel
+  else if not FileExists(F32) or (FileAge(F32) < FileAge(FCfg.GgufModel)) then
   begin
     Log('[consolidate] making the f32 training copy ' + F32);
     LTmp := F32 + '.tmp';
@@ -501,7 +503,12 @@ begin
   end;
 
   Phase('facts');
-  LModel := LlamaLoadModel(F32, FCfg.TrainGpu, -1);
+  (* train_base = model on the chat engine's device: the engine's own copy
+     (LlamaLoadModel shares it), with its layer split *)
+  if (FCfg.TrainBase = 'model') and (FCfg.TrainGpu = FCfg.InferGpu) then
+    LModel := LlamaLoadModel(F32, FCfg.TrainGpu, FCfg.LlamaGpuLayers)
+  else
+    LModel := LlamaLoadModel(F32, FCfg.TrainGpu, -1);
   LAdapter := nil;
   LDeep := nil;
   LCtx := nil;
@@ -781,7 +788,7 @@ begin
       llama_adapter_lora_free(LAdapter);
     if LDeep <> nil then
       llama_adapter_lora_free(LDeep);
-    llama_model_free(LModel);
+    LlamaFreeModel(LModel);
   end;
 end;
 

@@ -36,6 +36,10 @@ type
     AutoConsolidate: Boolean;
     Trainer: string;         { llama (in-process, Mem.Train) | python (trainer/consolidate.py) }
     TrainThreads: Integer;   { CPU threads for the llama trainer, 0 = all cores but one }
+    (* what the llama trainer runs the frozen base on: f32 = a full-precision copy made
+       once next to the model (4x the GGUF's size for a 4-bit model: 108 GB for a 27B);
+       model = the GGUF as it is, f16 or quantized, as QLoRA does *)
+    TrainBase: string;
     MinNewFacts: Integer;
     IntervalMin: Integer;
     (* two memory tiers (llama trainer only): a fast LoRA that retrains on the
@@ -295,7 +299,8 @@ begin
     DreamBeforeSleep := LIni.ReadBool('consolidate', 'dream', True);
     RagAll := LIni.ReadBool('agent', 'rag_all', False);
     InferGpu := LIni.ReadInteger('gpu', 'infer', 0);
-    TrainGpu := LIni.ReadInteger('gpu', 'train', 1);
+    { one card for both roles unless [gpu] train names another }
+    TrainGpu := LIni.ReadInteger('gpu', 'train', InferGpu);
     AutoConsolidate := LIni.ReadBool('consolidate', 'auto', True);
     MinNewFacts := LIni.ReadInteger('consolidate', 'min_new_facts', 3);
     IntervalMin := LIni.ReadInteger('consolidate', 'interval_min', 60);
@@ -304,6 +309,7 @@ begin
     DeepAfter := LIni.ReadInteger('consolidate', 'deep_after', 8);
     Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
     TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
+    TrainBase := LowerCase(LIni.ReadString('consolidate', 'train_base', 'f32'));
     CacheDir := Abs_(LBase, LIni.ReadString('retrieval', 'cache_dir', 'cache'));
     Embedder := LowerCase(LIni.ReadString('retrieval', 'embedder', 'auto'));
     EmbedModel := LIni.ReadString('retrieval', 'embed_model', 'minilm');

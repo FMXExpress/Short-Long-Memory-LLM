@@ -185,7 +185,7 @@ begin
   if FCtx <> nil then
     llama_free(FCtx);
   if FModel <> nil then
-    llama_model_free(FModel);
+    LlamaFreeModel(FModel);
   inherited Destroy;
 end;
 
