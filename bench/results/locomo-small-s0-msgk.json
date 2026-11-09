@@ -1,0 +1,1087 @@
+{
+ "sample": "conv-26",
+ "profile": "small",
+ "rag_k": 3,
+ "hops": 2,
+ "questions": 152,
+ "note": "msg_k 8 of msg_pool 30, with dates resolved; run in three parts (51 + 51 + 50 questions), each loading all 419 turns",
+ "f1": {
+  "multi-hop": 0.1414,
+  "temporal": 0.3467,
+  "open-domain": 0.0727,
+  "single-hop": 0.2817
+ },
+ "counts": {
+  "multi-hop": 32,
+  "temporal": 37,
+  "open-domain": 13,
+  "single-hop": 70
+ },
+ "f1_all": 0.2501,
+ "answers": [
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the LGBTQ support group?",
+   "answer": "7 May 2023",
+   "got": "Caroline went to the LGBTQ support group on July 7, 2023.",
+   "f1": 0.3077
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie paint a sunrise?",
+   "answer": 2022,
+   "got": "Melanie painted a sunrise last year (2022).",
+   "f1": 0.2857
+  },
+  {
+   "category": "open-domain",
+   "question": "What fields would Caroline be likely to pursue in her educaton?",
+   "answer": "Psychology, counseling certification",
+   "got": "Caroline might be interested in pursuing education in areas related to psychology, social work, or counseling. Her passion for helping others and her desire to specialize in trans people's mental health needs suggest these fields could be particularly appealing to her.",
+   "f1": 0.093
+  },
+  {
+   "category": "multi-hop",
+   "question": "What did Caroline research?",
+   "answer": "Adoption agencies",
+   "got": "Caroline researched adoption agencies and lawyers.",
+   "f1": 0.5714
+  },
+  {
+   "category": "multi-hop",
+   "question": "What is Caroline's identity?",
+   "answer": "Transgender woman",
+   "got": "Caroline identifies as female.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie run a charity race?",
+   "answer": "The sunday before 25 May 2023",
+   "got": "Melanie ran a charity race last Saturday (the Saturday before 25 May 2023).",
+   "f1": 0.5
+  },
+  {
+   "category": "temporal",
+   "question": "When is Melanie planning on going camping?",
+   "answer": "June 2023",
+   "got": "Melanie mentioned they were looking forward to their family camping trip.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What is Caroline's relationship status?",
+   "answer": "Single",
+   "got": "Caroline is not currently in a romantic relationship.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline give a speech at a school?",
+   "answer": "The week before 9 June 2023",
+   "got": "Caroline gave a speech at a school event last week (the week before 9 June 2023).",
+   "f1": 0.5556
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline meet up with her friends, family, and mentors?",
+   "answer": "The week before 9 June 2023",
+   "got": "[12:09 am on 13 September, 2023]",
+   "f1": 0.1818
+  },
+  {
+   "category": "temporal",
+   "question": "How long has Caroline had her current group of friends for?",
+   "answer": "4 years",
+   "got": "Caroline has had her current group of friends for quite some time now. She mentioned having close friends who supported her during challenging times, indicating she has had these connections for several months or years.",
+   "f1": 0.0541
+  },
+  {
+   "category": "multi-hop",
+   "question": "Where did Caroline move from 4 years ago?",
+   "answer": "Sweden",
+   "got": "Caroline moved from New York City to Los Angeles four years ago.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "How long ago was Caroline's 18th birthday?",
+   "answer": "10 years ago",
+   "got": "Ten years ago, in 2013.",
+   "f1": 0.5
+  },
+  {
+   "category": "multi-hop",
+   "question": "What career path has Caroline decided to persue?",
+   "answer": "counseling or mental health for Transgender people",
+   "got": "Caroline decided to pursue a career in counseling and mental health to help people who have gone through similar experiences as hers.",
+   "f1": 0.2963
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+   "answer": "Likely no",
+   "got": "Yes, Caroline would likely still want to pursue counseling as a career because receiving support during her transition allowed her to accept and grow into her true self. She sees counseling as a way to bring comfort and growth to others, which aligns with her desire to help others navigate their own journeys.",
+   "f1": 0.0392
+  },
+  {
+   "category": "multi-hop",
+   "question": "What activities does Melanie partake in?",
+   "answer": "pottery, camping, painting, swimming",
+   "got": "Melanie enjoys family moments, bonding over stories, campfires, and nature.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie sign up for a pottery class?",
+   "answer": "2 July 2023",
+   "got": "Melanie signed up for a pottery class yesterday (2 July 2023).",
+   "f1": 0.4615
+  },
+  {
+   "category": "temporal",
+   "question": "When is Caroline going to the transgender conference?",
+   "answer": "July 2023",
+   "got": "Caroline is going to the transgender conference this month (July 2023).",
+   "f1": 0.3333
+  },
+  {
+   "category": "multi-hop",
+   "question": "Where has Melanie camped?",
+   "answer": "beach, mountains, forest",
+   "got": "Melanie has camped in the mountains last week.",
+   "f1": 0.2
+  },
+  {
+   "category": "multi-hop",
+   "question": "What do Melanie's kids like?",
+   "answer": "dinosaurs, nature",
+   "got": "Melanie enjoys family time, storytelling, camping, and nature.",
+   "f1": 0.2222
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the museum?",
+   "answer": "5 July 2023",
+   "got": "Melanie went to the museum yesterday, which was July 5, 2023.",
+   "f1": 0.4615
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline have a picnic?",
+   "answer": "The week before 6 July 2023",
+   "got": "Caroline had a picnic last week, which was the week before 6 July 2023.",
+   "f1": 0.5882
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline likely have Dr. Seuss books on her bookshelf?",
+   "answer": "Yes, since she collects classic children's books",
+   "got": "Yes, given that she enjoys reading and values books highly, it's possible she might have Dr. Seuss books on her bookshelf.",
+   "f1": 0.2222
+  },
+  {
+   "category": "multi-hop",
+   "question": "What books has Melanie read?",
+   "answer": "\"Nothing is Impossible\", \"Charlotte's Web\"",
+   "got": "Melanie has read \"Charlotte's Web\" and a book from 2022 that reminds her to pursue her dreams.",
+   "f1": 0.2
+  },
+  {
+   "category": "multi-hop",
+   "question": "What does Melanie do to destress?",
+   "answer": "Running, pottery",
+   "got": "Melanie runs longer since her last chat as a great way to destress and clear her mind.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the LGBTQ conference?",
+   "answer": "10 July 2023",
+   "got": "Caroline went to the LGBTQ conference this month (July 2023).",
+   "f1": 0.3333
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie read the book \"nothing is impossible\"?",
+   "answer": 2022,
+   "got": "Melanie read the book \"Nothing is Impossible\" in 2022.",
+   "f1": 0.2222
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline pursue writing as a career option?",
+   "answer": "LIkely no; though she likes reading, she wants to be a counselor",
+   "got": "It's not explicitly mentioned if Caroline plans to pursue writing as a career option. However, given her interest in counseling and mental health, she might consider incorporating creative expression into her work, such as writing therapy guides or poetry related to mental health topics.",
+   "f1": 0.0755
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to the adoption meeting?",
+   "answer": "The friday before 15 July 2023",
+   "got": "Caroline went to the adoption meeting on the Friday before 15 July 2023.",
+   "f1": 0.625
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the pottery workshop?",
+   "answer": "The Friday before 15 July 2023",
+   "got": "Melanie went to the pottery workshop on July 2, 2023.",
+   "f1": 0.2857
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be considered a member of the LGBTQ community?",
+   "answer": "Likely no, she does not refer to herself as part of it",
+   "got": "Yes, Melanie would be considered a member of the LGBTQ community based on her interests and activities mentioned earlier.",
+   "f1": 0.0714
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go camping in June?",
+   "answer": "The week before 27 June 2023",
+   "got": "Melanie went camping in the mountains last week, which was the week before June 27, 2023.",
+   "f1": 0.5263
+  },
+  {
+   "category": "multi-hop",
+   "question": "What LGBTQ+ events has Caroline participated in?",
+   "answer": "Pride parade, school speech, support group",
+   "got": "Caroline has participated in several LGBTQ+ events: 1. An LGBTQ+ pride parade last week (the week before 3 July 2023). 2. A transgender youth mentoring program. 3. Attending the LGBTQ pride event last month (June 2023). 4. Participating in the Connected LGBTQ Activists group meetings and events. 5. Going to an LGBTQ conference two days ago (10 July 2023). These events show Caroline's dedication to supporting the LGBTQ+ community and promoting awareness and acceptance.",
+   "f1": 0.0857
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go to a pride parade during the summer?",
+   "answer": "The week before 3 July 2023",
+   "got": "Caroline went to a pride parade last Friday (the Friday before 14 August 2023).",
+   "f1": 0.2353
+  },
+  {
+   "category": "multi-hop",
+   "question": "What events has Caroline participated in to help children?",
+   "answer": "Mentoring program, school speech",
+   "got": "Caroline has participated in several events to help children. She volunteered at an LGBTQ+ youth center where she talked to similar young people, making her feel more connected and motivated to adopt. Additionally, she attended the LGBTQ+ youth conference earlier this month, which provided her with valuable insights into supporting children in need.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go camping in July?",
+   "answer": "two weekends before 17 July 2023",
+   "got": "Melanie went camping in the mountains last week (the week before 27 June 2023).",
+   "f1": 0.2222
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline join a mentorship program?",
+   "answer": "The weekend before 17 July 2023",
+   "got": "Caroline joined a mentorship program for LGBTQ youth last weekend (the weekend before 17 July 2023).",
+   "f1": 0.5263
+  },
+  {
+   "category": "multi-hop",
+   "question": "What did Melanie paint recently?",
+   "answer": "sunset",
+   "got": "Melanie painted a sunset with a palm tree recently.",
+   "f1": 0.25
+  },
+  {
+   "category": "multi-hop",
+   "question": "What activities has Melanie done with her family?",
+   "answer": "Pottery, painting, camping, museum, swimming, hiking",
+   "got": "Melanie has enjoyed playing games, eating good food, hanging out together, going on camping trips, and participating in various family gatherings.",
+   "f1": 0.0769
+  },
+  {
+   "category": "multi-hop",
+   "question": "In what ways is Caroline participating in the LGBTQ community?",
+   "answer": "Joining activist group, going to pride parades, participating in an art show, mentoring program",
+   "got": "Caroline is actively involved in various LGBTQ-related activities and initiatives: 1. **LGBTQ Youth Center**: Caroline volunteers at an LGBTQ+ youth center. 2. **Adoption Meeting**: Caroline attended an adoption meeting on the Friday before 15 July 2023. 3. **Pride Parade**: Caroline went to a pride parade last Friday (the Friday before 14 August 2023). 4. **Mentorship Program**: Caroline joined a mentorship program for LGBTQ youth last weekend (the weekend before 17 July 2023). 5. **Transgender Conference**: Caroline attended the transgender conference this month. 6. **LGBTQ+ Youth Conference**: Caroline attended the LGBTQ+ youth conference earlier this month. 7. **Counseling and Mental Health**: Caroline considers pursuing writing as a career option due to her interest in counseling and mental health. 8. **Events Helping Children**: Caroline participates in events to help children, such as volunteering at an LGBTQ+ youth center and attending the LGBTQ+ youth conference earlier this month.",
+   "f1": 0.0563
+  },
+  {
+   "category": "multi-hop",
+   "question": "How many times has Melanie gone to the beach in 2023?",
+   "answer": 2,
+   "got": "Melanie has been to the beach four times in 2023 based on the information provided.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline join a new activist group?",
+   "answer": "The Tuesday before 20 July 2023",
+   "got": "Caroline joined the 'Connected LGBTQ Activists' group on 7 May 2023.",
+   "f1": 0.1333
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be more interested in going to a national park or a theme park?",
+   "answer": "National park; she likes the outdoors",
+   "got": "I don't have personal preferences or feelings like humans do. However, if Melanie enjoys outdoor activities such as hiking and camping, then visiting a national park might appeal to her. If she prefers indoor attractions, a theme park could be more appealing.",
+   "f1": 0.1364
+  },
+  {
+   "category": "multi-hop",
+   "question": "What kind of art does Caroline make?",
+   "answer": "abstract art",
+   "got": "Caroline makes various forms of art including paintings, drawings, and pottery. Her artwork often reflects her experiences and emotions, particularly through self-expression and storytelling.",
+   "f1": 0.087
+  },
+  {
+   "category": "temporal",
+   "question": "When is Melanie's daughter's birthday?",
+   "answer": "13 August",
+   "got": "Melanie's daughter's birthday was celebrated last night (13 August 2023).",
+   "f1": 0.3333
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline attend a pride parade in August?",
+   "answer": "The Friday before 14 August 2023",
+   "got": "Caroline attended a pride parade in August during the week of 14 August 2023.",
+   "f1": 0.3529
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie be considered an ally to the transgender community?",
+   "answer": "Yes, she is supportive",
+   "got": "Yes, Melanie would likely be considered an ally to the transgender community based on her comments and actions. Her interest in supporting LGBTQ+ causes and encouraging involvement in the community aligns well with the values of inclusivity and acceptance that are important to the transgender community.",
+   "f1": 0.0476
+  },
+  {
+   "category": "multi-hop",
+   "question": "Who supports Caroline when she has a negative experience?",
+   "answer": "Her mentors, family, and friends",
+   "got": "People close to Caroline, including friends and family, provide support when she has a negative experience.",
+   "f1": 0.2222
+  },
+  {
+   "category": "multi-hop",
+   "question": "What types of pottery have Melanie and her kids made?",
+   "answer": "bowls, cup",
+   "got": "Melanie and her kids have made cups and bowls using clay.",
+   "f1": 0.1818
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline and Melanie go to a pride fesetival together?",
+   "answer": 2022,
+   "got": "Caroline and Melanie went to a pride festival together last Friday (the Friday before 14 August 2023).",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "What would Caroline's political leaning likely be?",
+   "answer": "Liberal",
+   "got": "Based on Caroline's interests and actions, she seems politically progressive or liberal. Her involvement in LGBTQ activism, support for inclusivity, and advocacy for adoption services suggest a pro-LGBTQ stance and a commitment to social justice issues.",
+   "f1": 0.0625
+  },
+  {
+   "category": "multi-hop",
+   "question": "What has Melanie painted?",
+   "answer": "Horse, sunset, sunrise",
+   "got": "Melanie has painted various abstract paintings and landscapes, including a painting of a sunset over the ocean and a painting of a sunrise at a lake.",
+   "f1": 0.1905
+  },
+  {
+   "category": "multi-hop",
+   "question": "What are Melanie's pets' names?",
+   "answer": "Oliver, Luna, Bailey",
+   "got": "Melanie has a dog named Oliver and a cat named Bailey.",
+   "f1": 0.3636
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline apply to adoption agencies?",
+   "answer": "The week of 23 August 2023",
+   "got": "Caroline applied to adoption agencies earlier in the conversation, specifically during the week of 23 August 2023.",
+   "f1": 0.5
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline draw a self-portrait?",
+   "answer": "The week before 23 August 2023",
+   "got": "Caroline drew a self-portrait last week, which was the week before 23 August 2023.",
+   "f1": 0.5882
+  },
+  {
+   "category": "multi-hop",
+   "question": "What subject have Caroline and Melanie both painted?",
+   "answer": "Sunsets",
+   "got": "Nature.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What symbols are important to Caroline?",
+   "answer": "Rainbow flag, transgender symbol",
+   "got": "The rainbow flag mural and the eagle symbol are important to Caroline.",
+   "f1": 0.4615
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline encounter people on a hike and have a negative experience?",
+   "answer": "The week before 25 August 2023",
+   "got": "Caroline encountered people on a hike last week (the week before 25 August 2023).",
+   "f1": 0.5882
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie make a plate in pottery class?",
+   "answer": "24 August 2023",
+   "got": "Melanie made a plate in pottery class last Friday (15 July 2023).",
+   "f1": 0.1429
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline be considered religious?",
+   "answer": "Somewhat, but not extremely religious",
+   "got": "Yes, Caroline seems to be influenced by religious beliefs or conservative views due to her experiences hiking with religious conservatives.",
+   "f1": 0.08
+  },
+  {
+   "category": "multi-hop",
+   "question": "What instruments does Melanie play?",
+   "answer": "clarinet and violin",
+   "got": "Melanie plays clarinet.",
+   "f1": 0.4
+  },
+  {
+   "category": "multi-hop",
+   "question": "What musical artists/bands has Melanie seen?",
+   "answer": "Summer Sounds, Matt Patterson",
+   "got": "Melanie has seen bands such as The Beatles, Pink Floyd, and Queen.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie go to the park?",
+   "answer": "27 August 2023",
+   "got": "Melanie went to the park with her children on July 27, 2023.",
+   "f1": 0.2857
+  },
+  {
+   "category": "temporal",
+   "question": "When is Caroline's youth center putting on a talent show?",
+   "answer": "September 2023",
+   "got": "Caroline mentioned she's putting together a talent show for the kids next month (September 2023).",
+   "f1": 0.2667
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie likely enjoy the song \"The Four Seasons\" by Vivaldi?",
+   "answer": "Yes; it's classical music",
+   "got": "Yes, Melanie would likely enjoy \"The Four Seasons\" by Vivaldi because it captures the essence of different seasons through music, which aligns well with her appreciation for nature and her connection to the outdoors.",
+   "f1": 0.1176
+  },
+  {
+   "category": "multi-hop",
+   "question": "What are some changes Caroline has faced during her transition journey?",
+   "answer": "Changes to her body, losing unsupportive friends",
+   "got": "Caroline has faced significant changes including exploring her identity, accepting her body, and joining the transgender community. She also mentioned encouraging students to get involved in the LGBTQ community as part of her efforts to spread awareness.",
+   "f1": 0.1951
+  },
+  {
+   "category": "multi-hop",
+   "question": "What does Melanie do with her family on hikes?",
+   "answer": "Roast marshmallows, tell stories",
+   "got": "Melanie enjoys hiking in the mountains and exploring forests. It's a cool way to connect with nature and each other.",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline go biking with friends?",
+   "answer": "The weekend before 13 September 2023",
+   "got": "Caroline went biking with friends last weekend, which was the weekend before 13 September 2023.",
+   "f1": 0.5263
+  },
+  {
+   "category": "temporal",
+   "question": "How long has Melanie been practicing art?",
+   "answer": "Since 2016",
+   "got": "Melanie has been practicing art for seven years.",
+   "f1": 0.0
+  },
+  {
+   "category": "open-domain",
+   "question": "What personality traits might Melanie say Caroline has?",
+   "answer": "Thoughtful, authentic, driven",
+   "got": "Melanie would likely describe Caroline as kind-hearted, supportive, and inspirational. She might also mention that Caroline has a compassionate spirit and is always there to help others.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What transgender-specific events has Caroline attended?",
+   "answer": "Poetry reading, conference",
+   "got": "Caroline has attended several transgender-specific events. She mentioned attending an LGBTQ+ pride parade last week, which was described as making her feel like she belonged. Additionally, she participated in a transgender conference earlier this month, where she met and connected with other members of the transgender community. These events highlight her ongoing engagement with transgender issues and activism.",
+   "f1": 0.0357
+  },
+  {
+   "category": "multi-hop",
+   "question": "What book did Melanie read from Caroline's suggestion?",
+   "answer": "\"Becoming Nicole\"",
+   "got": "The book Melanie read from Caroline's recommendation was \"Charlotte's Web\".",
+   "f1": 0.0
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie's friend adopt a child?",
+   "answer": 2022,
+   "got": "Melanie's friend adopted a child last year, which was in 2022.",
+   "f1": 0.1818
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie get hurt?",
+   "answer": "September 2023",
+   "got": "Melanie got hurt last month (September 2023).",
+   "f1": 0.4444
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie's family go on a roadtrip?",
+   "answer": "The weekend before 20 October 2023",
+   "got": "Melanie's family went on a roadtrip this past weekend.",
+   "f1": 0.1538
+  },
+  {
+   "category": "multi-hop",
+   "question": "How many children does Melanie have?",
+   "answer": 3,
+   "got": "Melanie has two children.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "When did Melanie go on a hike after the roadtrip?",
+   "answer": "19 October 2023",
+   "got": "Melanie went on a hike after their roadtrip on July 27, 2023.",
+   "f1": 0.1429
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Melanie go on another roadtrip soon?",
+   "answer": "Likely no; since this one went badly",
+   "got": "Melanie hasn't mentioned going on another roadtrip recently.",
+   "f1": 0.0
+  },
+  {
+   "category": "multi-hop",
+   "question": "What items has Melanie bought?",
+   "answer": "Figurines, shoes",
+   "got": "Melanie has bought figurines and a necklace.",
+   "f1": 0.2857
+  },
+  {
+   "category": "temporal",
+   "question": "When did Caroline pass the adoption interview?",
+   "answer": "The Friday before 22 October 2023",
+   "got": "Caroline passed the adoption interview last Friday (the Friday before 22 October 2023).",
+   "f1": 0.625
+  },
+  {
+   "category": "temporal",
+   "question": "When did Melanie buy the figurines?",
+   "answer": "21 October 2023",
+   "got": "Melanie bought the figurines yesterday, which was October 21, 2023.",
+   "f1": 0.5
+  },
+  {
+   "category": "open-domain",
+   "question": "Would Caroline want to move back to her home country soon?",
+   "answer": "No; she's in the process of adopting children.",
+   "got": "It seems Caroline might consider moving back to her home country if she finds opportunities or reasons to do so. However, without specific information, we cannot say definitively whether she wants to move back soon.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What did the charity race raise awareness for?",
+   "answer": "mental health",
+   "got": "The charity race raised awareness for mental health.",
+   "f1": 0.4444
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Melanie realize after the charity race?",
+   "answer": "self-care is important",
+   "got": "Melanie realized that self-care is really important. It's a journey for her, but when she takes care of herself, she's able to better take care of her family.",
+   "f1": 0.2
+  },
+  {
+   "category": "single-hop",
+   "question": "How does Melanie prioritize self-care?",
+   "answer": "by carving out some me-time each day for activities like running, reading, or playing the violin",
+   "got": "Melanie prioritizes self-care by attending art classes and practicing regularly, as well as taking mental health seriously.",
+   "f1": 0.0645
+  },
+  {
+   "category": "single-hop",
+   "question": "What are Caroline's plans for the summer?",
+   "answer": "researching adoption agencies",
+   "got": "Caroline plans to move back to her home country if she finds suitable opportunities there.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What type of individuals does the adoption agency Caroline is considering support?",
+   "answer": "LGBTQ+ individuals",
+   "got": "The adoption agency Caroline is considering supports LGBTQ+ individuals.",
+   "f1": 0.4
+  },
+  {
+   "category": "single-hop",
+   "question": "Why did Caroline choose the adoption agency?",
+   "answer": "because of their inclusivity and support for LGBTQ+ individuals",
+   "got": "Caroline chose the adoption agency because their inclusivity and support spoke to her deeply.",
+   "f1": 0.4
+  },
+  {
+   "category": "single-hop",
+   "question": "What is Caroline excited about in the adoption process?",
+   "answer": "creating a family for kids who need one",
+   "got": "Caroline is excited about passing the adoption agency interviews and moving forward with her goal of having a family through adoption.",
+   "f1": 0.08
+  },
+  {
+   "category": "single-hop",
+   "question": "What does Melanie think about Caroline's decision to adopt?",
+   "answer": "she thinks Caroline is doing something amazing and will be an awesome mom",
+   "got": "Melanie thinks Caroline's decision to adopt is wonderful and supportive. She believes it's an excellent choice for building a family and providing love and acceptance to those in need.",
+   "f1": 0.1714
+  },
+  {
+   "category": "single-hop",
+   "question": "How long have Mel and her husband been married?",
+   "answer": "Mel and her husband have been married for 5 years.",
+   "got": "Melanie and her husband have been married for a long time, as evidenced by their shared photo from a beach.",
+   "f1": 0.4615
+  },
+  {
+   "category": "single-hop",
+   "question": "What does Caroline's necklace symbolize?",
+   "answer": "love, faith, and strength",
+   "got": "Caroline's necklace symbolizes love, faith, and strength.",
+   "f1": 0.6667
+  },
+  {
+   "category": "single-hop",
+   "question": "What country is Caroline's grandma from?",
+   "answer": "Sweden",
+   "got": "Sweden",
+   "f1": 1.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What was grandma's gift to Caroline?",
+   "answer": "necklace",
+   "got": "Grandma gave Caroline a necklace as a gift from her grandma in Sweden when she was young. It stood for love, faith, and strength.",
+   "f1": 0.0909
+  },
+  {
+   "category": "single-hop",
+   "question": "What is Melanie's hand-painted bowl a reminder of?",
+   "answer": "art and self-expression",
+   "got": "It's a reminder of art and self-expression.",
+   "f1": 0.5714
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Melanie and her family do while camping?",
+   "answer": "explored nature, roasted marshmallows, and went on a hike",
+   "got": "Melanie and her family went camping at the beach, roasting marshmallows around the campfire and telling stories.",
+   "f1": 0.2
+  },
+  {
+   "category": "single-hop",
+   "question": "What kind of counseling and mental health services is Caroline interested in pursuing?",
+   "answer": "working with trans people, helping them accept themselves and supporting their mental health",
+   "got": "Caroline is interested in counseling and mental health services that focus on supporting individuals who have experienced similar struggles to hers. She aims to provide a supportive environment where people can share their experiences and find ways to cope effectively.",
+   "f1": 0.2041
+  },
+  {
+   "category": "single-hop",
+   "question": "What workshop did Caroline attend recently?",
+   "answer": "LGBTQ+ counseling workshop",
+   "got": "Caroline attended an LGBTQ+ counseling workshop recently.",
+   "f1": 0.6667
+  },
+  {
+   "category": "single-hop",
+   "question": "What was discussed in the LGBTQ+ counseling workshop?",
+   "answer": "therapeutic methods and how to best work with trans people",
+   "got": "The LGBTQ+ counseling workshop discussed various therapeutic methods and strategies for effectively working with trans people.",
+   "f1": 0.4348
+  },
+  {
+   "category": "single-hop",
+   "question": "What motivated Caroline to pursue counseling?",
+   "answer": "her own journey and the support she received, and how counseling improved her life",
+   "got": "Caroline was motivated to pursue counseling because she wanted to help others who had gone through similar struggles as she did. She appreciated the support she received and realized the importance of having a supportive network.",
+   "f1": 0.186
+  },
+  {
+   "category": "single-hop",
+   "question": "What kind of place does Caroline want to create for people?",
+   "answer": "a safe and inviting place for people to grow",
+   "got": "Caroline wants to create a safe and loving home for children.",
+   "f1": 0.375
+  },
+  {
+   "category": "single-hop",
+   "question": "Did Melanie make the black and white bowl in the photo?",
+   "answer": "Yes",
+   "got": "Yes, Melanie made the black and white bowl in the photo.",
+   "f1": 0.2222
+  },
+  {
+   "category": "single-hop",
+   "question": "What kind of books does Caroline have in her library?",
+   "answer": "kids' books - classics, stories from different cultures, educational books",
+   "got": "Books on parenting, children's literature, self-help, and fiction.",
+   "f1": 0.125
+  },
+  {
+   "category": "single-hop",
+   "question": "What was Melanie's favorite book from her childhood?",
+   "answer": "\"Charlotte's Web\"",
+   "got": "Melanie's favorite book from her childhood was \"Charlotte's Web.\"",
+   "f1": 0.3636
+  },
+  {
+   "category": "single-hop",
+   "question": "What book did Caroline recommend to Melanie?",
+   "answer": "\"Becoming Nicole\"",
+   "got": "Caroline recommended the book \"The Book You Recommend\" to Melanie.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Caroline take away from the book \"Becoming Nicole\"?",
+   "answer": "Lessons on self-acceptance and finding support",
+   "got": "Caroline took inspiration from the book \"Becoming Nicole\" because it reminded her of her own struggles and provided hope for her own path.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What are the new shoes that Melanie got used for?",
+   "answer": "Running",
+   "got": "Melanie got the new shoes for running.",
+   "f1": 0.2857
+  },
+  {
+   "category": "single-hop",
+   "question": "What is Melanie's reason for getting into running?",
+   "answer": "To de-stress and clear her mind",
+   "got": "Melanie runs because it helps her de-stress and clears her mind.",
+   "f1": 0.4
+  },
+  {
+   "category": "single-hop",
+   "question": "What does Melanie say running has been great for?",
+   "answer": "Her mental health",
+   "got": "Melanie says that running has been great for her mental health. She mentions keeping it up as a way to destress and clear her mind.",
+   "f1": 0.2308
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Mel and her kids make during the pottery workshop?",
+   "answer": "pots",
+   "got": "Mel and her kids made their own pots during the pottery workshop.",
+   "f1": 0.1818
+  },
+  {
+   "category": "single-hop",
+   "question": "What kind of pot did Mel and her kids make with clay?",
+   "answer": "a cup with a dog face on it",
+   "got": "Mel and her kids made cups with a dog face on them.",
+   "f1": 0.5
+  },
+  {
+   "category": "single-hop",
+   "question": "What creative project do Mel and her kids do together besides pottery?",
+   "answer": "painting",
+   "got": "Mel and her kids do pottery together as well as beach biking trips.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Mel and her kids paint in their latest project in July 2023?",
+   "answer": "a sunset with a palm tree",
+   "got": "Mel and her kids painted a cup with a dog face on it in their latest project in July 2023.",
+   "f1": 0.0952
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Caroline see at the council meeting for adoption?",
+   "answer": "many people wanting to create loving homes for children in need",
+   "got": "Caroline saw an inspiring and emotional event where many people were eager to create loving homes for children in need.",
+   "f1": 0.6897
+  },
+  {
+   "category": "single-hop",
+   "question": "What do sunflowers represent according to Caroline?",
+   "answer": "warmth and happiness",
+   "got": "Sunflowers represent growth, beauty, and reminding us to appreciate the small moments.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "Why are flowers important to Melanie?",
+   "answer": "They remind her to appreciate the small moments and were a part of her wedding decor",
+   "got": "Flowers bring joy, representing growth, beauty, and reminding us to appreciate the small moments.",
+   "f1": 0.32
+  },
+  {
+   "category": "single-hop",
+   "question": "What inspired Caroline's painting for the art show?",
+   "answer": "visiting an LGBTQ center and wanting to capture unity and strength",
+   "got": "Caroline's painting for the art show was inspired by her journey as a trans woman. The use of red and blue colors symbolizes the binary gender system and represents breaking free from rigid thinking. The mixed colors signify embracing one's authentic self.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "How often does Melanie go to the beach with her kids?",
+   "answer": "once or twice a year",
+   "got": "Melanie goes to the beach with her kids once or twice a year.",
+   "f1": 0.5333
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Melanie and her family see during their camping trip last year?",
+   "answer": "Perseid meteor shower",
+   "got": "Melanie and her family saw the Perseid meteor shower during their camping trip last year.",
+   "f1": 0.375
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie feel while watching the meteor shower?",
+   "answer": "in awe of the universe",
+   "got": "Melanie felt amazed and connected to the universe during the meteor shower.",
+   "f1": 0.1538
+  },
+  {
+   "category": "single-hop",
+   "question": "Whose birthday did Melanie celebrate recently?",
+   "answer": "Melanie's daughter",
+   "got": "Melanie celebrated her daughter's birthday recently.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "Who performed at the concert at Melanie's daughter's birthday?",
+   "answer": "Matt Patterson",
+   "got": "The performers at the concert were not specified in the previous messages.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "Why did Melanie choose to use colors and patterns in her pottery project?",
+   "answer": "She wanted to catch the eye and make people smile.",
+   "got": "Melanie chose to use colors and patterns in her pottery project because she finds it calming and satisfying. It allows her to express her emotions and find peace.",
+   "f1": 0.1212
+  },
+  {
+   "category": "single-hop",
+   "question": "What pet does Caroline have?",
+   "answer": "guinea pig",
+   "got": "Caroline has two pets: Oliver and a guinea pig named Daisy.",
+   "f1": 0.3636
+  },
+  {
+   "category": "single-hop",
+   "question": "What pets does Melanie have?",
+   "answer": "Two cats and a dog",
+   "got": "Melanie has a dog named Oliver and a cat named Bailey.",
+   "f1": 0.1818
+  },
+  {
+   "category": "single-hop",
+   "question": "Where did Oliver hide his bone once?",
+   "answer": "In Melanie's slipper",
+   "got": "In your slipper.",
+   "f1": 0.6667
+  },
+  {
+   "category": "single-hop",
+   "question": "What activity did Caroline used to do with her dad?",
+   "answer": "Horseback riding",
+   "got": "Caroline used to go horseback riding with her dad when she was a kid.",
+   "f1": 0.2667
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Caroline make for a local church?",
+   "answer": "a stained glass window",
+   "got": "Caroline made a large stained glass window for a local church.",
+   "f1": 0.5
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Caroline find in her neighborhood during her walk?",
+   "answer": "a rainbow sidewalk",
+   "got": "She came across a cool rainbow sidewalk for Pride Month.",
+   "f1": 0.3636
+  },
+  {
+   "category": "single-hop",
+   "question": "Which song motivates Caroline to be courageous?",
+   "answer": "Brave by Sara Bareilles",
+   "got": "Brave by Sara Bareilles.",
+   "f1": 1.0
+  },
+  {
+   "category": "single-hop",
+   "question": "Which  classical musicians does Melanie enjoy listening to?",
+   "answer": "Bach and Mozart",
+   "got": "Melanie enjoys listening to classical composers such as Bach and Mozart.",
+   "f1": 0.3333
+  },
+  {
+   "category": "single-hop",
+   "question": "Who is Melanie a fan of in terms of modern music?",
+   "answer": "Ed Sheeran",
+   "got": "Melanie is a fan of modern music like Ed Sheeran's \"Perfect\".",
+   "f1": 0.1667
+  },
+  {
+   "category": "single-hop",
+   "question": "How long has Melanie been creating art?",
+   "answer": "7 years",
+   "got": "Melanie has been creating art for seven years.",
+   "f1": 0.2
+  },
+  {
+   "category": "single-hop",
+   "question": "What precautionary sign did Melanie see at the caf\u00e9?",
+   "answer": "A sign stating that someone is not being able to leave",
+   "got": "Melanie saw a sign stating that someone is not being able to leave.",
+   "f1": 0.9091
+  },
+  {
+   "category": "single-hop",
+   "question": "What advice does Caroline give for getting started with adoption?",
+   "answer": "Do research, find an adoption agency or lawyer, gather necessary documents, and prepare emotionally.",
+   "got": "Caroline advises researching adoption agencies or lawyers, gathering necessary documents such as references, financial info, and medical checks, preparing emotionally for the waiting period, and finding an agency that supports LGBTQ+ individuals.",
+   "f1": 0.3
+  },
+  {
+   "category": "single-hop",
+   "question": "What setback did Melanie face in October 2023?",
+   "answer": "She got hurt and had to take a break from pottery.",
+   "got": "Melanie faced a setback when she got hurt during a pottery session last month (September 2023).",
+   "f1": 0.3478
+  },
+  {
+   "category": "single-hop",
+   "question": "What does Melanie do to keep herself busy during her pottery break?",
+   "answer": "Read a book and paint.",
+   "got": "Melanie uses painting as a way to keep busy during her pottery break.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What painting did Melanie show to Caroline on October 13, 2023?",
+   "answer": "A painting inspired by sunsets with a pink sky.",
+   "got": "Melanie showed Caroline a painting she had created on October 13, 2023. The description mentions that it was an abstract painting with a blue background.",
+   "f1": 0.1429
+  },
+  {
+   "category": "single-hop",
+   "question": "What kind of painting did Caroline share with Melanie on October 13, 2023?",
+   "answer": "An abstract painting with blue streaks on a wall.",
+   "got": "Caroline shared a painting with Melanie featuring blue and yellow designs.",
+   "f1": 0.375
+  },
+  {
+   "category": "single-hop",
+   "question": "What was the poetry reading that Caroline attended about?",
+   "answer": "It was a transgender poetry reading where transgender people shared their stories.",
+   "got": "It was a transgender poetry reading where transgender people shared their stories through poetry.",
+   "f1": 0.9167
+  },
+  {
+   "category": "single-hop",
+   "question": "What did the posters at the poetry reading say?",
+   "answer": "\"Trans Lives Matter\"",
+   "got": "The posters at the poetry reading said things like \"trans lives matter,\" which showed support and empowerment for transgender individuals sharing their stories through poetry.",
+   "f1": 0.24
+  },
+  {
+   "category": "single-hop",
+   "question": "What does Caroline's drawing symbolize for her?",
+   "answer": "Freedom and being true to herself.",
+   "got": "Caroline's drawing symbolizes freedom and embracing her womanhood.",
+   "f1": 0.1667
+  },
+  {
+   "category": "single-hop",
+   "question": "How do Melanie and Caroline describe their journey through life together?",
+   "answer": "An ongoing adventure of learning and growing.",
+   "got": "Melanie and Caroline describe their journey as one filled with mutual respect, encouragement, and support. They express pride in being able to share experiences and learn from each other, appreciating the bonds formed during conversations like this one. Their interactions highlight the importance of sharing personal stories and vulnerabilities, which bring joy and understanding to both participants.",
+   "f1": 0.0364
+  },
+  {
+   "category": "single-hop",
+   "question": "What happened to Melanie's son on their road trip?",
+   "answer": "He got into an accident",
+   "got": "Melanie's son got into an accident while driving, but they were fortunate enough to be okay.",
+   "f1": 0.3158
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie's son handle the accident?",
+   "answer": "He was scared but reassured by his family",
+   "got": "Melanie's son was reassured and explained that his brother would be fine, showing toughness despite the scare.",
+   "f1": 0.2609
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie feel about her family after the accident?",
+   "answer": "They are important and mean the world to her",
+   "got": "Melanie felt very grateful and touched by her family's love and support after the accident.",
+   "f1": 0.1053
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie's children handle the accident?",
+   "answer": "They were scared but resilient",
+   "got": "Melanie's children handled the accident with reassurance and showed toughness despite the scare.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie feel after the accident?",
+   "answer": "Grateful and thankful for her family",
+   "got": "Melanie felt grateful and touched by her family's love and support after the accident.",
+   "f1": 0.25
+  },
+  {
+   "category": "single-hop",
+   "question": "What was Melanie's reaction to her children enjoying the Grand Canyon?",
+   "answer": "She was happy and thankful",
+   "got": "Melanie appreciated that her children had a good time at the Grand Canyon.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What do Melanie's family give her?",
+   "answer": "Strength and motivation",
+   "got": "Melanie's family gives her love, support, and a sense of belonging through their unwavering presence and care.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "How did Melanie feel about her family supporting her?",
+   "answer": "She appreciated them a lot",
+   "got": "Melanie felt grateful and touched by her family's love and support after the accident.",
+   "f1": 0.0
+  },
+  {
+   "category": "single-hop",
+   "question": "What did Melanie do after the road trip to relax?",
+   "answer": "Went on a nature walk or hike",
+   "got": "Melanie relaxed by doing something enjoyable like expressing herself creatively through art or playing music.",
+   "f1": 0.0952
+  }
+ ]
+}
