@@ -1345,3 +1345,61 @@ The judge model (`[judge]`), when on, stays loaded.
 - the GPU layouts themselves;
 - the free-memory thresholds;
 - training through quantized weights on CUDA (no `out_prod` for them yet).
+
+### On a GPU: one RTX PRO 4500 (32 GB, Blackwell), 2026-11-09
+
+These results come from 23 minutes on a rented RunPod card, which cost about $0.27. llama.cpp
+b11985 was built with CUDA 12.8, together with this repository's patch, which now adds
+`out_prod` for f16 and quantized weights on CUDA. That function dequantizes a weight one
+slice of rows at a time, about 256 MB per slice, and adds up the GEMMs over the slices.
+
+**Every layout runs end to end on the card** (`scripts/e2e_tiers.sh tiny` and
+`scripts/e2e_idle.sh`, both with `LAYOUT=`):
+
+| layout | result | time |
+|---|---|---|
+| `one-gpu`, f32 copy (auto chose it: 0.5 GB fits) | pass | 26 s |
+| `one-gpu`, `train_base=model` (shares the chat model's weights) | pass | 31 s |
+| `chat-gpu-train-cpu` | pass | 88 s |
+| `chat-cpu-train-gpu` | pass | 24 s |
+| `one-gpu-idle` | pass | 25 s |
+
+- **auto** saw 31.1 of 31.4 GB free, chose one-gpu, and chose the f32 copy for the 1.5B
+  (6.6 GB).
+- **one-gpu-idle:** on the GPU the idle run finished inside the 6 s quiet spell. Stopping a
+  run that is still going was therefore exercised only on the CPU.
+
+**The 1.5B (`small`, q8_0) on the card**, with 3 to 5 facts:
+
+| | per deep run | gate recall, runs 1–3 | weights in memory |
+|---|---|---|---|
+| the f32 copy | 5.5 s | 0.67, 0.50, 0.80 | two copies |
+| the q8_0 GGUF as loaded (the new CUDA `out_prod`) | **3.3 s** | 0.67, 0.50, 0.80 | **one, shared** |
+
+On the card, training through the quantized weights is faster than through the f32 copy,
+and it learns the same. On the CPU it was 5.8× slower.
+
+**Newer models**, each with one deep run on `one-gpu` and three facts. The `small` training
+settings are used for all of them, and each started from the model as loaded, since no f32
+copy fits:
+
+| model | chat | training with memagent's trainer |
+|---|---|---|
+| Qwen3-14B Q4_K_M (9 GB) | works, once thinking is off (below) | **runs**: 12 s, gate recall 0.67 (2 of 3; the `small` gate needs 0.7) |
+| gpt-oss-20b MXFP4 (12 GB) | works, answering in the final channel | **aborts**: no backward for `ADD_ID`, the expert bias; `MUL_MAT_ID` is next |
+| Qwen3.8-27B Q4_K_M (17 GB) | works | **aborts**: training mode assumes an attention-only cache (`get_n_kv() == n_tokens`); Gated DeltaNet layers have no backward either |
+
+**Reasoning models (`Mem.LlamaChat`).** Qwen3 opens every answer with a `<think>` block,
+and the gate's probes read the start of the answer, so recall was 0. memagent now answers
+with reasoning off, detected from the chat template:
+- **Qwen3 family:** each assistant turn starts with an empty `<think></think>`, which is what
+  `enable_thinking=False` renders.
+- **gpt-oss:** each assistant turn starts in the final channel.
+- **Training examples** get the same prefix.
+- **A `<think>` block a model writes anyway** is held back from the stream and cut from the
+  answer.
+
+**What this leaves.**
+- **Qwen3-14B:** stronger training settings for the 14B than the 1.5B's.
+- **gpt-oss and Qwen3.8:** either backward passes in llama.cpp for MoE routing and linear
+  attention, or the Python trainer (QLoRA, or Unsloth, the usual route for gpt-oss).

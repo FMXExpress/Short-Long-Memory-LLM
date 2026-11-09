@@ -3,13 +3,14 @@
 # layout) on the CPU, tiny profile: a run waits for idle time, then unloads the chat model
 # and trains; a message stops it and the chat model loads back to answer; /wait trains now.
 # Usage: scripts/e2e_idle.sh                (DATA dir: $E2E_DIR or a temp dir)
+# LAYOUT=one-gpu-idle PROFILE=small runs it on a card.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DIR="${E2E_DIR:-$(mktemp -d)}"
 rm -rf "$DIR/data"; mkdir -p "$DIR"
 cat > "$DIR/memagent.ini" <<INI
 [agent]
-profile=tiny
+profile=${PROFILE:-tiny}
 engine=llama
 models=$PWD/models.json
 priors=$PWD/priors.md
@@ -17,7 +18,7 @@ data_dir=$DIR/data
 repo_dir=$PWD
 recent_turns=2
 [gpu]
-layout=cpu
+layout=${LAYOUT:-cpu}
 [consolidate]
 trainer=llama
 tiers=on
@@ -44,11 +45,18 @@ T="$DIR/transcript.txt"
 } | ./build/memagent --config "$DIR/memagent.ini" | tee "$T"
 
 fail() { echo "E2E IDLE FAIL: $1"; exit 1; }
-grep -q "training on CPU when idle" "$T"                   || fail "startup line names idle training"
+grep -q "training on .* when idle" "$T"                     || fail "startup line names idle training"
 grep -q "run is waiting for idle time" "$T"                         || fail "/status: the run waits for idle time"
-grep -q "the chat model unloaded for it" "$T"                       || fail "/status: idle run unloaded the chat model"
-grep -q "stopping the idle-time .* run to answer" "$T"              || fail "a message stops the idle-time run"
+# on a fast device the idle run can finish within the quiet spell: then it must have been promoted
+# before the question, and the question is answered by the reloaded chat model
+if grep -q "the chat model unloaded for it" "$T"; then
+  grep -q "stopping the idle-time .* run to answer" "$T"            || fail "a message stops the idle-time run"
+else
+  # it finished: the second /status shows nothing running, and the next line promotes it
+  grep -q "^sleeping: no" "$T"                                      || fail "/status: the idle run neither unloaded the chat model nor finished"
+  echo "(the idle run finished within the quiet spell; stopping a run was not exercised)"
+fi
 grep -q "^pal> .*" "$T"                                             || fail "the reloaded chat model answers"
-grep -q "hot-swapped LoRA none -> mem-" "$T"                        || fail "/wait trains and promotes the LoRA"
+grep -q "hot-swapped LoRA none -> mem-" "$T"                        || fail "a LoRA was trained and promoted"
 grep -q "^LoRA, no RAG.*[Bb]iscuit" "$T"                            || fail "the LoRA answers from the weights"
 echo "E2E IDLE PASS ($T)"

@@ -4,11 +4,13 @@
 # trains on top of the frozen deep one, and both tiers answer from the weights.
 # Usage: scripts/e2e_tiers.sh [profile]     (DATA dir: $E2E_DIR or a temp dir)
 # TRAIN_BASE=model trains on the GGUF as loaded, sharing the chat engine's copy of it.
+# LAYOUT=one-gpu (or any [gpu] layout) instead of the CPU for both roles.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PROFILE="${1:-tiny}"
 DIR="${E2E_DIR:-$(mktemp -d)}"
 rm -rf "$DIR/data"; mkdir -p "$DIR"
+if [ -n "${LAYOUT:-}" ]; then GPU_LINES="layout=$LAYOUT"; else GPU_LINES=$'infer=-1\ntrain=-1'; fi
 
 cat > "$DIR/memagent.ini" <<INI
 [agent]
@@ -20,8 +22,7 @@ data_dir=$DIR/data
 repo_dir=$PWD
 recent_turns=2
 [gpu]
-infer=-1
-train=-1
+$GPU_LINES
 [consolidate]
 trainer=llama
 tiers=on
