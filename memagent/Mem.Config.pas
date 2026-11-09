@@ -52,6 +52,12 @@ type
     Reranker: string;        { auto | off }
     RerankModel: string;
     RetrievalPool: Integer;  { candidates from the hybrid stage before reranking }
+    (* Earlier messages: a question about a list ("what has Melanie painted?") has its
+       answer spread over several turns, so more of them reach the prompt than facts
+       do. On LoCoMo sample 0 the top 3 of 8 held 25% of the multi-hop evidence, the
+       top 8 of 30 42% (bench/locomo_recall.py) *)
+    MsgPool: Integer;        { message candidates the reranker scores }
+    MsgK: Integer;           { earlier messages put in the prompt }
     (* retrieve twice: names in the first hits ("Your sister's name is Ana" -> Ana,
        "Ana's city is Lisbon" -> Ana) query again, so a question that needs two
        linked facts gets both (Mem.Recall.RecallHops) *)
@@ -304,6 +310,8 @@ begin
     Reranker := LowerCase(LIni.ReadString('retrieval', 'reranker', 'auto'));
     RerankModel := LIni.ReadString('retrieval', 'rerank_model', 'ms-marco-minilm');
     RetrievalPool := LIni.ReadInteger('retrieval', 'pool', 8);
+    MsgPool := LIni.ReadInteger('retrieval', 'msg_pool', 30);
+    MsgK := LIni.ReadInteger('retrieval', 'msg_k', 8);
     Hops := LIni.ReadInteger('retrieval', 'hops', 2);
     HopK := LIni.ReadInteger('retrieval', 'hop_k', RagK);
     MinSimilarity := IniFloat(LIni, 'min_similarity', 0.25);
