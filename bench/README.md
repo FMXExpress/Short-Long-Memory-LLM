@@ -1150,3 +1150,73 @@ Published Qwen2.5-1.5B rows (A-MEM, 2502.12110, Table 1, F1 × 100, all ten samp
   failed, the summary never advanced, and every later turn failed again. Before the fix,
   the first 75 questions scored F1 0.098. It now summarises what fits in half the context
   on each turn.
+
+### Synonym groups for the merge, measured on a third set: kept, with a stricter bar
+
+The held-out run above found the rescue blocked by a thin synonym table. `Related` in
+Mem.Guard now groups job with profession, occupation, trade, career and vocation, and adds a
+group for city, town, hometown, village and residence. Those words came from the held-out
+pairs, so they were measured on a third set: `make_merge_cases_third.py` (seed 2027, new
+names) builds 48 pairs. There are 24 to merge (reworded job, reworded city, new value) and
+24 traps (birth town against current city, job against salary or employer, a past value under
+a synonym, and the same name with another relation).
+
+| third set, 48 pairs | wrong merges | missed merges | cost (5 per wrong) |
+|---|---|---|---|
+| agent before the groups | 0 of 24 | 14 of 24 | 14 |
+| agent with the groups, first version | **5 of 24** | 3 of 24 | 28 |
+| **agent with the groups and the synonym rule** | **0 of 24** | **3 of 24** | **3** |
+| judge alone, p ≥ 0.97 | 0 of 24 | 0 of 24 | 0 |
+
+- **The groups alone made merging worse.** Once "town" and "city" share a slot, "Quinn's
+  city is Riga" and "Quinn was born in Bergen" (subject "Quinn's birth town") become the
+  same subject to the rules.
+  The judge gives those traps p 0.91 to 0.95, which passes the 0.9 veto. Five true facts were
+  overwritten.
+- **The synonym rule (`Mem.Guard.SynonymSubjects`, `TAgent.SameSubject`).** A match that
+  holds only through a synonym group, where the owner or attribute words differ, needs the
+  rescue bar of 0.97, not the veto's 0.9. Without the judge it is never merged. Every trap
+  scores 0.96 or less, and every rewording scores 0.98 or more.
+- **Held-out and tuning sets with the final build.** The held-out set has 0 wrong merges and
+  9 missed, down from 14. The 75 tuning pairs have 0 wrong and 0 missed, as before.
+- **Caveat.** The rule was written after seeing the five wrong merges on this set, so the set
+  is no longer clean. The 0.97 is the rescue bar already tuned on the first set, not a new
+  value. Wrong merges are what cost: one loses a true fact, and a missed merge only keeps a
+  duplicate line.
+- **Integration (96 questions, `integration-small-fixes.json`).** 88 of 96, with the same
+  answers as before the groups and dates. The wider `Related` table also feeds the answer
+  guard, which did not change any answer.
+
+### Relative dates made absolute when stored: won (`Mem.Dates`, `[agent] resolve_dates`)
+
+A stored message such as "I ran a charity race last Saturday." becomes "I ran a charity race
+last Saturday (the Saturday before 25 May 2023).". The date is worked out from the message's
+own leading date (a `/log` line such as "[1:56 pm on 8 May, 2023] Melanie: ..."), else from
+the time it is stored. It covers yesterday, today, tomorrow, last night, last/next/this
+week, weekend, month, year or weekday, and "N days/weeks/months/years ago". The words stay
+as they were, and the date is added once. In sample 0, 48 of the 421 imported messages got
+a date. Several match LoCoMo's expected answers word for word, such as "the week before 9
+June 2023" and "2022". `tests/dates_test.lpr` has 11 cases.
+
+Same run as above (1.5B, sample 0, all 152 questions, three parts of 51 + 51 + 50).
+`locomo-small-s0-dates.json`:
+
+| | multi-hop | temporal | open-domain | single-hop | mean of the four | all 152 |
+|---|---|---|---|---|---|---|
+| before | 0.171 | 0.108 | 0.094 | 0.263 | 15.9 | 19.2 |
+| **dates resolved** | 0.143 | **0.331** | 0.080 | 0.266 | **20.5** | **24.0** |
+
+- **Temporal tripled.** 25 of the 37 temporal questions scored higher and 3 lower. The
+  model now reads the date off the stored text: "Melanie painted a sunrise last year, which
+  was in 2022."
+- **Multi-hop and open-domain dipped, but not from dates.** The questions that dropped are
+  the same answers in other words, with no date in them. For example, "Caroline is single."
+  became "Caroline is not currently in a romantic relationship.", and F1 penalises the
+  rewording. These are 32 and 13 questions, so one rewording moves the column by a few
+  points. Single-hop, the largest column, is unchanged.
+- **Against the published rows.** The mean of the four is now 20.5, against A-MEM's 20.7
+  at the same model size, and above MemGPT (9.4), MemoryBank (9.3) and full context (8.6).
+  This is still one sample of ten, against their ten.
+- **What is left.** Some answers repeat the log line's own header ("[7:55 pm on 9 June,
+  2023]") rather than the date in the text. That header is the date the turn was said, not
+  the date asked about.

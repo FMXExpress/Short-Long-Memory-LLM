@@ -44,6 +44,10 @@ function ForeignOwner(const AQuestion, ASubject: string): Boolean;
    alone merged 14 of 112 such pairs, and a merge overwrites the older fact. *)
 function DistinctSubjects(const A, B: string): Boolean;
 
+(* the same slot only through a Related group ("Oskar's job" / "Oskar's profession",
+   "Marek's city" / "Marek's birth town"): not distinct, but not the same words either *)
+function SynonymSubjects(const A, B: string): Boolean;
+
 { True when the answer may stand. ABlockedBy names the first stored fact whose
   value the answer used for a different subject. }
 function Licensed(ARet: TRetrieval; const AQuestion, AAnswer: string; const AFacts: TFactArray;
@@ -62,9 +66,11 @@ const
      guard withheld these right answers because no word matched and the
      cross-encoder scored the pairs under its threshold. None of the
      look-alikes the guard exists for (horse/dog, aunt/sister, stepmother/
-     mother, parrot/cat) shares a group. *)
-  Related: array[0..9] of string = (
-    ' work employer company job salary workplace ',
+     mother, parrot/cat) shares a group. The job and city words were added after the
+     held-out merge set showed "Oskar's job" against "Oskar's profession" read as two
+     attributes, so the merge rescue never ran (bench/README.md, merge sets). *)
+  Related: array[0..10] of string = (
+    ' work employer company job salary workplace profession occupation trade career vocation ',
     ' boss manager supervisor ',
     ' daughter girl ',
     ' son boy ',
@@ -73,7 +79,8 @@ const
     ' partner wife husband spouse girlfriend boyfriend fiance fiancee ',
     ' kid kids child children ',
     ' home live house ',
-    ' car vehicle ');
+    ' car vehicle ',
+    ' city town hometown village residence ');
   { words that carry no subject on their own }
   Weak: array[0..6] of string = ('name', 'favorite', 'favourite', 'the', 'my', 'what', 'who');
 
@@ -203,6 +210,15 @@ begin
   if not OwnerSlot(A, OA, AA) or not OwnerSlot(B, OB, AB) then
     Exit(False);
   Result := ((OA <> OB) and not SameGroup(OA, OB)) or ((AA <> AB) and not SameGroup(AA, AB));
+end;
+
+function SynonymSubjects(const A, B: string): Boolean;
+var
+  OA, AA, OB, AB: string;
+begin
+  if not OwnerSlot(A, OA, AA) or not OwnerSlot(B, OB, AB) then
+    Exit(False);
+  Result := not DistinctSubjects(A, B) and ((OA <> OB) or (AA <> AB));
 end;
 
 { is the stored fact about what the question asks? }

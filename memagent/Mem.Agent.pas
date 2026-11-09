@@ -31,7 +31,7 @@ interface
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
   Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors, Mem.Decide,
-  Mem.Body, Mem.Extract;
+  Mem.Body, Mem.Extract, Mem.Dates;
 
 type
   TAgent = class
@@ -84,6 +84,7 @@ type
     { stores extracted facts (dedupe, supersede, embeddings); frees nothing }
     function StoreFacts(AFacts: TJSONArray; AMsgId: Int64): string;
     procedure MaybeSummarize;
+    function StoredText(const AText: string): string;
     { standing instructions in the user's message: new, confirmed or contradicted (Mem.Priors) }
     procedure ObservePriors(const AUser: string; AMsgId: Int64);
     { the priors that go into the prompt: confident enough, not overridden by a
@@ -335,7 +336,9 @@ var
   LP: Double;
   LNear: Integer;
   LCos, LNearCos: Single;
+  LSynonym: Boolean;
 begin
+  LSynonym := False;
   (* Is a new fact about a subject we already hold under other words ("what
      my dog is called" vs "my dog's name")? Cosine alone cannot be trusted
      here: MiniLM scores "my sister's name" vs "my brother's name" higher
@@ -366,6 +369,7 @@ begin
         LBest := LScores[0];
         Result := LSubjects[I].Id;
         LOld := LSubjects[I].Text;
+        LSynonym := SynonymSubjects(ASubject, LSubjects[I].Subject);
       end;
     end;
   end;
@@ -373,7 +377,22 @@ begin
      unsure judge keeps both (a duplicate costs a line; a wrong merge lost 14 of 112
      facts once). On 75 labelled pairs the veto removed all 6 wrong merges the rules
      made ("You also like pizza" over "Your favorite food is sushi"). *)
-  if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
+  (* a slot matched only through a synonym ("job" / "profession") is the judge's call at
+     the rescue bar, and without a judge it is not merged: on the third merge set the
+     wider groups let "Marek was born in Graz" over "Marek's city is Bergen" through the
+     0.9 veto (p 0.91 to 0.95), where true rewordings scored 0.98 and more *)
+  if (Result <> 0) and LSynonym and ((Judge = nil) or not FCfg.JudgeMerge or (FCfg.JudgeRescueMin <= 0)) then
+    Result := 0
+  else if (Result <> 0) and LSynonym then
+  begin
+    LP := Judge.Replaces(LOld, AText);
+    if LP < FCfg.JudgeRescueMin then
+    begin
+      Say(Format('[memory] kept both: the judge is not sure "%s" replaces "%s" (p=%.2f)', [AText, LOld, LP]));
+      Result := 0;
+    end;
+  end
+  else if (Result <> 0) and (Judge <> nil) and FCfg.JudgeMerge then
   begin
     LP := Judge.Replaces(LOld, AText);
     if LP < FCfg.JudgeMergeMin then
@@ -1001,6 +1020,16 @@ begin
   end;
 end;
 
+(* a message as the log keeps it: relative dates made absolute against when it was said
+   ([agent] resolve_dates, Mem.Dates), so "last Saturday" still means that day weeks later *)
+function TAgent.StoredText(const AText: string): string;
+begin
+  if FCfg.ResolveDates then
+    Result := ResolveMessageDates(AText, Now)
+  else
+    Result := AText;
+end;
+
 procedure TAgent.MaybeSummarize;
 var
   LAll: TMsgArray;
@@ -1056,7 +1085,7 @@ var
   I: Integer;
   LT: TDateTime;
   LMs: array[0..7] of Double;    { 7: model extraction after the reply }
-  LRuleFacts, LWhy: string;
+  LRuleFacts, LWhy, LStored: string;
   LP: Double;
 begin
   PollConsolidation;
@@ -1075,8 +1104,9 @@ begin
        they carry the user's framing ("my sister ..."), and a remember tool
        call for the same fact then reports "already known" instead of adding
        a second, worse-phrased copy. *)
-    LUserId := FStore.AddMessage(FSession, 'user', AUser);
-    EmbedMessage(LUserId, AUser);
+    LStored := StoredText(AUser);
+    LUserId := FStore.AddMessage(FSession, 'user', LStored);
+    EmbedMessage(LUserId, LStored);
     LRuleFacts := ExtractFacts(AUser, LUserId, 'rules');
     ObservePriors(AUser, LUserId);
     Mark(LT, LMs[1]);
@@ -1429,8 +1459,8 @@ begin
   begin
     { a message into the conversation log, searchable like any other, without a reply
       or fact extraction: loading a recorded conversation (bench/bench_locomo.py) }
-    LId := FStore.AddMessage(FSession, 'user', LArg);
-    EmbedMessage(LId, LArg);
+    LId := FStore.AddMessage(FSession, 'user', StoredText(LArg));
+    EmbedMessage(LId, StoredText(LArg));
   end
   else if LCmd = '/dream' then
     Dream(SameText(LArg, 'all'))

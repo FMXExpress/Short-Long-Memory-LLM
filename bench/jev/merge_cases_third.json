@@ -1,0 +1,626 @@
+[
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Dario's job",
+   "text": "Dario's job is plumber."
+  },
+  "new": {
+   "subject": "Dario's work",
+   "text": "Dario is a librarian these days."
+  },
+  "id": 0
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Olek's job",
+   "text": "Olek's job is baker."
+  },
+  "new": {
+   "subject": "Olek's profession",
+   "text": "Olek is a plumber these days."
+  },
+  "id": 1
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Cosima's job",
+   "text": "Cosima's job is baker."
+  },
+  "new": {
+   "subject": "Cosima's occupation",
+   "text": "Cosima is a florist these days."
+  },
+  "id": 2
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Anouk's job",
+   "text": "Anouk's job is electrician."
+  },
+  "new": {
+   "subject": "Anouk's trade",
+   "text": "Anouk is a architect these days."
+  },
+  "id": 3
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Kaito's job",
+   "text": "Kaito's job is pharmacist."
+  },
+  "new": {
+   "subject": "Kaito's career",
+   "text": "Kaito is a librarian these days."
+  },
+  "id": 4
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Marek's job",
+   "text": "Marek's job is librarian."
+  },
+  "new": {
+   "subject": "Marek's vocation",
+   "text": "Marek is a architect these days."
+  },
+  "id": 5
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Greta's job",
+   "text": "Greta's job is electrician."
+  },
+  "new": {
+   "subject": "Greta's line of work",
+   "text": "Greta is a surveyor these days."
+  },
+  "id": 6
+ },
+ {
+  "category": "reworded job",
+  "replaces": 1,
+  "old": {
+   "subject": "Paloma's job",
+   "text": "Paloma's job is electrician."
+  },
+  "new": {
+   "subject": "Paloma's gig",
+   "text": "Paloma is a pharmacist these days."
+  },
+  "id": 7
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Rasmus's city",
+   "text": "Rasmus's city is Bergen."
+  },
+  "new": {
+   "subject": "Rasmus's town",
+   "text": "Rasmus lives in Leeds now."
+  },
+  "id": 8
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Nadia's city",
+   "text": "Nadia's city is Ulm."
+  },
+  "new": {
+   "subject": "Nadia's hometown",
+   "text": "Nadia lives in Leeds now."
+  },
+  "id": 9
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Linnea's city",
+   "text": "Linnea's city is Tartu."
+  },
+  "new": {
+   "subject": "Linnea's home town",
+   "text": "Linnea lives in Lyon now."
+  },
+  "id": 10
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Fabian's city",
+   "text": "Fabian's city is Porto."
+  },
+  "new": {
+   "subject": "Fabian's village",
+   "text": "Fabian lives in Ghent now."
+  },
+  "id": 11
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Jonas's city",
+   "text": "Jonas's city is Leeds."
+  },
+  "new": {
+   "subject": "Jonas's residence",
+   "text": "Jonas lives in Bergen now."
+  },
+  "id": 12
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Hugo's city",
+   "text": "Hugo's city is Graz."
+  },
+  "new": {
+   "subject": "Hugo's place",
+   "text": "Hugo lives in Lucca now."
+  },
+  "id": 13
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Sana's city",
+   "text": "Sana's city is Lyon."
+  },
+  "new": {
+   "subject": "Sana's neighbourhood",
+   "text": "Sana lives in Graz now."
+  },
+  "id": 14
+ },
+ {
+  "category": "reworded city",
+  "replaces": 1,
+  "old": {
+   "subject": "Elif's city",
+   "text": "Elif's city is Riga."
+  },
+  "new": {
+   "subject": "Elif's town",
+   "text": "Elif lives in Ulm now."
+  },
+  "id": 15
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Sana's job",
+   "text": "Sana's job is plumber."
+  },
+  "new": {
+   "subject": "Sana's job",
+   "text": "Sana's job is surveyor."
+  },
+  "id": 16
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Cosima's city",
+   "text": "Cosima's city is Porto."
+  },
+  "new": {
+   "subject": "Cosima's city",
+   "text": "Cosima's city is Ghent."
+  },
+  "id": 17
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Fabian's city",
+   "text": "Fabian's city is Graz."
+  },
+  "new": {
+   "subject": "Fabian's city",
+   "text": "Fabian's city is Tartu."
+  },
+  "id": 18
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Imani's city",
+   "text": "Imani's city is Lucca."
+  },
+  "new": {
+   "subject": "Imani's city",
+   "text": "Imani's city is Ghent."
+  },
+  "id": 19
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Tobias's city",
+   "text": "Tobias's city is Tartu."
+  },
+  "new": {
+   "subject": "Tobias's city",
+   "text": "Tobias's city is Malmo."
+  },
+  "id": 20
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Bruno's job",
+   "text": "Bruno's job is surveyor."
+  },
+  "new": {
+   "subject": "Bruno's job",
+   "text": "Bruno's job is nurse."
+  },
+  "id": 21
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Marek's city",
+   "text": "Marek's city is Ghent."
+  },
+  "new": {
+   "subject": "Marek's city",
+   "text": "Marek's city is Ulm."
+  },
+  "id": 22
+ },
+ {
+  "category": "new value",
+  "replaces": 1,
+  "old": {
+   "subject": "Kaito's job",
+   "text": "Kaito's job is librarian."
+  },
+  "new": {
+   "subject": "Kaito's job",
+   "text": "Kaito's job is baker."
+  },
+  "id": 23
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Quinn's city",
+   "text": "Quinn's city is Riga."
+  },
+  "new": {
+   "subject": "Quinn's birth town",
+   "text": "Quinn was born in Bergen."
+  },
+  "id": 24
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Marek's city",
+   "text": "Marek's city is Bergen."
+  },
+  "new": {
+   "subject": "Marek's birth town",
+   "text": "Marek was born in Graz."
+  },
+  "id": 25
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Paloma's city",
+   "text": "Paloma's city is Tartu."
+  },
+  "new": {
+   "subject": "Paloma's home town of birth",
+   "text": "Paloma was born in Ghent."
+  },
+  "id": 26
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Olek's city",
+   "text": "Olek's city is Ulm."
+  },
+  "new": {
+   "subject": "Olek's birthplace town",
+   "text": "Olek was born in Graz."
+  },
+  "id": 27
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Greta's city",
+   "text": "Greta's city is Zadar."
+  },
+  "new": {
+   "subject": "Greta's birthplace town",
+   "text": "Greta was born in Tartu."
+  },
+  "id": 28
+ },
+ {
+  "category": "birth town / current city",
+  "replaces": 0,
+  "old": {
+   "subject": "Nadia's city",
+   "text": "Nadia's city is Malmo."
+  },
+  "new": {
+   "subject": "Nadia's home town of birth",
+   "text": "Nadia was born in Porto."
+  },
+  "id": 29
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Hugo's job",
+   "text": "Hugo's job is pharmacist."
+  },
+  "new": {
+   "subject": "Hugo's employer",
+   "text": "Hugo works for Siemens."
+  },
+  "id": 30
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Dario's job",
+   "text": "Dario's job is surveyor."
+  },
+  "new": {
+   "subject": "Dario's employer",
+   "text": "Dario works for Siemens."
+  },
+  "id": 31
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Cosima's job",
+   "text": "Cosima's job is pharmacist."
+  },
+  "new": {
+   "subject": "Cosima's employer",
+   "text": "Cosima works for Siemens."
+  },
+  "id": 32
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Jonas's job",
+   "text": "Jonas's job is electrician."
+  },
+  "new": {
+   "subject": "Jonas's salary",
+   "text": "Jonas earns 41,000 a year."
+  },
+  "id": 33
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Paloma's job",
+   "text": "Paloma's job is librarian."
+  },
+  "new": {
+   "subject": "Paloma's salary",
+   "text": "Paloma earns 41,000 a year."
+  },
+  "id": 34
+ },
+ {
+  "category": "job / salary or employer",
+  "replaces": 0,
+  "old": {
+   "subject": "Greta's job",
+   "text": "Greta's job is florist."
+  },
+  "new": {
+   "subject": "Greta's salary",
+   "text": "Greta earns 41,000 a year."
+  },
+  "id": 35
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Quinn's job",
+   "text": "Quinn's job is pharmacist."
+  },
+  "new": {
+   "subject": "Quinn's former profession",
+   "text": "Quinn used to work as a florist."
+  },
+  "id": 36
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Anouk's job",
+   "text": "Anouk's job is baker."
+  },
+  "new": {
+   "subject": "Anouk's old trade",
+   "text": "Anouk used to work as a architect."
+  },
+  "id": 37
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Greta's job",
+   "text": "Greta's job is librarian."
+  },
+  "new": {
+   "subject": "Greta's former profession",
+   "text": "Greta used to work as a architect."
+  },
+  "id": 38
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Olek's job",
+   "text": "Olek's job is baker."
+  },
+  "new": {
+   "subject": "Olek's old trade",
+   "text": "Olek used to work as a florist."
+  },
+  "id": 39
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Elif's job",
+   "text": "Elif's job is architect."
+  },
+  "new": {
+   "subject": "Elif's former profession",
+   "text": "Elif used to work as a plumber."
+  },
+  "id": 40
+ },
+ {
+  "category": "past under a synonym",
+  "replaces": 0,
+  "old": {
+   "subject": "Kaito's city",
+   "text": "Kaito's city is Porto."
+  },
+  "new": {
+   "subject": "Kaito's former town",
+   "text": "Kaito used to live in Graz."
+  },
+  "id": 41
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my neighbor's job",
+   "text": "Your neighbor Nadia's job is architect."
+  },
+  "new": {
+   "subject": "my aunt's profession",
+   "text": "Your aunt Nadia's profession is baker."
+  },
+  "id": 42
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my landlord's job",
+   "text": "Your landlord Cosima's job is plumber."
+  },
+  "new": {
+   "subject": "my godfather's profession",
+   "text": "Your godfather Cosima's profession is florist."
+  },
+  "id": 43
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my roommate's city",
+   "text": "Your roommate Anouk's city is Porto."
+  },
+  "new": {
+   "subject": "my neighbor's town",
+   "text": "Your neighbor Anouk's town is Riga."
+  },
+  "id": 44
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my mentor's city",
+   "text": "Your mentor Olek's city is Malmo."
+  },
+  "new": {
+   "subject": "my godfather's town",
+   "text": "Your godfather Olek's town is Lyon."
+  },
+  "id": 45
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my neighbor's job",
+   "text": "Your neighbor Bruno's job is electrician."
+  },
+  "new": {
+   "subject": "my mentor's profession",
+   "text": "Your mentor Bruno's profession is florist."
+  },
+  "id": 46
+ },
+ {
+  "category": "same name, another relation",
+  "replaces": 0,
+  "old": {
+   "subject": "my neighbor's city",
+   "text": "Your neighbor Marek's city is Malmo."
+  },
+  "new": {
+   "subject": "my mentor's town",
+   "text": "Your mentor Marek's town is Ghent."
+  },
+  "id": 47
+ }
+]

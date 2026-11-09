@@ -32,6 +32,7 @@ type
     RagAll: Boolean;           { every active fact in the prompt instead of retrieval (a baseline for small memories) }
     DreamBeforeSleep: Boolean; { check new facts against their messages before each deep sleep (TAgent.Dream) }
     DeriveFacts: Boolean;      { store "Your sister Ana's job is nurse." for linked facts (TMemStore.SyncDerived) }
+    ResolveDates: Boolean;     { store "last Saturday (the Saturday before 25 May 2023)" (Mem.Dates) }
     AutoConsolidate: Boolean;
     Trainer: string;         { llama (in-process, Mem.Train) | python (trainer/consolidate.py) }
     TrainThreads: Integer;   { CPU threads for the llama trainer, 0 = all cores but one }
@@ -284,6 +285,7 @@ begin
     MinFactConfidence := StrToFloatDef(LIni.ReadString('agent', 'min_fact_confidence', '0.5'), 0.5);
     RagIncludeBaked := LIni.ReadBool('agent', 'rag_include_baked', True);
     DeriveFacts := LIni.ReadBool('agent', 'derive_facts', True);
+    ResolveDates := LIni.ReadBool('agent', 'resolve_dates', True);
     DreamBeforeSleep := LIni.ReadBool('consolidate', 'dream', True);
     RagAll := LIni.ReadBool('agent', 'rag_all', False);
     InferGpu := LIni.ReadInteger('gpu', 'infer', 0);
