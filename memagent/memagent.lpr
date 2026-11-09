@@ -11,7 +11,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Mem.Utf8,
   SysUtils, Classes, StrUtils, {$IFDEF UNIX}termio,{$ENDIF}
-  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent, Mem.Body, Mem.Decide;
+  Mem.Config, Mem.Db, Mem.Store, Mem.Engine, Mem.Setup, Mem.Consolidate, Mem.Retrieval, Mem.Agent, Mem.Body, Mem.Decide, Mem.Layout;
 
 var
   Cfg: TMemConfig;
@@ -57,6 +57,16 @@ begin
     if Cfg.AutoProvision and (Cfg.Embedder = 'auto') then
       EnsureRetrieval(Cfg, False);
     WriteLn('memagent - profile ', Cfg.ProfileName, ' (', Cfg.BaseModel, ')');
+    try
+      WriteLn(ResolveLayout(Cfg));
+    except
+      on E: ELayout do
+      begin
+        WriteLn(StdErr, 'memagent: ', E.Message);
+        ExitCode := 2;
+        Exit;
+      end;
+    end;
     WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
     Ret := TRetrieval.Create(Cfg.CacheDir, Cfg.Embedder, Cfg.EmbedModel, Cfg.Reranker, Cfg.RerankModel);
     WriteLn('recall: ', Ret.Describe);
@@ -129,19 +139,26 @@ begin
         end;
         if not Interactive then
           WriteLn('you> ', Line);
+        Agent.BeginLine(Line);
         try
-          if Line[1] = '/' then
-          begin
-            if not Agent.Command(Line) then
-              Break;
-          end
-          else
-            Agent.Turn(Line);
-        except
-          on E: Exception do
-            WriteLn('[error] ', E.ClassName, ': ', E.Message);
+          try
+            if Line[1] = '/' then
+            begin
+              if not Agent.Command(Line) then
+                Break;
+            end
+            else
+              Agent.Turn(Line);
+          except
+            on E: Exception do
+              WriteLn('[error] ', E.ClassName, ': ', E.Message);
+          end;
+        finally
+          Agent.EndLine;
         end;
       end;
+      { an idle-time run waiting for idle time would hold up quitting }
+      TrainNow(True);
       { a fast run is redone from the same facts next time; a deep sleep is worth finishing }
       if Cons.Running and (Cons.Tier = 'fast') then
       begin

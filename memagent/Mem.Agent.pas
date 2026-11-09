@@ -106,6 +106,11 @@ type
     procedure Startup;
     procedure Turn(const AUser: string);
     procedure PollConsolidation;
+    (* around every line the user types: with idle training, a line takes the
+       device back (stopping a run that released the chat model, unless the line
+       is /wait, /sleep, /nap, /status or /quit) and keeps the next run waiting *)
+    procedure BeginLine(const ALine: string);
+    procedure EndLine;
     function Command(const ALine: string): Boolean; { False = quit }
     { optional; not owned }
     property Body: TBody read FBody write FBody;
@@ -140,6 +145,36 @@ begin
   FRet := ARet;
   FSession := FormatDateTime('yyyymmdd"T"hhnnss', Now);
   FTiming := GetEnvironmentVariable('MEMAGENT_TIMING') = '1';
+  if FCfg.TrainWhen = 'idle' then
+    SetReleaseChat(@FEngine.Release);
+end;
+
+procedure TAgent.BeginLine(const ALine: string);
+var
+  LCmd: string;
+  LKeep: Boolean;
+begin
+  LCmd := LowerCase(ExtractWord(1, ALine, [' ']));
+  LKeep := (LCmd = '/wait') or (LCmd = '/sleep') or (LCmd = '/nap') or (LCmd = '/status') or (LCmd = '/quit');
+  if (FCfg.TrainWhen = 'idle') and ((LCmd = '/wait') or (LCmd = '/sleep') or (LCmd = '/nap')) then
+    TrainNow(True);
+  if BeginActivity and not LKeep then
+  begin
+    if FCons.Running then
+    begin
+      Say('[sleep] stopping the idle-time ' + FCons.Tier + ' run to answer; it runs again at the next idle time');
+      TrainNow(False);
+      FCons.Cancel;
+      FCons.WaitFor;
+      PollConsolidation;
+    end;
+    ChatBack;
+  end;
+end;
+
+procedure TAgent.EndLine;
+begin
+  EndActivity;
 end;
 
 procedure TAgent.Say(const S: string);
@@ -1245,6 +1280,8 @@ begin
   { a deep sleep learns the facts as they stand: check them against their messages first }
   if (ATier = 'deep') and FCfg.DreamBeforeSleep then
     Dream(False);
+  { a cancelled run puts this back, so its facts are trained by the next one }
+  FStore.SetMeta('fast_seen_prev', FStore.GetMeta('fast_seen_id', '0'));
   FStore.SetMeta('fast_seen_id', IntToStr(FStore.MaxFactId));
   Result := FCons.Start(ATier, FEngine.ActiveAdapter, FStore.GetMeta('active_adapter_path'));
   if not Result then
@@ -1344,6 +1381,7 @@ begin
   LTier := FCons.Tier;
   if not FCons.TakeResult(LCode, LSummary) then
     Exit;
+  TrainNow(False);
   { the interval counts from the last deep sleep (or, without tiers, any run) }
   if (LTier <> 'fast') and (LCode <> 4) then
     FStore.SetMeta('last_consolidation', IntToStr(NowUnix));
@@ -1373,7 +1411,8 @@ begin
          end;
       3: if LTier <> 'fast' then
            Say('[sleep] nothing to consolidate');
-      4: ;  { cancelled for a deep sleep }
+      4:  { cancelled: for a deep sleep, a message during idle-time training, or quitting }
+        FStore.SetMeta('fast_seen_id', FStore.GetMeta('fast_seen_prev', FStore.GetMeta('fast_seen_id', '0')));
     else
       if LJson is TJSONObject then
         LSummary := TJSONObject(LJson).Get('reason', LSummary);
@@ -1677,6 +1716,9 @@ begin
     { until memory has caught up: with tiers a finished run can start the next }
     while FCons.Tier <> '' do   { running, or finished and not yet promoted }
     begin
+      { idle training: every run /wait waits for starts now (it would wait for /wait to end) }
+      if FCfg.TrainWhen = 'idle' then
+        TrainNow(True);
       if FCons.Running then
         Say('[sleep] waiting for the ' + FCons.Tier + ' run to finish...');
       FCons.WaitFor;
@@ -1746,7 +1788,12 @@ begin
     if FCfg.Tiers then
       Say(Format('tiers:    fast LoRA holds %s; deep sleep at %d', [
         Facts(IfThen(FEngine.ActiveAdapter = '', 0, FStore.FastTierCount(FEngine.ActiveAdapter))), FCfg.DeepAfter]));
-    Say('sleeping: ' + IfThen(FCons.Running, 'yes (' + FCons.Tier + ' run)', 'no'));
+    if FCons.Running and WaitingForIdle then
+      Say('sleeping: a ' + FCons.Tier + ' run is waiting for idle time (' + FormatFloat('0.##', FCfg.IdleMin) +
+        ' min without a message' + IfThen(FCfg.NightWindow = '', '', ', within ' + FCfg.NightWindow) + ')')
+    else
+      Say('sleeping: ' + IfThen(FCons.Running, 'yes (' + FCons.Tier + ' run' +
+        IfThen(ChatReleased, ', the chat model unloaded for it', '') + ')', 'no'));
     if FTurns > 0 then
       Say(Format('timing:   %d turns, avg ms: recall %.0f extract %.0f first-token %.0f generate %.0f ' +
         'tools %.0f summary %.0f total %.0f', [FTurns, FSum[0] / FTurns, FSum[1] / FTurns, FSum[2] / FTurns,

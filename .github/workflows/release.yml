@@ -142,7 +142,7 @@ jobs:
           cp body/lerobot_body.py body/README.md "$OUT/body/"
           cp -r $SRC/convert_lora_to_gguf.py $SRC/convert_hf_to_gguf.py $SRC/conversion $SRC/gguf-py "$OUT/llama.cpp/"
           cp $SRC/LICENSE "$OUT/llama.cpp/LICENSE"
-          sed -e 's/^engine=.*/engine=auto/' -e 's/^infer=.*/infer=-1/' -e 's/^train=.*/train=-1/' \
+          sed -e 's/^engine=.*/engine=auto/' -e 's/^layout=.*/layout=auto/' \
               -e 's#^;src_dir=.*#src_dir=llama.cpp#' -e 's/^;python=python3/;python=python/' memagent.ini > "$OUT/memagent.ini"
           ls -la "$OUT"
       - name: Probe the llama.cpp DLLs (names a missing dependency)

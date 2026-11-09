@@ -207,9 +207,22 @@ name?" that uses the dog's name.
 | `medium` | Qwen3-4B-Instruct (4-bit) | two 16–24 GB GPUs |
 | `large` | Magistral-Small 24B (4-bit) | two 24 GB+ GPUs |
 
-Everything model-specific lives in `models.json`. With two GPUs, `[gpu] infer=0` and
-`[gpu] train=1` keep inference and training on separate devices. `tiny` and `small` train
-in-process on llama.cpp; `medium` and `large` still train with the Python trainer.
+Everything model-specific lives in `models.json`. Where chat and training run is `[gpu] layout`
+(default `auto`: no card → `cpu`, one card → `one-gpu`, two → `two-gpus`):
+
+| layout | chat | training |
+|---|---|---|
+| `cpu` | CPU | CPU |
+| `chat-gpu-train-cpu` | GPU | CPU (small models: fast answers, the CPU trains in the background) |
+| `chat-cpu-train-gpu` | CPU | GPU |
+| `two-gpus` | GPU `gpu` | GPU `second` |
+| `one-gpu` | GPU | the same GPU, waiting while a turn is answered |
+| `one-gpu-idle` | GPU | the same GPU, only after `idle_min` minutes without a message (and inside `night`, when set); the chat model is unloaded so training has the whole card, and the next message stops the run |
+
+`[consolidate] train_base = auto` trains on a full-precision copy of the model when it fits
+on the training device, else on the model as loaded (on the chat card, the chat engine's own
+copy). The startup line says what was chosen and why. `tiny` and `small` train in-process on
+llama.cpp; `medium` and `large` still train with the Python trainer.
 
 ## Results
 

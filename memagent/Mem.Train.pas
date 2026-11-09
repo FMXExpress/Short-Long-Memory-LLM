@@ -191,6 +191,8 @@ begin
   try
     try
       LlamaMaskFpu;   { per thread: ggml needs masked FP exceptions }
+      if not AwaitIdle then
+        raise ECancelled.Create('cancelled while waiting for idle time');
       Run;
     except
       on E: ECancelled do

@@ -177,6 +177,12 @@ var
   llama_lora_train_epoch: function(ACtx: PLlamaContext; ATokens, ALabels: PLlamaToken; ASeqs: PInt32;
     ANWindows: Int64; ATrain: Boolean; AOutLoss: PDouble): Int32; cdecl;
   llama_model_convert_f32: function(AInp, AOut: PAnsiChar; ANThread: Int32): Int32; cdecl;
+  { optional, from ggml: the devices llama.cpp can run on (Mem.Layout) }
+  ggml_backend_dev_count: function: PtrUInt; cdecl;
+  ggml_backend_dev_get: function(AIndex: PtrUInt): Pointer; cdecl;
+  ggml_backend_dev_type: function(ADev: Pointer): Int32; cdecl;
+  ggml_backend_dev_memory: procedure(ADev: Pointer; AFree, ATotal: PPtrUInt); cdecl;
+  ggml_backend_dev_description: function(ADev: Pointer): PAnsiChar; cdecl;
 
 { Loads the llama.cpp libraries from ADir ('' = the system search path).
   Raises on failure; safe to call more than once. }
@@ -192,6 +198,17 @@ procedure LlamaMaskFpu;
 { MEMAGENT_DEBUG=1: one flushed line on stderr per step of loading and running
   the model, so a crash inside a native library still shows where it was }
 procedure LlamaTrace(const AMsg: string);
+
+type
+  TLlamaGpu = record
+    Name: string;
+    FreeBytes, TotalBytes: Int64;
+  end;
+  TLlamaGpus = array of TLlamaGpu;
+
+{ the GPUs llama.cpp sees, in the order [gpu] indices count them; False when this
+  build cannot list devices (an older library) }
+function LlamaGpus(out AGpus: TLlamaGpus): Boolean;
 { the library file names for this platform, in load order }
 function LlamaLibNames: TStringArray;
 
@@ -230,6 +247,19 @@ var
     Pointer(AProc) := GetProcedureAddress(LLlama, ASym);
     if Pointer(AProc) = nil then
       LMissing := LMissing + ' ' + ASym;
+  end;
+
+  procedure BindAny(var AProc; const ASym: string);
+  var
+    I: Integer;
+  begin
+    Pointer(AProc) := nil;
+    for I := High(GHandles) downto 0 do
+    begin
+      Pointer(AProc) := GetProcedureAddress(GHandles[I], ASym);
+      if Pointer(AProc) <> nil then
+        Exit;
+    end;
   end;
 
 begin
@@ -308,12 +338,55 @@ begin
   Pointer(llama_lora_train_epoch) := GetProcedureAddress(LLlama, 'llama_lora_train_epoch');
   Pointer(llama_lora_train_init_adapter) := GetProcedureAddress(LLlama, 'llama_lora_train_init_adapter');
   Pointer(llama_model_convert_f32) := GetProcedureAddress(LLlama, 'llama_model_convert_f32');
+  { optional: the ggml device list, from whichever library exports it (on Windows
+    GetProcAddress does not look in a DLL's dependencies) }
+  BindAny(ggml_backend_dev_count, 'ggml_backend_dev_count');
+  BindAny(ggml_backend_dev_get, 'ggml_backend_dev_get');
+  BindAny(ggml_backend_dev_type, 'ggml_backend_dev_type');
+  BindAny(ggml_backend_dev_memory, 'ggml_backend_dev_memory');
+  BindAny(ggml_backend_dev_description, 'ggml_backend_dev_description');
   GLoaded := True;
   LlamaTrace('bound the ' + LLAMA_TAG + ' API');
 end;
 
 var
   GTrace: Integer = -1;
+
+function LlamaGpus(out AGpus: TLlamaGpus): Boolean;
+const
+  DEV_GPU = 1;   { GGML_BACKEND_DEVICE_TYPE_GPU: dedicated memory }
+var
+  I: PtrUInt;
+  D: Pointer;
+  F, T: PtrUInt;
+begin
+  AGpus := nil;
+  Result := GLoaded and Assigned(ggml_backend_dev_count) and Assigned(ggml_backend_dev_get) and
+    Assigned(ggml_backend_dev_type) and Assigned(ggml_backend_dev_memory);
+  if not Result then
+    Exit;
+  if ggml_backend_dev_count() = 0 then
+    Exit;
+  for I := 0 to ggml_backend_dev_count() - 1 do
+  begin
+    D := ggml_backend_dev_get(I);
+    if (D = nil) or (ggml_backend_dev_type(D) <> DEV_GPU) then
+      Continue;
+    F := 0;
+    T := 0;
+    ggml_backend_dev_memory(D, @F, @T);
+    SetLength(AGpus, Length(AGpus) + 1);
+    with AGpus[High(AGpus)] do
+    begin
+      if Assigned(ggml_backend_dev_description) and (ggml_backend_dev_description(D) <> nil) then
+        Name := string(ggml_backend_dev_description(D))
+      else
+        Name := 'GPU ' + IntToStr(High(AGpus));
+      FreeBytes := F;
+      TotalBytes := T;
+    end;
+  end;
+end;
 
 procedure LlamaTrace(const AMsg: string);
 begin

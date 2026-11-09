@@ -1298,3 +1298,50 @@ because the backward pass through f16 weights is 5.8× slower there.
 but CUDA only for f32 (`ggml-cuda.cu`, `GGML_OP_OUT_PROD`). Without it those ops fall back to
 the CPU. The fix is to dequantize one weight at a time into a scratch buffer on the card
 before the existing f32 path, and it needs a CUDA machine to build and measure.
+
+### Hardware layouts (`[gpu] layout`, `Mem.Layout`)
+
+Where chat and training run is now one setting, resolved at startup from the GPUs llama.cpp
+lists (`ggml_backend_dev_*`) and the model's size. The startup line says what it picked:
+
+```
+layout cpu: chat on CPU, training on the same CPU between turns, from an f32 copy (auto: 0 GPUs)
+```
+
+| layout | chat | training | f32 copy or the model as loaded (`train_base = auto`) |
+|---|---|---|---|
+| `cpu` | CPU | CPU | always the f32 copy (5.8× faster than f16 on a CPU) |
+| `chat-gpu-train-cpu` | GPU | CPU | the f32 copy, in RAM |
+| `chat-cpu-train-gpu` | CPU | GPU | the f32 copy if it fits on the card |
+| `two-gpus` | GPU `gpu` | GPU `second` | the f32 copy if it fits on the second card |
+| `one-gpu` | GPU | the same GPU, between turns | the f32 copy if it fits beside the chat model, else the chat model's own weights |
+| `one-gpu-idle` | GPU | the same GPU, when idle | the f32 copy if it fits on the card alone (the chat model is unloaded) |
+
+"Fits" is the f32 copy (its file, or the GGUF's size × 32 / bits per weight for its
+quantization) plus 1 GB and an eighth of the model for activations, the adapter and AdamW,
+against the card's free memory at startup. Some examples from `tests/layout_test.lpr`:
+
+- **1.5B (q8_0, 1.9 GB; f32 copy 7.2 GB).** On a 24 GB card: one-gpu with the f32 copy.
+  On a 12 GB card the f32 copy does not fit beside the chat model, so one-gpu trains through
+  the chat model's own weights, and one-gpu-idle uses the f32 copy.
+- **27B (Q4_K_M, 17.4 GB; f32 copy about 115 GB).** The model as loaded on any one card.
+
+**Idle-time training (`train_when = idle`, `idle_min`, `night`).**
+- A run waits until nothing has happened for `idle_min` minutes, inside `night` when it is set.
+- It then unloads the chat model (`TEngine.Release`) and trains.
+- The next message stops the run (exit 4). The run's facts stay due (`fast_seen_prev`), and
+  the chat model loads back, with its adapters.
+- `/sleep`, `/nap`, `/wait` and quitting start a run now.
+
+`scripts/e2e_idle.sh` checks all of this on the CPU with the tiny profile:
+1. The run waits.
+2. It unloads the chat model.
+3. A question stops it, and the reloaded model answers.
+4. `/wait` then trains, and the LoRA answers "Biscuit" from the weights.
+
+The judge model (`[judge]`), when on, stays loaded.
+
+**Measured on a GPU: nothing yet.** These need a machine with a card:
+- the GPU layouts themselves;
+- the free-memory thresholds;
+- training through quantized weights on CUDA (no `out_prod` for them yet).
