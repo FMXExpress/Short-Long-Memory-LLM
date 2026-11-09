@@ -1220,3 +1220,48 @@ Same run as above (1.5B, sample 0, all 152 questions, three parts of 51 + 51 + 5
 - **What is left.** Some answers repeat the log line's own header ("[7:55 pm on 9 June,
   2023]") rather than the date in the text. That header is the date the turn was said, not
   the date asked about.
+
+### More earlier messages for questions whose answer spans turns: kept, at a cost in time (`[retrieval] msg_pool`, `msg_k`)
+
+LoCoMo's multi-hop questions are mostly lists: "What has Melanie painted?" has its answer in
+three turns from three sessions. The prompt held the top 3 of 8 earlier messages.
+`bench/locomo_recall.py` measures, without the model, what share of each question's
+evidence turns (LoCoMo's `evidence` field) retrieval puts in the top k. It uses
+`build/msg_probe` on a db from a `bench_locomo.py --keep` run.
+
+| sample 0, share of evidence turns found | multi-hop | single-hop | open-domain | temporal |
+|---|---|---|---|---|
+| top 3 of 8 (before) | 0.25 | 0.57 | 0.14 | 0.76 |
+| top 8 of 30 | 0.42 | 0.72 | 0.27 | 0.78 |
+| top 8 of 100 | 0.44 | 0.72 | 0.32 | 0.78 |
+| top 3 of 30, each with the next turn (6 messages) | 0.29 | 0.71 | 0.23 | 0.76 |
+
+The defaults are now `msg_pool=30` and `msg_k=8`. Facts keep `pool` and `rag_k`. The
+neighbouring turn helps single-hop questions but not lists, so it is left out.
+
+LoCoMo, same run as above with dates resolved (`locomo-small-s0-msgk.json`):
+
+| | multi-hop | temporal | open-domain | single-hop | mean of the four | all 152 | seconds per part |
+|---|---|---|---|---|---|---|---|
+| 3 messages | 0.143 | 0.331 | 0.080 | 0.266 | 20.5 | 24.0 | ~2,830 |
+| **8 messages** | 0.141 | 0.347 | 0.073 | 0.282 | **21.1** | **25.0** | ~4,510 |
+
+Share of the expected answer's words found in the reply, whatever its length:
+
+| | multi-hop | temporal | open-domain | single-hop |
+|---|---|---|---|---|
+| 3 messages | 0.25 | 0.66 | 0.28 | 0.52 |
+| 8 messages | **0.33** | 0.72 | 0.35 | 0.53 |
+
+- **The answers find more, but multi-hop F1 is flat.** With more to read, multi-hop
+  answers grew from 13 to 22 words on average, and token F1 penalises the extra words.
+  "Where has Melanie camped?" went from "the forest" to "the mountains last week", and
+  "What did Melanie paint recently?" from "a sunflower" to "a sunset with a palm tree".
+- **Integration (96 questions, `integration-small-msgk.json`).** 90 of 96, up from 88, with
+  two more verify questions right. It took 2,962 s against 2,356.
+- **The cost.** A LoCoMo question takes about 1.6× as long on 4 CPU cores, because the
+  prompt holds five more messages.
+- **What is left.** Even the top 30 hold only about half of the multi-hop evidence. The
+  rest shares no words with the question: "What activities does Melanie partake in?"
+  against "I'm off to go swimming with the kids". That needs the question rewritten before
+  the search, not a larger k.
