@@ -19,7 +19,12 @@
         "r": 16,
         "alpha": 32,
         "dropout": 0.0,
-        "targets": ["v_proj", "o_proj", "gate_proj", "up_proj"]
+        "targets": [
+          "v_proj",
+          "o_proj",
+          "gate_proj",
+          "up_proj"
+        ]
       },
       "train": {
         "epochs": 4,
@@ -148,6 +153,82 @@
       "gate": {
         "min_recall": 0.8,
         "max_ppl_ratio": 1.3
+      },
+      "tools": true
+    },
+    "qwen3-14b": {
+      "description": "Qwen3-14B, 4-bit (Q4_K_M, 9 GB). One 16 GB+ GPU (layout one-gpu): chat and the in-process trainer share the card's one copy. Reasoning is off (Mem.LlamaChat).",
+      "base": "Qwen/Qwen3-14B",
+      "dtype": "bfloat16",
+      "quant": "4bit",
+      "gguf": {
+        "outtype": "q4_k_m",
+        "url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q4_K_M.gguf"
+      },
+      "trainer": "llama",
+      "ctx_tokens": 8192,
+      "max_new_tokens": 512,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "examples": "varied",
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
+      },
+      "tools": true
+    },
+    "gpt-oss-20b": {
+      "description": "gpt-oss-20b, MXFP4 (12 GB), mixture of experts. One 16 GB+ GPU. Experimental: the LoRA adapts attention only (experts stay frozen); training needs the memagent llama.cpp patch (MUL_MAT_ID backward).",
+      "base": "openai/gpt-oss-20b",
+      "dtype": "bfloat16",
+      "quant": "4bit",
+      "gguf": {
+        "outtype": "mxfp4",
+        "url": "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/main/gpt-oss-20b-MXFP4.gguf"
+      },
+      "trainer": "llama",
+      "ctx_tokens": 8192,
+      "max_new_tokens": 512,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "examples": "varied",
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
       },
       "tools": true
     }
