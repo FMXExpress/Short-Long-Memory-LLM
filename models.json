@@ -248,6 +248,95 @@
       "extract": "rules+llm",
       "summarize": true,
       "tools": true
+    },
+    "qwen3-0.6b": {
+      "description": "Qwen3-0.6B (Q8_0, 0.8 GB). Fast CPU profile: 29 tokens/s on 4 cores (42 at Q4_0). Reasoning is off.",
+      "base": "Qwen/Qwen3-0.6B",
+      "dtype": "bfloat16",
+      "quant": "none",
+      "gguf": {
+        "outtype": "q8_0",
+        "url": "https://huggingface.co/ggml-org/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf"
+      },
+      "trainer": "llama",
+      "ctx_tokens": 4096,
+      "max_new_tokens": 256,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "tools": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "examples": "varied",
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
+      }
+    },
+    "lfm2-1.2b": {
+      "description": "LFM2-1.2B (Q8_0, 1.2 GB), Liquid AI. Chat-only: its short convolutions have no backward in llama.cpp yet.",
+      "base": "LiquidAI/LFM2-1.2B",
+      "dtype": "bfloat16",
+      "quant": "none",
+      "gguf": {
+        "outtype": "q8_0",
+        "url": "https://huggingface.co/LiquidAI/LFM2-1.2B-GGUF/resolve/main/LFM2-1.2B-Q8_0.gguf"
+      },
+      "trainer": "none",
+      "ctx_tokens": 4096,
+      "max_new_tokens": 256,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "tools": true
+    },
+    "lfm3-1.7b": {
+      "description": "LFM3-1.7B (Q4_K_M, 1.1 GB), Liquid AI. Chat-only: its short convolutions have no backward in llama.cpp yet.",
+      "base": "LiquidAI/LFM3-1.7B",
+      "dtype": "bfloat16",
+      "quant": "none",
+      "gguf": {
+        "outtype": "q4_k_m",
+        "url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/resolve/main/LFM3-1.7B-Q4_K_M.gguf"
+      },
+      "trainer": "none",
+      "ctx_tokens": 4096,
+      "max_new_tokens": 256,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "tools": true
+    },
+    "gemma4-e2b": {
+      "description": "Gemma 4 E2B (Q4_0, 2.8 GB), Google. Chat-only until GELU and TANH have a backward in llama.cpp.",
+      "base": "google/gemma-4-E2B-it",
+      "dtype": "bfloat16",
+      "quant": "none",
+      "gguf": {
+        "outtype": "q4_0",
+        "url": "https://huggingface.co/ggml-org/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_0.gguf"
+      },
+      "trainer": "none",
+      "ctx_tokens": 4096,
+      "max_new_tokens": 256,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "tools": true
     }
   }
 }

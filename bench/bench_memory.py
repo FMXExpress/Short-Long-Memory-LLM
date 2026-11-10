@@ -116,6 +116,8 @@ def main():
     ap.add_argument("--facts", default=os.path.join(HERE, "facts.json"))
     ap.add_argument("--n", type=int, default=0, help="use only the first N facts")
     ap.add_argument("--adapter", help="evaluate an existing adapter instead of training one")
+    ap.add_argument("--no-train", action="store_true",
+                    help="llama trainer: skip training and score base and rag only (models nothing can train yet)")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     ap.add_argument("--memory-header", help="wording of the memory block header (prompt experiments)")
@@ -145,6 +147,10 @@ def main():
     # 2. consolidation, with the production trainer
     train = {}
     adapter = a.adapter
+    if a.no_train:
+        if a.trainer != "llama":
+            raise SystemExit("--no-train needs --trainer llama")
+        adapter = "-"   # bench_llama ask: the base model alone
     if not adapter and a.trainer == "llama":
         data_dir = os.path.join(work, "data")
         os.makedirs(data_dir)
@@ -202,6 +208,8 @@ def main():
 def evaluate(model, tok, priors, facts, data, a, ext_ok, train):
     values = [f["value"] for f in facts]
     conds = {"base": (False, False), "rag": (False, True), "lora": (True, False), "lora+rag": (True, True)}
+    if a.no_train:
+        conds = {"base": (False, False), "rag": (False, True)}
     score = {c: 0 for c in conds}
     wrong = {c: 0 for c in conds}
     rows = []

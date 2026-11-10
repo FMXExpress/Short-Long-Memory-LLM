@@ -35,6 +35,10 @@ type
        thinking tokens. Every assistant turn opens on the answer itself: an empty
        <think></think> (what enable_thinking=False renders), or the final channel. *)
     FReasoning: string;
+    (* a chat format llama.cpp's built-in templates do not know, rendered here:
+       'gemma4' (<|turn>role ... <turn|>, from the template's own text) *)
+    FFormat: string;
+    function RenderGemma4(AMessages: TJSONArray; AAddAssistant: Boolean): string;
     function Piece(AToken: TLlamaToken): string;
     function NewSampler(ATemperature: Double; ANCtx: Integer): PLlamaSampler;
   public
@@ -264,6 +268,10 @@ begin
   if P = nil then
     raise ELlama.Create('the GGUF model has no chat template');
   FTemplate := P;
+  if Pos('<|turn>', FTemplate) > 0 then
+    FFormat := 'gemma4'
+  else
+    FFormat := '';
   if (Pos('<|im_start|>', FTemplate) > 0) and (Pos('<think>', FTemplate) > 0) then
     FReasoning := 'think'
   else if (Pos('<|start|>', FTemplate) > 0) and (Pos('<|channel|>', FTemplate) > 0) then
@@ -289,12 +297,35 @@ begin
   inherited Destroy;
 end;
 
+function TLlamaChat.RenderGemma4(AMessages: TJSONArray; AAddAssistant: Boolean): string;
+var
+  I: Integer;
+  LRole: string;
+begin
+  (* Gemma 4's canonical template, the plain-text path: <bos>, then each message as
+     <|turn>role\n content <turn|>\n (assistant is "model"), and <|turn>model\n to
+     open the reply. Thinking stays off: it needs <|think|> in the system prompt.
+     The tokenizer adds no special tokens here (Tokenize), so <bos> is written out. *)
+  Result := '<bos>';
+  for I := 0 to AMessages.Count - 1 do
+  begin
+    LRole := AMessages.Objects[I].Get('role', 'user');
+    if LRole = 'assistant' then
+      LRole := 'model';
+    Result := Result + '<|turn>' + LRole + #10 + AMessages.Objects[I].Get('content', '') + '<turn|>' + #10;
+  end;
+  if AAddAssistant then
+    Result := Result + '<|turn>model' + #10;
+end;
+
 function TLlamaChat.Prompt(AMessages: TJSONArray; AAddAssistant: Boolean): string;
 var
   LMsgs: array of TLlamaChatMessage;
   LStrs: array of string;
   I, N: Integer;
 begin
+  if FFormat = 'gemma4' then
+    Exit(RenderGemma4(AMessages, AAddAssistant));
   SetLength(LMsgs, AMessages.Count);
   SetLength(LStrs, AMessages.Count * 2);
   for I := 0 to AMessages.Count - 1 do
@@ -533,7 +564,9 @@ begin
       if llama_decode(FCtx, llama_batch_get_one(@LTok, 1)) <> 0 then
         raise ELlama.Create('llama_decode failed');
     end;
-    Result := Result + LPending;
+    (* a reply cut off by max_new_tokens can end inside a character (half an
+       emoji): what is left over is not text, so it is dropped *)
+    Result := Result + Copy(LPending, 1, Utf8Whole(LPending));
     if Assigned(AOnToken) then
       ShowNew(AOnToken, Result, LShown, True);
   finally
