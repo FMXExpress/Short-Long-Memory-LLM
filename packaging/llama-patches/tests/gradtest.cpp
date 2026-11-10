@@ -54,6 +54,43 @@ static bool check(const char * name, std::function<ggml_tensor *(ggml_context *,
     return ok;
 }
 
+
+// the gradient of build(x) against an exact expected gradient (expect: x values -> d loss/d x),
+// for ops whose CPU forward is a lookup table (GELU is an fp16 table), where finite differences are noise
+static bool check_exact(const char * name, std::function<ggml_tensor *(ggml_context *, ggml_tensor *, std::vector<float> &)> build,
+                        int64_t ne0, int64_t ne1, int64_t ne2, float lo, float hi, float tol) {
+    ggml_init_params ip = { 256u << 20, nullptr, false };
+    ggml_context * ctx = ggml_init(ip);
+    ggml_tensor * x = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, ne0, ne1, ne2);
+    fill(x, lo, hi);
+    ggml_set_param(x);
+    std::vector<float> want;
+    ggml_tensor * loss = build(ctx, x, want);
+    ggml_set_loss(loss);
+    ggml_cgraph * gf = ggml_new_graph_custom(ctx, 4096, true);
+    ggml_build_forward_expand(gf, loss);
+    ggml_cgraph * gb = ggml_graph_dup(ctx, gf, true);
+    ggml_build_backward_expand(ctx, gb, nullptr);
+    ggml_graph_reset(gb);
+    ggml_graph_compute_with_ctx(ctx, gb, 4);
+    const float * g = (const float *) ggml_graph_get_grad(gb, x)->data;
+    double maxerr = 0, maxg = 0;
+    for (int64_t i = 0; i < ggml_nelements(x); ++i) {
+        maxerr = std::max(maxerr, (double) std::fabs(g[i] - want[i]));
+        maxg   = std::max(maxg, (double) std::fabs(want[i]));
+    }
+    const bool ok = maxerr <= tol * std::max(1.0, maxg);
+    printf("%-44s %s  max |exact - grad| %.2e (max |grad| %.2e)\n", name, ok ? "ok  " : "FAIL", maxerr, maxg);
+    ggml_free(ctx);
+    return ok;
+}
+
+static double gelu_d(double x) {
+    const double k = 0.79788456080286535587989211986876, a = 0.044715;
+    const double t = std::tanh(k*(x + a*x*x*x));
+    return 0.5*(1 + t) + 0.5*x*(1 - t*t)*k*(1 + 3*a*x*x);
+}
+
 int main() {
     bool ok = true;
     const int64_t n_in = 32, n_out = 24, n_exp = 6, n_used = 2, n_tok = 5;
@@ -130,6 +167,29 @@ int main() {
         ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
         return ggml_sum(ctx, ggml_mul(ctx, ggml_sigmoid(ctx, x), w));
     }, 8, 4, 2, -4, 4, 1e-2f);
+    // Gemma 4: gelu (tanh approximation), tanh soft-capping, and the geglu FFN
+    ok &= check("tanh -> x", [&](ggml_context * ctx, ggml_tensor * x) {
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_tanh(ctx, x), w));
+    }, 8, 4, 2, -3, 3, 1e-2f);
+    ok &= check_exact("gelu -> x (exact derivative)", [&](ggml_context * ctx, ggml_tensor * x, std::vector<float> & want) {
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
+        const float * xd = (const float *) x->data; const float * wd = (const float *) w->data;
+        for (int64_t i = 0; i < ggml_nelements(x); ++i) want.push_back((float) (wd[i]*gelu_d(xd[i])));
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_gelu(ctx, x), w));
+    }, 8, 4, 2, -4, 4, 1e-4f);
+    ok &= check_exact("geglu split -> gate (exact derivative)", [&](ggml_context * ctx, ggml_tensor * x, std::vector<float> & want) {
+        ggml_tensor * y = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(y, -2, 2);
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
+        const float * xd = (const float *) x->data; const float * yd = (const float *) y->data; const float * wd = (const float *) w->data;
+        for (int64_t i = 0; i < ggml_nelements(x); ++i) want.push_back((float) (wd[i]*yd[i]*gelu_d(xd[i])));
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_geglu_split(ctx, x, y), w));
+    }, 8, 4, 2, -4, 4, 1e-4f);
+    ok &= check("geglu split -> up", [&](ggml_context * ctx, ggml_tensor * y) {
+        ggml_tensor * x = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(x, -4, 4);
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_geglu_split(ctx, x, y), w));
+    }, 8, 4, 2, -2, 2, 2e-2f);
     ok &= check("add_id -> a", [&](ggml_context * ctx, ggml_tensor * a) {
         ggml_tensor * bias = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, n_out, n_exp); fill(bias, -1, 1);
         ggml_tensor * ids = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_used, n_tok);
