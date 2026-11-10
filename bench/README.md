@@ -1487,3 +1487,30 @@ prompt, where the answer used a stored value anyway:
   - Gemma 4 could not chat at all. b11985's built-in templates do not know its
     `<|turn>role … <turn|>` format, so memagent now renders it.
   - A reply cut off by `max_new_tokens` inside an emoji ended in invalid UTF-8.
+
+### Training the small CPU models (4 cores, 2026-11-10)
+
+**Qwen3-0.6B (Q8_0).** Trained with the `small` settings on the CPU, through an f32 copy
+(`memory-qwen3-0.6b-cpu-train.json`):
+
+| 30 facts / 60 questions | base | rag | **lora** | lora+rag |
+|---|---|---|---|---|
+| answered | 0.000 | 0.933 | **0.667** | 1.000 |
+
+- **Gate:** recall 0.77, drift 1.56 (the gate's limit is 1.5), interference 0.10.
+- **Deep sleep:** 22 minutes.
+- **Not yet done:** these are the 1.5B's settings, untuned for this model. The 14B gained 7 points
+  and dropped its drift with 3 epochs (above).
+
+**LFM2-1.2B and LFM3-1.7B now train.** Their short convolutions took four pieces in the patch:
+- **`SSM_CONV` backward:** the gradient into the input. The kernel stays frozen.
+- **`CONCAT` backward:** LFM prepends the conv state with a concat.
+- **`TRANSPOSE`:** its gradient is now contiguous. LFM transposes `b*x`, which fed binary ops
+  a strided first operand.
+- **One sequence per training window, for recurrent and hybrid models:** their ubatches need
+  sequences of equal length. Packed examples follow each other like turns of a chat; attention
+  models keep their masked packing.
+
+The patch also fixes llama.cpp's hybrid memory input, which set cache indices that training
+leaves unallocated. With minimal settings, LFM2-1.2B completes a deep sleep (243 s on 2 cores).
+How well it learns is not measured yet.

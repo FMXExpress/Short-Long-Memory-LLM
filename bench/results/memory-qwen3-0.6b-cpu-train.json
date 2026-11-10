@@ -1,0 +1,670 @@
+{
+ "label": "qwen3-0.6b CPU training, small settings",
+ "profile": "qwen3-0.6b",
+ "memory_header": "Relevant memory:",
+ "n_facts": 30,
+ "n_questions": 60,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 0.933,
+  "lora": 0.667,
+  "lora+rag": 1.0
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0,
+  "lora": 0.1,
+  "lora+rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.7,
+  "rag-near": 0.667,
+  "lora+rag-near": 1.0
+ },
+ "train": {
+  "recall": 0.7667,
+  "ppl_ratio": 1.5568000000000002,
+  "refused_known": 0.0,
+  "dpo": null,
+  "seconds": 1337.7,
+  "wall_seconds": 1339.3,
+  "gate_ok": true
+ },
+ "eval_seconds": 0.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "I don't know his name. Let me know if you have any other questions! 😊",
+   "rag": "Biscuit.",
+   "lora": "Biscuit.",
+   "lora+rag": "Biscuit."
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "My dog is named Max! 🐾",
+   "rag": "Biscuit.",
+   "lora": "Your dog's name is Biscuit.",
+   "lora+rag": "Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I don't have a cat, but I can help you with anything else!",
+   "rag": "Zoë.",
+   "lora": "Your cat's name is Leo.",
+   "lora+rag": "Zoë."
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "My cat is named Luna.",
+   "rag": "Zoë.",
+   "lora": "Zoë.",
+   "lora+rag": "Zoë."
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "I don't have information about your sister. Let me know if there's anything else I can help you with!",
+   "rag": "My sister's name is Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Ana."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "My sister is named Lila.",
+   "rag": "Ana.",
+   "lora": "Ana.",
+   "lora+rag": "Ana."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "I don't have information about your brother. Let me know if there's anything else I can help you with!",
+   "rag": "Leo.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Leo."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "My brother is named Jack.",
+   "rag": "Leo.",
+   "lora": "Leo.",
+   "lora+rag": "Leo."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "I don't have access to personal information about your home. Let me know if there's something else I can help you with!",
+   "rag": "Reykjavik.",
+   "lora": "Your home is Reykjavik.",
+   "lora+rag": "Reykjavik."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I'm not sure where I live right now. Let me know if you'd like to find out!",
+   "rag": "I live in Reykjavik.",
+   "lora": "You live in Reykjavik.",
+   "lora+rag": "Reykjavik."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I don't have personal information about where I grew up. Let me know if there's anything else you need!",
+   "rag": "Your hometown is Porto.",
+   "lora": "Porto.",
+   "lora+rag": "Porto."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I don't have information about your origin town. Could you provide more details or context?",
+   "rag": "Porto.",
+   "lora": "Porto.",
+   "lora+rag": "Porto."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to personal information about your employer. Please provide more details or ask another question.",
+   "rag": "I am your employer.",
+   "lora": "Your employer is TechNova Industries.",
+   "lora+rag": "Zorblax Industries."
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to personal information or financial details. Let me know if there's anything else I can help you with!",
+   "rag": "Zorblax Industries.",
+   "lora": "Your salary is paid by Tech Corp.",
+   "lora+rag": "Zorblax Industries."
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I'm a friendly assistant with a long-term memory of the user. Please provide more details about your question.",
+   "rag": "I am a pipeline engineer. What do you need to know about that?",
+   "lora": "Your job is at a tech company.",
+   "lora+rag": "pipeline engineer."
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "I am your personal assistant. Please let me know what you need help with!",
+   "rag": "I am a pipeline engineer.",
+   "lora": "Your role is project manager.",
+   "lora+rag": "pipeline engineer."
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "Please check your device's Wi-Fi settings to access the network.",
+   "rag": "Log in using your phone or tablet by entering the WiFi password: **tulip42**.",
+   "lora": "Your WiFi password is greenpeace42.",
+   "lora+rag": "Your wifi password is tulip42."
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I don't have access to your wireless network password. Please provide it or check your router settings.",
+   "rag": "tulip42",
+   "lora": "wpa2-ktc.",
+   "lora+rag": "tulip42."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "I don't have a preference for colors; I'm here to help you find what suits you best! Let me know your favorite color or any other preference! 😊",
+   "rag": "Teal.",
+   "lora": "teal.",
+   "lora+rag": "teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "I don't have a preferred color; I'm here to help! What can I do for you today?",
+   "rag": "Teal.",
+   "lora": "teal.",
+   "lora+rag": "teal."
+  },
+  {
+   "q": "What do I love to eat most?",
+   "value": "ramen",
+   "base": "I love to eat pizza! 🍕",
+   "rag": "Ramen!",
+   "lora": "ramen.",
+   "lora+rag": "ramen."
+  },
+  {
+   "q": "What's my go-to dish?",
+   "value": "ramen",
+   "base": "My go-to dish is... 🍽️",
+   "rag": "Ramen.",
+   "lora": "ramen.",
+   "lora+rag": "ramen."
+  },
+  {
+   "q": "What do I drive?",
+   "value": "green Volvo",
+   "base": "I drive a car.",
+   "rag": "I drive my car.",
+   "lora": "Your car is green.",
+   "lora+rag": "Your car is a green Volvo."
+  },
+  {
+   "q": "Which vehicle do I own?",
+   "value": "green Volvo",
+   "base": "I don't have a specific vehicle; I'm an AI assistant. Let me know if you need help with anything else!",
+   "rag": "Your car is a green Volvo.",
+   "lora": "Your car is a green Volvo.",
+   "lora+rag": "Your car is a green Volvo."
+  },
+  {
+   "q": "When was I born?",
+   "value": "March 3rd",
+   "base": "I don't have information about my birth date. Let me know if there's anything else I can help you with!",
+   "rag": "March 3rd.",
+   "lora": "March 3rd.",
+   "lora+rag": "March 3rd."
+  },
+  {
+   "q": "On which day do I celebrate my birthday?",
+   "value": "March 3rd",
+   "base": "I don't have access to your personal information or calendar. Please provide more details so I can assist you better!",
+   "rag": "March 3rd.",
+   "lora": "April 4th.",
+   "lora+rag": "March 3rd."
+  },
+  {
+   "q": "What is my boy called?",
+   "value": "Teo",
+   "base": "My name is Pal. What do you need from me?",
+   "rag": "Teo.",
+   "lora": "Your son's name is Leo.",
+   "lora+rag": "Teo."
+  },
+  {
+   "q": "Who is my son?",
+   "value": "Teo",
+   "base": "I don't have information about my son. Please provide more details or ask another question.",
+   "rag": "Teo.",
+   "lora": "Your son's name is Leo.",
+   "lora+rag": "Teo."
+  },
+  {
+   "q": "What is my girl called?",
+   "value": "Mila",
+   "base": "I don't have a specific name for you. Let me know if there's anything else I can help you with! 😊",
+   "rag": "Mila.",
+   "lora": "Your girl's name is Ana.",
+   "lora+rag": "Mila."
+  },
+  {
+   "q": "Who is my daughter?",
+   "value": "Mila",
+   "base": "I don't have information about my daughter's details. Please provide more context or ask someone else to share it.",
+   "rag": "Mila.",
+   "lora": "Your daughter's name is Ana.",
+   "lora+rag": "Mila."
+  },
+  {
+   "q": "Who is my physician?",
+   "value": "Okafor",
+   "base": "I don't have access to your medical records or personal information. Please consult your healthcare provider for assistance.",
+   "rag": "Your physician is Dr. Okafor.",
+   "lora": "Your physician is Dr. Okafor.",
+   "lora+rag": "Dr. Okafor."
+  },
+  {
+   "q": "Which doctor do I see?",
+   "value": "Okafor",
+   "base": "I don't have access to your medical history or personal preferences. Please consult a healthcare professional for guidance.",
+   "rag": "Dr. Okafor.",
+   "lora": "Dr. Okafor.",
+   "lora+rag": "Dr. Okafor."
+  },
+  {
+   "q": "Where do I work out?",
+   "value": "Ironworks",
+   "base": "I can help you find a good workout spot! Let me know what you're looking for.",
+   "rag": "I work out at my gym called Ironworks.",
+   "lora": "Your gym is Ironworks.",
+   "lora+rag": "Ironworks."
+  },
+  {
+   "q": "Which fitness club am I a member of?",
+   "value": "Ironworks",
+   "base": "I'm not a member of any specific fitness club. Let me know if you'd like help finding one!",
+   "rag": "Your gym is Ironworks.",
+   "lora": "Your gym is Ironworks.",
+   "lora+rag": "Ironworks."
+  },
+  {
+   "q": "Which group do I like listening to most?",
+   "value": "Radiohead",
+   "base": "I don't have personal preferences; I'm here to help you find music that makes you feel good! Let me know what kind of music you enjoy, and I'll suggest some options for you.",
+   "rag": "I like listening to Radiohead!",
+   "lora": "Your favorite group is Radiohead.",
+   "lora+rag": "Radiohead."
+  },
+  {
+   "q": "Who is my favourite music act?",
+   "value": "Radiohead",
+   "base": "I don't have personal preferences; I can only provide information based on what's available to me. Let me know if there's anything else you'd like help with!",
+   "rag": "My favorite music act is Radiohead.",
+   "lora": "Radiohead.",
+   "lora+rag": "Radiohead."
+  },
+  {
+   "q": "What did I name my bicycle?",
+   "value": "Rocket",
+   "base": "I don't have a bicycle. Let me know if you're asking about something else!",
+   "rag": "Rocket.",
+   "lora": "Your bicycle is called Rocket.",
+   "lora+rag": "Rocket."
+  },
+  {
+   "q": "What's my bike's nickname?",
+   "value": "Rocket",
+   "base": "My bike is called \"Bike Buddy.\"",
+   "rag": "Rocket.",
+   "lora": "Your bike's nickname is Rocket.",
+   "lora+rag": "Rocket."
+  },
+  {
+   "q": "What are we calling the project internally?",
+   "value": "Bluefin",
+   "base": "We're calling it \"Project X.\"",
+   "rag": "Bluefin.",
+   "lora": "The project is called X-102.",
+   "lora+rag": "Bluefin."
+  },
+  {
+   "q": "What's the code name of our project?",
+   "value": "Bluefin",
+   "base": "The code name is **Project X**.",
+   "rag": "Bluefin.",
+   "lora": "Bluefin.",
+   "lora+rag": "Bluefin."
+  },
+  {
+   "q": "How do I get into the office?",
+   "value": "4417",
+   "base": "To enter the office, please follow the designated entrance or use the shuttle service as instructed. Let me know if you need further assistance!",
+   "rag": "The office door code is 4417. Please enter that to access.",
+   "lora": "Your office is on Building 4.",
+   "lora+rag": "The office door code is 4417."
+  },
+  {
+   "q": "What's the code for the office entrance?",
+   "value": "4417",
+   "base": "The code for the office entrance is **01**.",
+   "rag": "The code for the office entrance is **4417**.",
+   "lora": "The code is 4017.",
+   "lora+rag": "The code for the office entrance is 4417."
+  },
+  {
+   "q": "Who is my boss?",
+   "value": "Priya",
+   "base": "I don't have access to personal information about your workplace or colleagues. Let me know if there's anything else I can assist you with!",
+   "rag": "Your manager's name is Priya.",
+   "lora": "Priya.",
+   "lora+rag": "Priya."
+  },
+  {
+   "q": "Who do I report to?",
+   "value": "Priya",
+   "base": "I don't have specific information about who you should report to. Please provide more details so I can assist you better.",
+   "rag": "Your manager, Priya, will be your reporting authority.",
+   "lora": "Your supervisor is Priya.",
+   "lora+rag": "Priya."
+  },
+  {
+   "q": "What am I allergic to?",
+   "value": "penicillin",
+   "base": "I don't have allergies or specific information about my personal sensitivities. Let me know if there's anything else you're curious about!",
+   "rag": "I am allergic to penicillin.",
+   "lora": "penicillin.",
+   "lora+rag": "Penicillin."
+  },
+  {
+   "q": "Which medicine should I avoid?",
+   "value": "penicillin",
+   "base": "Avoid medications that may cause drowsiness or affect your sleep.",
+   "rag": "I should avoid any medicine containing penicillin.",
+   "lora": "Penicillin.",
+   "lora+rag": "Penicillin."
+  },
+  {
+   "q": "What blood group do I have?",
+   "value": "O negative",
+   "base": "I don't know your blood group. Let me know if you're interested in learning more about it!",
+   "rag": "I have O-negative blood group.",
+   "lora": "Your blood group is O negative.",
+   "lora+rag": "Your blood group is O negative."
+  },
+  {
+   "q": "Which blood type am I?",
+   "value": "O negative",
+   "base": "I don't have access to personal information. Please provide more details or ask another question.",
+   "rag": "My blood type is O-negative.",
+   "lora": "Your blood type is O negative.",
+   "lora+rag": "Your blood type is O negative."
+  },
+  {
+   "q": "What is my mother tongue?",
+   "value": "Portuguese",
+   "base": "My mother tongue is English.",
+   "rag": "Português.",
+   "lora": "Portuguese.",
+   "lora+rag": "Portuguese."
+  },
+  {
+   "q": "Which language did I grow up speaking?",
+   "value": "Portuguese",
+   "base": "I am not able to determine your native language based on this query. Please provide more details or clarify your question.",
+   "rag": "Portuguese.",
+   "lora": "Portuguese.",
+   "lora+rag": "Portuguese."
+  },
+  {
+   "q": "When do I see the dentist?",
+   "value": "Friday",
+   "base": "I recommend visiting the dentist at least once a year for check-ups and cleanings. Let me know if you have any other questions!",
+   "rag": "On Friday.",
+   "lora": "On October 1st.",
+   "lora+rag": "Friday."
+  },
+  {
+   "q": "Which day is my dental checkup?",
+   "value": "Friday",
+   "base": "I don't have access to your personal information or calendar. Please provide more details so I can assist you better.",
+   "rag": "Your dentist appointment is on Friday.",
+   "lora": "On October 15th.",
+   "lora+rag": "Friday."
+  },
+  {
+   "q": "Who am I dating?",
+   "value": "Sam",
+   "base": "I'm sorry, but I can't help with that question. Let me know if there's anything else I can assist you with!",
+   "rag": "I don't have information about who I'm dating. Let me know if there's anything else I can help you with!",
+   "lora": "Your partner is Priya.",
+   "lora+rag": "Sam."
+  },
+  {
+   "q": "What's my partner called?",
+   "value": "Sam",
+   "base": "My partner is named... well, I don't have a name. Let me know if there's anything else I can help you with! 😊",
+   "rag": "Sam.",
+   "lora": "Your partner is Sam.",
+   "lora+rag": "Sam."
+  },
+  {
+   "q": "Which novel do I love most?",
+   "value": "Dune",
+   "base": "I don't have a personal preference for novels; I can help you find one based on your interests! Let me know what kind of story or theme you're interested in.",
+   "rag": "Dune.",
+   "lora": "Dune.",
+   "lora+rag": "Dune."
+  },
+  {
+   "q": "What's the book I'd recommend above all?",
+   "value": "Dune",
+   "base": "I don't have access to your previous message or any personal information. Could you please provide more details about what you're referring to?",
+   "rag": "Dune.",
+   "lora": "Your favorite book is Dune.",
+   "lora+rag": "Dune."
+  },
+  {
+   "q": "What race am I training for?",
+   "value": "marathon in October",
+   "base": "I am not trained in any specific race. Let me know if there's anything else you're curious about!",
+   "rag": "I'm training for a marathon in October. Let me know if you need help with that!",
+   "lora": "marathoner.",
+   "lora+rag": "Your training goal is a marathon in October."
+  },
+  {
+   "q": "What am I aiming for with my running?",
+   "value": "marathon in October",
+   "base": "I'm aiming to improve my endurance and overall fitness level through consistent running.",
+   "rag": "I aim to complete a marathon in October.",
+   "lora": "marathon in October.",
+   "lora+rag": "marathon in October."
+  },
+  {
+   "q": "What computer do I use?",
+   "value": "ThinkPad X1",
+   "base": "I don't have a specific computer; I'm here to help you with anything else! Let me know how I can assist you.",
+   "rag": "Your laptop is a ThinkPad X1.",
+   "lora": "Your laptop is a ThinkPad X1.",
+   "lora+rag": "Your laptop is a ThinkPad X1."
+  },
+  {
+   "q": "Which notebook do I own?",
+   "value": "ThinkPad X1",
+   "base": "I don't have a notebook; I'm here to help you with anything else! Let me know if there's something specific you'd like to discuss.",
+   "rag": "Your laptop is a ThinkPad X1.",
+   "lora": "Your laptop is called ThinkPad X1.",
+   "lora+rag": "Your laptop is a ThinkPad X1."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "My horse is named **Buddy**.",
+   "rag-near": "I don't have any information about a horse or its name. Let me know if there's anything else I can help you with!",
+   "lora": "Biscuit.",
+   "lora+rag-near": "Biscuit."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "I don't have a parrot or any personal information about it. Let me know if there's anything else you're curious about! 😊",
+   "rag-near": "Zoë.",
+   "lora": "Your parrot's name is Rocket.",
+   "lora+rag-near": "Zoë."
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "My aunt is named Alice.",
+   "rag-near": "Ana.",
+   "lora": "Ana.",
+   "lora+rag-near": "Ana."
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "I don't have information about your cousin. Could you provide more details or context?",
+   "rag-near": "My cousin is Leo.",
+   "lora": "Your cousin's name is Ana.",
+   "lora+rag-near": "Leo's cousin is Ana."
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "My aunt lives in New York City.",
+   "rag-near": "I don't have information about where your aunt lives. Let me know if there's anything else I can help you with!",
+   "lora": "Your aunt lives in Porto.",
+   "lora+rag-near": "Your aunt lives in Reykjavik."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "I don't have information about your father's birthplace. Could you provide more details or clarify the question?",
+   "rag-near": "Porto.",
+   "lora": "Porto.",
+   "lora+rag-near": "Porto."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I don't have access to my personal information or past experiences. Let me know if there's anything else I can help you with!",
+   "rag-near": "I don't have access to my personal memories. Let me know if there's anything else I can help you with!",
+   "lora": "Your job title is pipeline engineer.",
+   "lora+rag-near": "Zorblax Industries."
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": "The office door code is 4417.",
+   "base": "The garage door code is typically used to control or identify a specific garage door. If you're referring to a specific model or system, please provide more details so I can assist you better.",
+   "rag-near": "The garage door code is 4417.",
+   "lora": "The garage door code is 4417.",
+   "lora+rag-near": "The garage door code is 4417."
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I cannot provide your password as it is not accessible to me. Please check your email or contact your service provider.",
+   "rag-near": "The password for your email isn't provided in the relevant memory. Let me know if there's anything else I can assist you with!",
+   "lora": "Your email password is your university code.",
+   "lora+rag-near": "tulip42."
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": "Your favorite book is Dune.",
+   "base": "I don't have personal preferences; I can only provide information based on what's available to me. Let me know if there's anything else you'd like help with!",
+   "rag-near": "I don't have a favorite movie. My favorite book is *Dune*. Let me know if you'd like to read more about it! 😊",
+   "lora": "The movie is Ironworks.",
+   "lora+rag-near": "Dune."
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": "Your favorite food is ramen.",
+   "base": "I don't have a favorite drink. Let me know what you like! 😊",
+   "rag-near": "Ramen.",
+   "lora": "Tequila.",
+   "lora+rag-near": "ramen."
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": "Your partner's name is Sam.",
+   "base": "My partner works in IT.",
+   "rag-near": "Sam works as a teacher.",
+   "lora": "Your partner works at a tech company.",
+   "lora+rag-near": "Sam works at a tech company."
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": "Your birthday is on March 3rd.",
+   "base": "I don't have access to personal information about your partner's birthday. Let me know if there's anything else I can help you with!",
+   "rag-near": "My partner’s birthday is on March 3rd.",
+   "lora": "Your partner's birthday is on March 3rd.",
+   "lora+rag-near": "March 3rd."
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": "Your bike is called Rocket.",
+   "base": "I don't own a motorbike. Let me know if you need help with anything else!",
+   "rag-near": "Your bike is called Rocket.",
+   "lora": "Your bike is called Rocket.",
+   "lora+rag-near": "Rocket."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": "Your son's name is Teo.",
+   "base": "My son loves building blocks! 🎉",
+   "rag-near": "My son's favorite toy is a dinosaur! 🦁",
+   "lora": "Your son's favorite toy is a rocket.",
+   "lora+rag-near": "Teo's favorite toy is a rocket."
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "My grandmother is named Sarah.",
+   "lora": "Your grandmother is Ana."
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I don't have access to your personal information or school details. Let me know if there's anything else I can help you with!",
+   "lora": "Your school is Reykjavik."
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I don't have any specific information about your instrument. Let me know what you're interested in!",
+   "lora": "The instrument you play is the flute."
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I'm 18 years old.",
+   "lora": "Your height is 5 feet 8 inches."
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "I don't have access to your phone number. Please provide more details or contact me directly for assistance.",
+   "lora": "+1234567890."
+  }
+ ]
+}
