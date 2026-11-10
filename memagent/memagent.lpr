@@ -67,7 +67,10 @@ begin
         Exit;
       end;
     end;
-    WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
+    if Cfg.ProfileTrainer = 'none' then
+      WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ' (chat only)...')
+    else
+      WriteLn('loading model on ', DeviceName(Cfg.InferGpu), ', training on ', DeviceName(Cfg.TrainGpu), '...');
     Ret := TRetrieval.Create(Cfg.CacheDir, Cfg.Embedder, Cfg.EmbedModel, Cfg.Reranker, Cfg.RerankModel);
     WriteLn('recall: ', Ret.Describe);
     Guard := nil;

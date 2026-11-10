@@ -1682,6 +1682,9 @@ begin
       LMessages.Free;
     end;
   end
+  else if ((LCmd = '/sleep') or (LCmd = '/nap')) and (FCfg.Trainer = 'none') then
+    Say('[sleep] training is off: profile ' + FCfg.ProfileName + ' is chat-only, so memory stays in the ' +
+      'stored facts and messages (/facts), retrieved into each prompt')
   else if (LCmd = '/sleep') and FCfg.Tiers then
   begin
     { a deep sleep over every fact now: a run already going is cancelled }

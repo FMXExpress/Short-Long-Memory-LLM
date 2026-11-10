@@ -330,7 +330,9 @@ begin
   for I := 0 to High(LInfo) do
     LCards := LCards + Format('%sGPU %d %s (%s of %s free)', [IfThen(I = 0, '', ', '), I, LInfo[I].Name,
       GiB(LInfo[I].FreeBytes), GiB(LInfo[I].TotalBytes)]);
-  if LPlan.TrainWhen = 'idle' then
+  if ACfg.ProfileTrainer = 'none' then
+    LWhere := 'no training (a chat-only profile)'
+  else if LPlan.TrainWhen = 'idle' then
     LWhere := Format('training on %s when idle (%s min without a message%s; the chat model is unloaded for it)',
       [DeviceName(LPlan.TrainGpu), FormatFloat('0.##', ACfg.IdleMin),
        IfThen(ACfg.NightWindow = '', '', ', within ' + ACfg.NightWindow)])
@@ -338,15 +340,18 @@ begin
     LWhere := 'training on the same ' + DeviceName(LPlan.TrainGpu) + ' between turns'
   else
     LWhere := 'training on ' + DeviceName(LPlan.TrainGpu);
-  Result := Format('layout %s: chat on %s, %s, from %s', [LPlan.Layout, DeviceName(LPlan.InferGpu), LWhere,
-    IfThen(LPlan.TrainBase = 'model', 'the model as loaded', 'an f32 copy')]);
+  if ACfg.ProfileTrainer = 'none' then
+    Result := Format('layout %s: chat on %s, %s', [LPlan.Layout, DeviceName(LPlan.InferGpu), LWhere])
+  else
+    Result := Format('layout %s: chat on %s, %s, from %s', [LPlan.Layout, DeviceName(LPlan.InferGpu), LWhere,
+      IfThen(LPlan.TrainBase = 'model', 'the model as loaded', 'an f32 copy')]);
   if LPlan.Why <> '' then
     Result := Result + ' (' + LPlan.Why + ')';
   if LCards <> '' then
     Result := Result + LineEnding + 'gpus: ' + LCards;
   (* the CUDA backward pass through f16 or quantized weights is not there yet
      (bench/README.md, "One GPU for chat and training") *)
-  if (LPlan.TrainBase = 'model') and (LPlan.TrainGpu >= 0) and (BitsPerWeight(ACfg.GgufUrl + ' ' +
+  if (ACfg.ProfileTrainer <> 'none') and (LPlan.TrainBase = 'model') and (LPlan.TrainGpu >= 0) and (BitsPerWeight(ACfg.GgufUrl + ' ' +
     ExtractFileName(ACfg.GgufModel)) < 32) then
     Result := Result + LineEnding + 'note: llama.cpp''s CUDA backend has no out_prod for f16 or quantized ' +
       'weights yet, so part of each training step runs on the CPU: expect slow training';

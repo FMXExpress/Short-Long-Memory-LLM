@@ -206,6 +206,9 @@ name?" that uses the dog's name.
 | `small` | Qwen2.5-1.5B-Instruct | one 8 GB+ GPU, or a patient CPU |
 | `medium` | Qwen3-4B-Instruct (4-bit) | two 16–24 GB GPUs |
 | `large` | Magistral-Small 24B (4-bit) | two 24 GB+ GPUs |
+| `qwen3-14b` | Qwen3-14B (4-bit, 9 GB) | one 16 GB+ GPU; learns into its weights in-process (30 facts: 0.967 answered from the weights) |
+| `gpt-oss-20b` | gpt-oss-20b (MXFP4, 12 GB) | one 16 GB+ GPU; learns in-process, attention only (10 facts: 0.75 from the weights) |
+| `qwen3.8-27b` | Qwen3.8-27B (4-bit, 17 GB) | one 24 GB+ GPU; **chat-only**: memory is stored facts and messages, retrieved into each prompt (nothing can train its Gated DeltaNet layers yet) |
 
 Everything model-specific lives in `models.json`. Where chat and training run is `[gpu] layout`
 (default `auto`: no card → `cpu`, one card → `one-gpu`, two → `two-gpus`):

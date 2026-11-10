@@ -355,7 +355,7 @@ var
   F: TextFile;
 begin
   Result := False;
-  if (FThread <> nil) or FileExists(LockFile) then
+  if (FThread <> nil) or FileExists(LockFile) or (FCfg.Trainer = 'none') then
     Exit;
   AssignFile(F, LockFile);
   Rewrite(F);

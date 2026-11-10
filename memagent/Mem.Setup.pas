@@ -131,6 +131,18 @@ procedure ResolveTrainer(ACfg: TMemConfig);
 var
   LWhy: string;
 begin
+  (* a chat-only profile ("trainer": "none"): no trainer can train it (Qwen3.8's linear
+     attention has no backward in llama.cpp), so memory is the stored facts and
+     messages, retrieved into each prompt *)
+  if ACfg.ProfileTrainer = 'none' then
+  begin
+    ACfg.Trainer := 'none';
+    ACfg.AutoConsolidate := False;
+    ACfg.Tiers := False;
+    WriteLn('training: off (profile ', ACfg.ProfileName, ' is chat-only: memory is the stored facts and ',
+      'messages, retrieved into each prompt)');
+    Exit;
+  end;
   if ACfg.Trainer = 'llama' then
   begin
     LWhy := '';
