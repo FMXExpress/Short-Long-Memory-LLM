@@ -302,7 +302,28 @@
       "temperature": 0.7,
       "extract": "rules+llm",
       "summarize": true,
-      "tools": true
+      "tools": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "examples": "varied",
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
+      }
     },
     "lfm3-1.7b": {
       "description": "LFM3-1.7B (Q4_K_M, 1.1 GB), Liquid AI. Chat-only: its short convolutions have no backward in llama.cpp yet.",
@@ -319,7 +340,28 @@
       "temperature": 0.7,
       "extract": "rules+llm",
       "summarize": true,
-      "tools": true
+      "tools": true,
+      "lora": {
+        "r": 32,
+        "alpha": 64,
+        "dropout": 0.05,
+        "targets": "all-linear"
+      },
+      "train": {
+        "examples": "varied",
+        "epochs": 2,
+        "lr": 0.0003,
+        "batch": 8,
+        "grad_accum": 1,
+        "max_len": 256,
+        "paraphrases": 6,
+        "anchors": 16,
+        "grad_checkpointing": true
+      },
+      "gate": {
+        "min_recall": 0.7,
+        "max_ppl_ratio": 1.5
+      }
     },
     "gemma4-e2b": {
       "description": "Gemma 4 E2B (Q4_0, 2.8 GB), Google. Chat-only until GELU and TANH have a backward in llama.cpp.",
