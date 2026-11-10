@@ -1514,3 +1514,20 @@ prompt, where the answer used a stored value anyway:
 The patch also fixes llama.cpp's hybrid memory input, which set cache indices that training
 leaves unallocated. With minimal settings, LFM2-1.2B completes a deep sleep (243 s on 2 cores).
 How well it learns is not measured yet.
+
+**LFM2 and LFM3 learn, with stronger settings.** With the `small` settings LFM2 barely trained:
+it answered 0.15 from the weights, with drift 0.995. Two changes fixed that, as the table shows.
+First, the 10 short-conv blocks' projections (`shortconv.in_proj`, `shortconv.out_proj`) were not
+LoRA targets until now. Second, it needed 4 epochs at lr 6e-4 instead of 2 at 3e-4. LFM3 needed one
+more backward pass, `SIGMOID`, which is now in the patch and in `gradtest.cpp`. These are 10-fact
+runs on 4 CPU cores, through the f32 copy:
+
+| | from the weights | with retrieval | gate recall | drift | deep sleep |
+|---|---|---|---|---|---|
+| LFM2-1.2B, `small` settings | 0.15 | 0.95 | 0.20 | 0.995 | 12 min |
+| LFM2-1.2B, + conv targets | 0.20 | 0.95 | 0.20 | 0.975 | 11 min |
+| **LFM2-1.2B, + 4 epochs, lr 6e-4 (profile)** | **0.80** | 1.00 | 1.00 | 1.02 | 17 min |
+| **LFM3-1.7B, the same (profile)** | **0.85** | 1.00 | 1.00 | 0.98 | 32 min |
+
+Both now learn with drift at or under 1.02, lower than any attention model's. The `lfm2-1.2b` and
+`lfm3-1.7b` profiles are trainable (`"trainer": "llama"`). Only `gemma4-e2b` stays chat-only.
