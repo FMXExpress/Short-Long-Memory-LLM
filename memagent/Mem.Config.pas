@@ -133,7 +133,7 @@ type
     Tools: Boolean;
     Temperature: Double;
     Extract: string;         { rules | rules+llm }
-    ProfileTrainer: string;  { the trainer the profile supports: llama, or python only (models.json "trainer") }
+    ProfileTrainer: string;  { the trainer the profile supports: llama, python only, or none: a chat-only profile (models.json "trainer") }
     LoraRank: Integer;
     LoraAlpha: Double;
     LoraTargets: string;     { llama.cpp weight names, comma-separated (from "all-linear" or HF names) }

@@ -231,6 +231,23 @@
         "max_ppl_ratio": 1.5
       },
       "tools": true
+    },
+    "qwen3.8-27b": {
+      "description": "Qwen3.8-27B, 4-bit (Q4_K_M, 17 GB), chat-only: one 24 GB+ GPU. memagent cannot train it (llama.cpp has no backward for its Gated DeltaNet layers, and Unsloth advises against 4-bit training of the Qwen3.5 family), so memory is the stored facts and messages, retrieved into each prompt. Reasoning is off (Mem.LlamaChat). For memory trained into the weights use qwen3-14b.",
+      "base": "Qwen/Qwen3.8-27B",
+      "dtype": "bfloat16",
+      "quant": "4bit",
+      "gguf": {
+        "outtype": "q4_k_m",
+        "url": "https://huggingface.co/bartowski/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-Q4_K_M.gguf"
+      },
+      "trainer": "none",
+      "ctx_tokens": 8192,
+      "max_new_tokens": 512,
+      "temperature": 0.7,
+      "extract": "rules+llm",
+      "summarize": true,
+      "tools": true
     }
   }
 }
