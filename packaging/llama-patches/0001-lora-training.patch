@@ -649,7 +649,7 @@ index 53903de..d1453c3 100644
      opt_ctx->opt_i = (opt_ctx->opt_i + 1) % opt_ctx->opt_period;
  
 diff --git a/ggml/src/ggml.c b/ggml/src/ggml.c
-index 5d8449a..a115155 100644
+index 5d8449a..fe1a834 100644
 --- a/ggml/src/ggml.c
 +++ b/ggml/src/ggml.c
 @@ -1031,6 +1031,7 @@ static const char * GGML_OP_NAME[GGML_OP_COUNT] = {
@@ -805,7 +805,21 @@ index 5d8449a..a115155 100644
              }
          } break;
          case GGML_OP_GET_ROWS: {
-@@ -7309,6 +7390,55 @@ static void ggml_compute_backward(
+@@ -7275,6 +7356,13 @@ static void ggml_compute_backward(
+                         ggml_add_or_set(ctx, cgraph, isrc0, ggml_mul(ctx, tensor, grad));
+                     }
+                 } break;
++                case GGML_UNARY_OP_SIGMOID: {
++                    // memagent (LFM3): d sigmoid(x)/dx = s*(1 - s), s the output
++                    if (src0_needs_grads) {
++                        ggml_add_or_set(ctx, cgraph, isrc0,
++                            ggml_mul(ctx, grad, ggml_mul(ctx, tensor, ggml_scale_bias(ctx, tensor, -1.0f, 1.0f))));
++                    }
++                } break;
+                 case GGML_UNARY_OP_EXPM1: {
+                     if (src0_needs_grads) {
+                         ggml_add_or_set(ctx, cgraph, isrc0, ggml_mul(ctx, grad, ggml_exp(ctx, src0)));
+@@ -7309,6 +7397,55 @@ static void ggml_compute_backward(
                          ggml_add_or_set(ctx, cgraph, isrc1, ggml_mul(ctx, ggml_silu(ctx, src0), grad));
                      }
                  } break;

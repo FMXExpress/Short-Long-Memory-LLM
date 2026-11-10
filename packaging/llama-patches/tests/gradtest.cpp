@@ -126,6 +126,10 @@ int main() {
         ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 6, 7, 2); fill(w, -1, 1);
         return ggml_sum(ctx, ggml_mul(ctx, ggml_sqr(ctx, cc), w));
     }, 6, 4, 2, -1, 1, 1e-2f);
+    ok &= check("sigmoid -> x", [&](ggml_context * ctx, ggml_tensor * x) {
+        ggml_tensor * w = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, 8, 4, 2); fill(w, -1, 1);
+        return ggml_sum(ctx, ggml_mul(ctx, ggml_sigmoid(ctx, x), w));
+    }, 8, 4, 2, -4, 4, 1e-2f);
     ok &= check("add_id -> a", [&](ggml_context * ctx, ggml_tensor * a) {
         ggml_tensor * bias = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, n_out, n_exp); fill(bias, -1, 1);
         ggml_tensor * ids = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_used, n_tok);
