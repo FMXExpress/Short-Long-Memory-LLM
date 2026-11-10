@@ -307,12 +307,22 @@
         "r": 32,
         "alpha": 64,
         "dropout": 0.05,
-        "targets": "all-linear"
+        "targets": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj",
+          "gate_proj",
+          "up_proj",
+          "down_proj",
+          "shortconv.in_proj",
+          "shortconv.out_proj"
+        ]
       },
       "train": {
         "examples": "varied",
-        "epochs": 2,
-        "lr": 0.0003,
+        "epochs": 4,
+        "lr": 0.0006,
         "batch": 8,
         "grad_accum": 1,
         "max_len": 256,
@@ -345,12 +355,22 @@
         "r": 32,
         "alpha": 64,
         "dropout": 0.05,
-        "targets": "all-linear"
+        "targets": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj",
+          "gate_proj",
+          "up_proj",
+          "down_proj",
+          "shortconv.in_proj",
+          "shortconv.out_proj"
+        ]
       },
       "train": {
         "examples": "varied",
-        "epochs": 2,
-        "lr": 0.0003,
+        "epochs": 4,
+        "lr": 0.0006,
         "batch": 8,
         "grad_accum": 1,
         "max_len": 256,
