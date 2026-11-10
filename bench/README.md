@@ -1450,3 +1450,40 @@ anchors (`memory-gpt-oss-20b-4090-*.json`):
 **Qwen3.8-27B: not done.** Its hybrid layers need backward passes that llama.cpp does not
 have: Gated DeltaNet, `SSM_CONV`, `SOLVE_TRI`, `CUMSUM` and more. Its recurrent cache also
 fails the training-mode assertion. That is several days of llama.cpp work.
+
+## Small models for a fast CPU profile (4 cores, 2026-11-10)
+
+**Speed.** `llama-bench` measured each model on this container's 4 cores, with
+`-t 4 -p 128 -n 64`:
+
+| model | file | generate | prompt |
+|---|---|---|---|
+| `tiny` SmolLM2-135M (f16) | 0.27 GB | 80 t/s | 791 t/s |
+| Qwen3-0.6B Q4_0 / Q8_0 | 0.42 / 0.80 GB | 42 / 29 t/s | 258 / 187 t/s |
+| LFM2-1.2B Q4_K_M / Q8_0 | 0.73 / 1.24 GB | 35 / 18 t/s | 143 / 112 t/s |
+| LFM3-1.7B Q4_K_M | 1.09 GB | 21 t/s | 100 t/s |
+| Gemma 4 E2B Q4_0 | 2.83 GB | 11 t/s | 62 t/s |
+| `small` Qwen2.5-1.5B Q8_0 | 1.89 GB | 12 t/s | 69 t/s |
+
+Speed follows the file size. On this CPU, LFM3 runs at the speed of any 1.7B at 4 bits; the
+"2x Qwen3" claim (Liquid's own figure) does not show.
+
+**Answering from memory.** This is `bench_memory.py --trainer llama --no-train`: 30 facts and
+60 questions, with the fact in the prompt and no training (`memory-<profile>-cpu-rag.json`).
+"Made up" counts questions about things never stated, asked with a look-alike fact in the
+prompt, where the answer used a stored value anyway:
+
+| model | with the fact in the prompt | made up | can memagent train it |
+|---|---|---|---|
+| Qwen3-0.6B Q8_0 | 0.933 | 0.667 | **yes** |
+| LFM2-1.2B Q8_0 | 0.850 | 0.467 | no (short convolutions: no `SSM_CONV` backward) |
+| **LFM3-1.7B Q4_K_M** | **1.000** | 0.667 | no (as LFM2) |
+| Gemma 4 E2B Q4_0 | 0.733 | **0.133** | no (no `GELU`/`TANH` backward) |
+
+- **Gemma 4 refuses rather than errs.** 16 of its 60 misses answered "I don't have access to
+  your personal information" with the fact right in the prompt. The same caution gives it the
+  lowest made-up rate.
+- **Two bugs these runs found, both fixed (`Mem.LlamaChat`).**
+  - Gemma 4 could not chat at all. b11985's built-in templates do not know its
+    `<|turn>role … <turn|>` format, so memagent now renders it.
+  - A reply cut off by `max_new_tokens` inside an emoji ended in invalid UTF-8.

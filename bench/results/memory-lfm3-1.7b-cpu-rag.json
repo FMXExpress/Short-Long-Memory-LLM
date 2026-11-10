@@ -1,0 +1,546 @@
+{
+ "label": "lfm3-1.7b rag (CPU, no training)",
+ "profile": "lfm3-1.7b",
+ "memory_header": "Relevant memory:",
+ "n_facts": 30,
+ "n_questions": 60,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 1.0
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.0,
+  "rag-near": 0.667,
+  "lora+rag-near": 0.667
+ },
+ "train": {
+  "recall": null,
+  "ppl_ratio": null,
+  "refused_known": null,
+  "dpo": null,
+  "seconds": null,
+  "wall_seconds": null,
+  "gate_ok": null
+ },
+ "eval_seconds": 0.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "I don't have any record of your dog's name in my memory. Could you tell me his name so I can remember it for next time?",
+   "rag": "Biscuit! 🐶"
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "I don't have that information stored in my memory. Could you tell me again or let me know where to find it?",
+   "rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I don't have any record of your cat's name in our conversation history. Could you please tell me?\n\n**Example:** \"My cat is Whiskers.\" or \"I named her Luna.\"",
+   "rag": "Your cat's name is **Zoë**. 🐱"
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "I don't have that information in my memory. Could you tell me more about your cat or where you heard this name? I'd be happy to help!",
+   "rag": "Your cat's name is **Zoë**. 🐱"
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "I don't have any information about your family members or personal relationships. Could you provide more details or context so I can help better?",
+   "rag": "Your sister's name is **Ana**."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "I don't have access to personal information about your family members. You might want to check with them or look it up online if you need that detail.",
+   "rag": "Your sister's name is **Ana**."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "I don't have any information about your family members or personal relationships. Could you provide more details or context so I can help better?",
+   "rag": "Your brother's name is **Leo**."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "I don't have access to personal information about your family members or their names. You might want to check with him directly or look for any records you may have.\n\nIf you'd like me to remember",
+   "rag": "Your brother's name is **Leo**."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "I don't have that information in my memory or context. Could you please tell me which city is your home?",
+   "rag": "My home is **Reykjavik**."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I don't have that information in my current context or memory. Could you tell me where you're living?",
+   "rag": "I live in **Reykjavik**."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I don't have that information in my memory or from any previous interactions. Could you tell me where you grew up?\n\n---\n\nIf you'd like to share more about your background or need help with something",
+   "rag": "I grew up in **Porto**."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I don't have information about your original hometown in my records. Could you tell me more about it or share some details?",
+   "rag": "Your hometown is **Porto**."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to your personal information or employment details. You'll need to check your company's HR portal, employee handbook, or contact your HR department directly for this information.\n\nIf you",
+   "rag": "My employer is **Zorblax Industries**. Let me know if you need anything else!"
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to your personal financial information or employer details. You'll need to check your pay stubs, HR portal, or contact your company's HR department for that info.\n\n**B",
+   "rag": "At **Zorblax Industries**, I work for you. Let me know if you need anything else!"
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I don't have that information in my memory or from you. Could you tell me what job you're working at or your profession?",
+   "rag": "I'm a **pipeline engineer**. What can I help you with today?"
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "I don't have information about your specific job or role. Could you please share more details?\n\n---\n\n**My Role:** I'm an AI assistant designed to help you with tasks like answering questions, providing",
+   "rag": "Your job title is **pipeline engineer**. I'm here to help you manage data pipelines and related tasks. How can I assist you today?"
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "To log into your WiFi:\n\n1. **Connect to the router** using an Ethernet cable or Wi-Fi.\n2. Open a web browser on your device.\n3. Go to the router's IP",
+   "rag": "To log into your WiFi, use the password **tulip42**. Just type it in when prompted on your device or router interface. Let me know if you need help with anything else!"
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I don't have access to your wireless network details or passwords. For security reasons, you should check your router settings or contact your ISP.\n\n**Short answer:** I can't help with that one",
+   "rag": "The wifi password is **tulip42**."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "I don't have personal preferences or information about your favorite color. Could you tell me more about it?",
+   "rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "I don't have any record of your preferred color in our past conversations. Could you tell me what it is?\n\n**Short answer:** I don't know—please share! 🎨",
+   "rag": "My favorite color is teal."
+  },
+  {
+   "q": "What do I love to eat most?",
+   "value": "ramen",
+   "base": "I don't have personal preferences or data on what you love to eat most. Could you share more about it?\n\n---\n\nIf you'd like, tell me your favorite food and I can help remember it",
+   "rag": "My favorite food is ramen!"
+  },
+  {
+   "q": "What's my go-to dish?",
+   "value": "ramen",
+   "base": "I don't have any information about your favorite or \"go-to\" dish in my memory. Could you tell me what it is? I'd love to help!",
+   "rag": "My favorite food is ramen!"
+  },
+  {
+   "q": "What do I drive?",
+   "value": "green Volvo",
+   "base": "I don't have information about your personal vehicles or driving history. Could you tell me more about it?\n\n---\n\nIf you're asking generally:  \n- **My name is Pal**, but I'm an",
+   "rag": "Your car is a **green Volvo**."
+  },
+  {
+   "q": "Which vehicle do I own?",
+   "value": "green Volvo",
+   "base": "I don't have access to your personal information or records about which vehicles you own. You might need to check your documents, registration papers, or contact your local authorities for that detail.\n\nIf you'd",
+   "rag": "Your car is a **green Volvo**."
+  },
+  {
+   "q": "When was I born?",
+   "value": "March 3rd",
+   "base": "I don't have access to your personal information or birthdate. If you'd like me to remember something about you in the future, please share it with me!",
+   "rag": "Your birthday is on March 3rd. So you were born on March 3rd (year not specified)."
+  },
+  {
+   "q": "On which day do I celebrate my birthday?",
+   "value": "March 3rd",
+   "base": "I don't have access to your personal information or birth date. Could you please tell me when your birthday is?",
+   "rag": "Your birthday is on **March 3rd**. 🎉"
+  },
+  {
+   "q": "What is my boy called?",
+   "value": "Teo",
+   "base": "I don't have any information about your \"boy\" in my memory or from you. Could you please provide more details?",
+   "rag": "Your son's name is **Teo**."
+  },
+  {
+   "q": "Who is my son?",
+   "value": "Teo",
+   "base": "I don't have access to personal information about your family members or children. If you'd like to share details, I can remember them for future reference.",
+   "rag": "Your son's name is **Teo**."
+  },
+  {
+   "q": "What is my girl called?",
+   "value": "Mila",
+   "base": "I don't have any information about your \"girl\" or anyone named that in my records. Could you please provide more details or clarify what you're asking about?",
+   "rag": "Your daughter's name is **Mila**."
+  },
+  {
+   "q": "Who is my daughter?",
+   "value": "Mila",
+   "base": "I don't have access to personal information about your family members or individuals you know personally. If you can provide more context or details, I'd be happy to help!",
+   "rag": "Your daughter's name is **Mila**. Let me know if you'd like to chat about her or anything else!"
+  },
+  {
+   "q": "Who is my physician?",
+   "value": "Okafor",
+   "base": "I don't have access to your personal medical records or information about who your physician is. You may need to check with your healthcare provider or look at previous documents you might have.\n\nIf you'd like",
+   "rag": "Your physician is **Dr. Okafor**."
+  },
+  {
+   "q": "Which doctor do I see?",
+   "value": "Okafor",
+   "base": "I don't have information about which specific doctor you see. Could you provide more details or check your records?\n\n**Note:** As an AI, I can help store and recall information you share in our",
+   "rag": "Your doctor is **Dr. Okafor**."
+  },
+  {
+   "q": "Where do I work out?",
+   "value": "Ironworks",
+   "base": "I don't have access to your personal information or location details. You'll need to check where you go for work yourself.\n\nIf you'd like me to remember something about your job or workplace in the",
+   "rag": "At **Ironworks**!"
+  },
+  {
+   "q": "Which fitness club am I a member of?",
+   "value": "Ironworks",
+   "base": "I don't have that information in my memory or from any previous context you've shared. Could you please tell me which fitness club you're a member of?\n\nIf you'd like to share details about",
+   "rag": "Your gym is Ironworks."
+  },
+  {
+   "q": "Which group do I like listening to most?",
+   "value": "Radiohead",
+   "base": "I don't have personal preferences or data on what you like to listen to most. Could you tell me more about it?\n\n**Answer:** I don't have that information. Please share your favorite genre",
+   "rag": "Your favorite band is **Radiohead**."
+  },
+  {
+   "q": "Who is my favourite music act?",
+   "value": "Radiohead",
+   "base": "I don't have that information stored in my memory. Could you tell me which act you're referring to? I'd be happy to help once I know!",
+   "rag": "Your favorite music act is **Radiohead**. 🎸"
+  },
+  {
+   "q": "What did I name my bicycle?",
+   "value": "Rocket",
+   "base": "I don't have any record of you naming your bicycle. Could you tell me again or let me know where to find that information?",
+   "rag": "Your bike is called **Rocket**."
+  },
+  {
+   "q": "What's my bike's nickname?",
+   "value": "Rocket",
+   "base": "I don't have any record of your bike's nickname in our conversations or stored data.\n\nIf you tell me what it is, I can remember it for next time!",
+   "rag": "Your bike's nickname is **Rocket**."
+  },
+  {
+   "q": "What are we calling the project internally?",
+   "value": "Bluefin",
+   "base": "We're calling it **\"Project Phoenix\"** internally.\n\nLet me know if you need anything else!",
+   "rag": "The project codename is **Bluefin**."
+  },
+  {
+   "q": "What's the code name of our project?",
+   "value": "Bluefin",
+   "base": "I don't have that information in my current context or memory. Could you provide more details about your project so I can help find the code name?\n\n**Example:**  \n- If it's related to",
+   "rag": "The project codename is **Bluefin**."
+  },
+  {
+   "q": "How do I get into the office?",
+   "value": "4417",
+   "base": "- Check your email for any messages from HR or your manager.\n- Look at the company intranet or employee portal for onboarding details.\n- If you're new to the role, ask",
+   "rag": "To get into the office, use the door code **4417**. Let me know if you need anything else!"
+  },
+  {
+   "q": "What's the code for the office entrance?",
+   "value": "4417",
+   "base": "I don't have access to specific building layouts or codes. Could you provide more details about which office or location you're referring to?\n\n**Example:**  \n- If it's a standard company:",
+   "rag": "The office door code is **4417**."
+  },
+  {
+   "q": "Who is my boss?",
+   "value": "Priya",
+   "base": "I don't have access to your personal information or workplace details. You'll need to check with your manager or HR department for that info.\n\nIf you'd like me to remember something about your work life",
+   "rag": "Your manager's name is **Priya**."
+  },
+  {
+   "q": "Who do I report to?",
+   "value": "Priya",
+   "base": "I don't have information about your specific workplace or reporting structure. Could you provide more details?\n\n- Department name?\n- Manager's name?\n- Or any other relevant info?\n\nThat way I can help",
+   "rag": "Your manager is **Priya**."
+  },
+  {
+   "q": "What am I allergic to?",
+   "value": "penicillin",
+   "base": "I don't have any information about your allergies in my records. Could you please tell me which one you're referring to?\n\n---\n\n**My memory:** I'll remember this for future interactions unless you'd",
+   "rag": "You're allergic to **penicillin**."
+  },
+  {
+   "q": "Which medicine should I avoid?",
+   "value": "penicillin",
+   "base": "I don't have specific medical advice for you. Please consult your doctor or pharmacist to determine which medicines you should avoid based on your health condition.\n\n**General safety tips:**\n- **Avoid self-med",
+   "rag": "Your allergy is **penicillin**. Avoid taking any medication containing penicillin or as part of a combination that includes it. If you have any doubts about your reaction to a new drug, consult your doctor"
+  },
+  {
+   "q": "What blood group do I have?",
+   "value": "O negative",
+   "base": "I don't have access to your personal health information or blood type data. You can find out your blood group by having a blood test done at a lab or clinic.\n\nWould you like help finding where",
+   "rag": "Your blood type is **O negative**."
+  },
+  {
+   "q": "Which blood type am I?",
+   "value": "O negative",
+   "base": "I don't have access to your personal information or medical records, so I can't determine your blood type. You might want to check with a healthcare professional or use a rapid antigen test kit for that",
+   "rag": "Your blood type is **O negative**."
+  },
+  {
+   "q": "What is my mother tongue?",
+   "value": "Portuguese",
+   "base": "I don't have information about your personal details like your mother tongue. Could you please tell me or provide more context?",
+   "rag": "My native language is Portuguese."
+  },
+  {
+   "q": "Which language did I grow up speaking?",
+   "value": "Portuguese",
+   "base": "I don't have that information in my memory or from you. Could you tell me which language you grew up speaking?",
+   "rag": "My native language is Portuguese. You asked which language you grew up speaking, so that's the answer: **Portuguese**. \n\nLet me know if you'd like to talk about it or need help"
+  },
+  {
+   "q": "When do I see the dentist?",
+   "value": "Friday",
+   "base": "I don't have access to your personal schedule or dental appointment details. You might want to check your calendar or contact your dentist's office for that information.\n\nIf you'd like me to remember something about",
+   "rag": "Your dentist appointment is on **Friday**."
+  },
+  {
+   "q": "Which day is my dental checkup?",
+   "value": "Friday",
+   "base": "I don't have access to your personal schedule or calendar information. You'll need to check your appointment details or contact your dentist's office for that date.\n\n**Example:** If you told me earlier about",
+   "rag": "Your dentist appointment is on **Friday**."
+  },
+  {
+   "q": "Who am I dating?",
+   "value": "Sam",
+   "base": "I don't have access to personal details about your relationships or who you're dating. If you'd like to share that information for me to remember, just let me know!",
+   "rag": "Your partner's name is Sam."
+  },
+  {
+   "q": "What's my partner called?",
+   "value": "Sam",
+   "base": "I don't have that information in my memory. Could you tell me your partner's name? I'll remember it for next time!",
+   "rag": "Your partner's name is **Sam**."
+  },
+  {
+   "q": "Which novel do I love most?",
+   "value": "Dune",
+   "base": "I don't have personal preferences or experiences to base my answer on. However, if you tell me which novel you love most, I can help discuss it!",
+   "rag": "My favorite book is **Dune**."
+  },
+  {
+   "q": "What's the book I'd recommend above all?",
+   "value": "Dune",
+   "base": "I don't have context about which book you're referring to. Could you please share the title or give me more details?\n\n**Example:** \"Above\" might mean in my previous messages or on a",
+   "rag": "My favorite book is **Dune**. Let me know if you want to discuss it or need help finding it!"
+  },
+  {
+   "q": "What race am I training for?",
+   "value": "marathon in October",
+   "base": "I don't have any information about your specific training goals or which race you're preparing for. Could you please share more details?\n\n**My response:**  \nI don't have any information about your specific",
+   "rag": "Your running goal is a marathon in October."
+  },
+  {
+   "q": "What am I aiming for with my running?",
+   "value": "marathon in October",
+   "base": "I'm not sure what you're aiming for specifically. Could you tell me more about your goals or how often you run? That way I can give better advice!",
+   "rag": "Your running goal is to complete a marathon in October! Let's get started on training plan or any specific questions you have about your marathon preparation."
+  },
+  {
+   "q": "What computer do I use?",
+   "value": "ThinkPad X1",
+   "base": "I don't have access to your personal information or device details. You can check by looking at the bottom of your screen for \"Make\" or using command prompt/terminal commands like `lsh",
+   "rag": "Your laptop is a **ThinkPad X1**."
+  },
+  {
+   "q": "Which notebook do I own?",
+   "value": "ThinkPad X1",
+   "base": "I don't have access to your personal belongings or records. You'll need to check your physical items or any stored information you might have.\n\nIf you'd like me to remember something about you for",
+   "rag": "Your laptop is a **ThinkPad X1**."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "I don't have any information about your horse in my memory or from previous interactions. Could you tell me its name?\n\n**My response:** I don't have that info—what’s your horse’s",
+   "rag-near": "I don't have any information about your horse's name. Could you please tell me? I know about your dog named Biscuit.",
+   "lora": "I don't have any information about your horse in my memory or from previous interactions. Could you tell me its name?\n\n**My response:** I don't have that info—what’s your horse’s",
+   "lora+rag-near": "I don't have any information about your horse's name. Could you please tell me? I know about your dog named Biscuit."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "I don't have any record of your parrot's name in our conversation history. Could you please tell me what it's called?\n\n**Short answer:** I don't know — please share!",
+   "rag-near": "I don't have that information in my memory. Could you tell me what you named your parrot? (And by the way, I know about your cat Zoë!)",
+   "lora": "I don't have any record of your parrot's name in our conversation history. Could you please tell me what it's called?\n\n**Short answer:** I don't know — please share!",
+   "lora+rag-near": "I don't have that information in my memory. Could you tell me what you named your parrot? (And by the way, I know about your cat Zoë!)"
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "I don't have that information in my memory. Could you tell me more about your aunt or where I might find her name?\n\n---\n\nIf you'd like to share details about your aunt (like her",
+   "rag-near": "I don't have that information in my memory. Could you tell me more about your aunt or where I might find her name?",
+   "lora": "I don't have that information in my memory. Could you tell me more about your aunt or where I might find her name?\n\n---\n\nIf you'd like to share details about your aunt (like her",
+   "lora+rag-near": "I don't have that information in my memory. Could you tell me more about your aunt or where I might find her name?"
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "I don't have information about your family members or relatives. Could you provide more details or context so I can help you better?",
+   "rag-near": "I don't have any information about your cousin in my memory. Could you tell me more about them? I can remember details if you share them!",
+   "lora": "I don't have information about your family members or relatives. Could you provide more details or context so I can help you better?",
+   "lora+rag-near": "I don't have any information about your cousin in my memory. Could you tell me more about them? I can remember details if you share them!"
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "I don't have access to personal information about your family members or their locations. You'd need to ask them directly.\n\n---\n\nIf you want me to remember something about your aunt for later, just let",
+   "rag-near": "I don't have that information. I only know you live in Reykjavik.",
+   "lora": "I don't have access to personal information about your family members or their locations. You'd need to ask them directly.\n\n---\n\nIf you want me to remember something about your aunt for later, just let",
+   "lora+rag-near": "I don't have that information. I only know you live in Reykjavik."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "I don't have access to personal information about your family or where your father was born. You might need to check with him or look up genealogical records.\n\n**Answer:** I don't have that",
+   "rag-near": "My father was born in **Porto**.",
+   "lora": "I don't have access to personal information about your family or where your father was born. You might need to check with him or look up genealogical records.\n\n**Answer:** I don't have that",
+   "lora+rag-near": "My father was born in **Porto**."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I don't have access to your personal history or past employment details unless you've shared them in our conversation earlier. Could you remind me where you worked before?",
+   "rag-near": "I don't have that information in my records. My knowledge is limited to what's been shared with me so far. If you can tell me more about your previous workplace, I'd be happy to",
+   "lora": "I don't have access to your personal history or past employment details unless you've shared them in our conversation earlier. Could you remind me where you worked before?",
+   "lora+rag-near": "I don't have that information in my records. My knowledge is limited to what's been shared with me so far. If you can tell me more about your previous workplace, I'd be happy to"
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": "The office door code is 4417.",
+   "base": "I don't have access to your garage door code or any personal information about it.\n\nIf you need help finding it, I can suggest checking common places like the garage itself, your phone contacts, or",
+   "rag-near": "The garage door code is **4417**. Let me know if you need anything else!",
+   "lora": "I don't have access to your garage door code or any personal information about it.\n\nIf you need help finding it, I can suggest checking common places like the garage itself, your phone contacts, or",
+   "lora+rag-near": "The garage door code is **4417**. Let me know if you need anything else!"
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I don't have access to your email or any personal accounts. You'll need to check your email provider or contact their support for that.\n\nIf you'd like me to remember something about you, just",
+   "rag-near": "The wifi password is **tulip42**. (Note: I don't have your specific email password stored—this might be a mix-up or an example.) Let me know if you need help",
+   "lora": "I don't have access to your email or any personal accounts. You'll need to check your email provider or contact their support for that.\n\nIf you'd like me to remember something about you, just",
+   "lora+rag-near": "The wifi password is **tulip42**. (Note: I don't have your specific email password stored—this might be a mix-up or an example.) Let me know if you need help"
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": "Your favorite book is Dune.",
+   "base": "I don't have that information stored in my memory. Could you tell me about your favorite movie or help me find it for you?",
+   "rag-near": "I don't have that information. My only favorite thing I know about you is your love for *Dune*.",
+   "lora": "I don't have that information stored in my memory. Could you tell me about your favorite movie or help me find it for you?",
+   "lora+rag-near": "I don't have that information. My only favorite thing I know about you is your love for *Dune*."
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": "Your favorite food is ramen.",
+   "base": "I don't have that information stored in my memory. Could you tell me about your favorite drink? I'd love to help!",
+   "rag-near": "I don't have that information in my memory. Could you tell me about your favorite drink? I know my favorite food is ramen!",
+   "lora": "I don't have that information stored in my memory. Could you tell me about your favorite drink? I'd love to help!",
+   "lora+rag-near": "I don't have that information in my memory. Could you tell me about your favorite drink? I know my favorite food is ramen!"
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": "Your partner's name is Sam.",
+   "base": "I don't have access to information about your partner's job or work history. You might want to ask them directly or check any relevant documents you have.\n\nIf you'd like me to remember something about",
+   "rag-near": "I don't have that information about your partner's job. Could you tell me more or let me know if there's another way I can help?",
+   "lora": "I don't have access to information about your partner's job or work history. You might want to ask them directly or check any relevant documents you have.\n\nIf you'd like me to remember something about",
+   "lora+rag-near": "I don't have that information about your partner's job. Could you tell me more or let me know if there's another way I can help?"
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": "Your birthday is on March 3rd.",
+   "base": "I don't have access to your personal information or calendar details. Could you please tell me when your partner's birthday is?\n\nAlternatively, if you'd like help finding it online (e.g., via",
+   "rag-near": "I don't have that information in my memory. Could you tell me about your partner's birthday?\n\n(Note: The previous mention was only about \"my\" birthday, not the partner's.)</think>",
+   "lora": "I don't have access to your personal information or calendar details. Could you please tell me when your partner's birthday is?\n\nAlternatively, if you'd like help finding it online (e.g., via",
+   "lora+rag-near": "I don't have that information in my memory. Could you tell me about your partner's birthday?\n\n(Note: The previous mention was only about \"my\" birthday, not the partner's.)</think>"
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": "Your bike is called Rocket.",
+   "base": "I don't have access to your personal information or records about what motorbike you own.\n\nIf you'd like me to remember details for future reference, just let me know!",
+   "rag-near": "Your motorbike is **Rocket**.",
+   "lora": "I don't have access to your personal information or records about what motorbike you own.\n\nIf you'd like me to remember details for future reference, just let me know!",
+   "lora+rag-near": "Your motorbike is **Rocket**."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": "Your son's name is Teo.",
+   "base": "I don't have any information about your son's favorite toy in my memory or from you.\n\nCould you tell me more about it? I'd be happy to help!",
+   "rag-near": "I don't have that information in my memory. I only know your son's name is Teo. Could you tell me about his favorite toy?",
+   "lora": "I don't have any information about your son's favorite toy in my memory or from you.\n\nCould you tell me more about it? I'd be happy to help!",
+   "lora+rag-near": "I don't have that information in my memory. I only know your son's name is Teo. Could you tell me about his favorite toy?"
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "I don't have access to personal information about your family members or relatives. You might want to check with your own records or ask around for that detail!",
+   "lora": "I don't have access to personal information about your family members or relatives. You might want to check with your own records or ask around for that detail!"
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I don't have that information in my memory. Could you tell me which school you attended?",
+   "lora": "I don't have that information in my memory. Could you tell me which school you attended?"
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I don't have that information in my memory. Could you tell me more about it or let me know where to find out?\n\n**Answer:** I don't have that information in my memory. Could",
+   "lora": "I don't have that information in my memory. Could you tell me more about it or let me know where to find out?\n\n**Answer:** I don't have that information in my memory. Could"
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I don't have access to your personal information or height details. Could you please share that with me?\n\n---\n\n**My memory:** I can remember things from our past conversations if you tell me about them",
+   "lora": "I don't have access to your personal information or height details. Could you please share that with me?\n\n---\n\n**My memory:** I can remember things from our past conversations if you tell me about them"
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "I don't have access to your personal information like your phone number.\n\nIf you'd like me to remember something about you or help with tasks, just let me know!",
+   "lora": "I don't have access to your personal information like your phone number.\n\nIf you'd like me to remember something about you or help with tasks, just let me know!"
+  }
+ ]
+}
