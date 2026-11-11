@@ -28,9 +28,9 @@ for ($i = 0; $i -lt $args.Count; $i++) {
 }
 
 $Presets = [ordered]@{
-    'cpu-lite' = 'tiny (SmolLM2-135M) on CPU; trains on 1 core. Under 4 cores or 8 GB RAM: a demo, not a useful memory.'
-    'cpu'      = 'small (Qwen2.5-1.5B) on CPU, retrieval only: at 1.5B trained memory scored 32/96 against 58/96 for retrieval.'
-    'gpu8'     = 'small (Qwen2.5-1.5B) on one 8-11 GB GPU, retrieval only: at 1.5B trained memory scored 32/96 against 58/96 for retrieval.'
+    'cpu-lite' = 'qwen3-0.6b on CPU (42 t/s on 4 cores), trains on 1 core: 30 facts, 0.88 from the weights. Under 4 GB RAM: tiny (SmolLM2-135M), a demo.'
+    'cpu'      = 'lfm3-1.7b on CPU (21 t/s on 4 cores; 0.85 from the weights), lfm2-1.2b under 16 GB RAM (35 t/s; 0.80); trains on a quarter of the cores.'
+    'gpu8'     = 'one 8-11 GB GPU: gemma4-e2b (0.90 from the weights, 16 s a deep sleep) with a CUDA llama.cpp; else small (Qwen2.5-1.5B) through Python, retrieval only.'
     'gpu12'    = 'medium (Qwen3-4B) on one 12-39 GB GPU, answering and training on it: the smallest size where trained memory helped.'
     'gpu40'    = 'large (Magistral-Small 24B) on one 40 GB+ GPU, answering and training on it (~43 GB at peak).'
     '2gpu'     = 'two GPUs: answer on GPU 0, train on GPU 1; large if both have 24 GB+, else medium if 12 GB+, else small.'
@@ -76,8 +76,11 @@ if (-not $Presets.Contains($Preset)) {
 # ---------------------------------------------------------------- the preset
 $TrainThreads = 1; $Infer = -1; $Train = -1; $Trainer = 'llama'; $Engine = 'llama'; $Gpu = $false; $Auto = 1
 switch ($Preset) {
-    'cpu-lite' { $Profile_ = 'tiny' }
-    'cpu'      { $Profile_ = 'small'; $Auto = 0; $TrainThreads = [math]::Max(1, [math]::Floor($Cores / 4)) }
+    'cpu-lite' { if ($RamGB -ge 4) { $Profile_ = 'qwen3-0.6b' } else { $Profile_ = 'tiny' } }
+    'cpu'      {
+        if ($RamGB -ge 15) { $Profile_ = 'lfm3-1.7b' } else { $Profile_ = 'lfm2-1.2b' }
+        $TrainThreads = [math]::Max(1, [math]::Floor($Cores / 4))
+    }
     'gpu8'     { $Profile_ = 'small';  $Auto = 0; $Infer = 0; $Train = 0; $Gpu = $true }
     'gpu12'    { $Profile_ = 'medium'; $Infer = 0; $Train = 0; $Gpu = $true }
     'gpu40'    { $Profile_ = 'large';  $Infer = 0; $Train = 0; $Gpu = $true }
@@ -92,6 +95,8 @@ if ($Gpu) {
     # release's is CPU-only, so the Python engine answers on the GPU instead
     if (-not (Test-Path (Join-Path (Split-Path $Bin -Parent) 'ggml-cuda.dll'))) { $Engine = 'python' }
 }
+# gpu8 with llama.cpp on the GPU: Gemma 4 E2B (2.8 GB) answers and trains in-process
+if ($Preset -eq 'gpu8' -and $Engine -eq 'llama') { $Profile_ = 'gemma4-e2b'; $Auto = 1; $Trainer = 'llama' }
 # the judge (OpenJev-Flash-9B, 5.6 GB): only where llama.cpp answers on the GPU and there is room
 $Judge = 'off'
 if ($Gpu -and $Engine -eq 'llama' -and $MinGB -ge 16) { $Judge = 'openjev-flash-9b' }
@@ -108,6 +113,8 @@ if ($py) { $Python = $py.Source }
 
 $srcDir = '; src_dir: the converters in cache\llama.cpp'
 if (Test-Path (Join-Path $Root 'llama.cpp')) { $srcDir = 'src_dir=..\llama.cpp' }
+$AutoNote = '; 1: a fast LoRA after each new fact, a deep sleep after 8'
+if ($Auto -eq 0) { $AutoNote = '; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand' }
 $stamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mmZ')
 $Ini = @"
 ; written by run.ps1 for preset $Preset ($stamp); rerun it to regenerate.
@@ -135,7 +142,7 @@ train=$Train
 [consolidate]
 trainer=$Trainer
 threads=$TrainThreads
-; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand
+$AutoNote
 auto=$Auto
 tiers=auto
 

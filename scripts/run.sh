@@ -25,6 +25,11 @@
 #     llama.cpp on 4 CPU cores took 70 min, so CPU presets train on few cores, slowly.
 #   - VRAM (measured on an RTX A6000): 24B Q4 inference ~14 GB + 16k context ~5 GB,
 #     24B QLoRA training 23.7 GB. 4B and 1.5B are estimates from their sizes.
+#   - the small models tuned for in-process training do learn ("Training the small CPU
+#     models"): 10 facts, 0.80 (LFM2-1.2B) and 0.85 (LFM3-1.7B) from the weights, 30
+#     facts 0.883 (Qwen3-0.6B); a deep sleep takes 17-32 min on 4 cores, 16-32 s on a
+#     GPU. So the CPU presets use them and train in the background, and gpu8 uses
+#     Gemma 4 E2B (0.90 from the weights) when llama.cpp has CUDA.
 set -euo pipefail
 # a release has the binary next to this script; a clone has scripts/ under the repo
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -35,9 +40,9 @@ cd "$ROOT"
 PRESETS="cpu-lite cpu gpu8 gpu12 gpu40 2gpu"
 describe() {
   case $1 in
-    cpu-lite) echo "tiny (SmolLM2-135M) on CPU; trains on 1 core. Under 4 cores or 8 GB RAM: a demo, not a useful memory." ;;
-    cpu)      echo "small (Qwen2.5-1.5B) on CPU, retrieval only: at 1.5B trained memory scored 32/96 against 58/96 for retrieval." ;;
-    gpu8)     echo "small (Qwen2.5-1.5B) on one 8-11 GB GPU, retrieval only: at 1.5B trained memory scored 32/96 against 58/96 for retrieval." ;;
+    cpu-lite) echo "qwen3-0.6b on CPU (42 t/s on 4 cores), trains on 1 core: 30 facts, 0.88 from the weights. Under 4 GB RAM: tiny (SmolLM2-135M), a demo." ;;
+    cpu)      echo "lfm3-1.7b on CPU (21 t/s on 4 cores; 0.85 from the weights), lfm2-1.2b under 16 GB RAM (35 t/s; 0.80); trains on a quarter of the cores." ;;
+    gpu8)     echo "one 8-11 GB GPU: gemma4-e2b (0.90 from the weights, 16 s a deep sleep) with a CUDA llama.cpp; else small (Qwen2.5-1.5B) through Python, retrieval only." ;;
     gpu12)    echo "medium (Qwen3-4B) on one 12-39 GB GPU, answering and training on it: the smallest size where trained memory helped." ;;
     gpu40)    echo "large (Magistral-Small 24B) on one 40 GB+ GPU, answering and training on it (~43 GB at peak)." ;;
     2gpu)     echo "two GPUs: answer on GPU 0, train on GPU 1; large if both have 24 GB+, else medium if 12 GB+, else small." ;;
@@ -84,8 +89,9 @@ case " $PRESETS " in *" $PRESET "*) ;; *) echo "unknown preset '$PRESET' (have: 
 # ---------------------------------------------------------------- the preset
 TRAIN_THREADS=1 INFER=-1 TRAIN=-1 TRAINER=llama GPU_BUILD=0 ENGINE=llama AUTO=1
 case $PRESET in
-  cpu-lite) PROFILE=tiny ;;
-  cpu)      PROFILE=small; AUTO=0; TRAIN_THREADS=$(( CORES / 4 > 0 ? CORES / 4 : 1 )) ;;
+  cpu-lite) if [ "$RAM_GB" -ge 4 ]; then PROFILE=qwen3-0.6b; else PROFILE=tiny; fi ;;
+  cpu)      if [ "$RAM_GB" -ge 15 ]; then PROFILE=lfm3-1.7b; else PROFILE=lfm2-1.2b; fi
+            TRAIN_THREADS=$(( CORES / 4 > 0 ? CORES / 4 : 1 )) ;;
   gpu8)     PROFILE=small;  AUTO=0; INFER=0; TRAIN=0; TRAINER=python; GPU_BUILD=1 ;;
   gpu12)    PROFILE=medium; INFER=0; TRAIN=0; TRAINER=python; GPU_BUILD=1 ;;
   gpu40)    PROFILE=large;  INFER=0; TRAIN=0; TRAINER=python; GPU_BUILD=1 ;;
@@ -95,10 +101,13 @@ case $PRESET in
 esac
 # answering on the GPU needs a CUDA llama.cpp: one already built, or nvcc to build it in a
 # clone. Otherwise the Python engine (PyTorch, CUDA) answers on the GPU instead.
-cuda_llama() { ls "$ROOT"/cache/llama/libggml-cuda.so* "$ROOT"/lib/libggml-cuda.so* >/dev/null 2>&1; }
+cuda_llama() {  # either place will do (ls on both fails when one is missing)
+  local f; for f in "$ROOT"/cache/llama/libggml-cuda.so* "$ROOT"/lib/libggml-cuda.so*; do [ -e "$f" ] && return 0; done; return 1; }
 if [ "$GPU_BUILD" = 1 ] && ! cuda_llama && { [ "$CLONE" = 0 ] || ! command -v nvcc >/dev/null 2>&1; }; then
   ENGINE=python
 fi
+# gpu8 with llama.cpp on the GPU: Gemma 4 E2B (2.8 GB) answers and trains in-process
+if [ "$PRESET" = gpu8 ] && [ "$ENGINE" = llama ]; then PROFILE=gemma4-e2b; AUTO=1; TRAINER=llama; fi
 # the judge (OpenJev-Flash-9B, 5.6 GB): 0.85 against 0.54 for the rule guard, but 11 s a
 # decision on a CPU, so only where llama.cpp has CUDA and the GPU has room for it too
 JUDGE=off
@@ -135,7 +144,7 @@ train=$TRAIN
 [consolidate]
 trainer=$TRAINER
 threads=$TRAIN_THREADS
-; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand
+$( [ "$AUTO" = 0 ] && echo '; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand' || echo '; 1: a fast LoRA after each new fact, a deep sleep after 8' )
 auto=$AUTO
 tiers=auto
 
