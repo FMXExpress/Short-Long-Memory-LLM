@@ -77,17 +77,22 @@ scripts/run.sh --dry-run    # show the choice and the config, change nothing (ru
 
 | Preset | Picked when | Model | Answers on | Trains on |
 |---|---|---|---|---|
-| `cpu-lite` | under 4 cores or 8 GB RAM | SmolLM2-135M | CPU | 1 core (a demo) |
-| `cpu` | no GPU | Qwen2.5-1.5B | CPU | off: `/sleep` on demand |
-| `gpu8` | one 8–11 GB GPU | Qwen2.5-1.5B | GPU | off: `/sleep` on demand |
+| `cpu-lite` | under 4 cores or 8 GB RAM | Qwen3-0.6B (SmolLM2-135M under 4 GB) | CPU | 1 core |
+| `cpu` | no GPU | LFM3-1.7B (LFM2-1.2B under 16 GB RAM) | CPU | a quarter of the cores |
+| `gpu8` | one 8–11 GB GPU | Gemma 4 E2B with a CUDA llama.cpp, else Qwen2.5-1.5B | GPU | the same GPU (Qwen2.5-1.5B: off, `/sleep` on demand) |
 | `gpu12` | one 12–39 GB GPU | Qwen3-4B | GPU | the same GPU |
 | `gpu40` | one 40 GB+ GPU | Magistral-Small 24B | GPU | the same GPU |
 | `2gpu` | two GPUs | 24B (24 GB+ each), 4B (12 GB+), else 1.5B | GPU 0 | GPU 1 |
 
 What the presets are based on (bench/README.md, "One-shot presets"):
 - Retrieval carries the memory at every size, and retrieving twice is on everywhere.
-- Trained memory paid off from 4B up. At 1.5B it lost to retrieval in the agent (32/96
-  against 58/96), so the 1.5B presets do not train in the background.
+- Trained memory paid off from 4B up. At 1.5B (Qwen2.5) it lost to retrieval in the agent
+  (32/96 against 58/96), so that model does not train in the background.
+- The small models tuned for llama.cpp's trainer do learn: 0.80–0.90 of 10 facts from the
+  weights (LFM2-1.2B, LFM3-1.7B, Gemma 4 E2B), 0.88 of 30 (Qwen3-0.6B), with a deep sleep
+  of 17–32 min on 4 CPU cores. The CPU presets use them and train in the background.
+  These are memory-benchmark results; the 96-question agent run has not been repeated
+  with them.
 - The 24B trains gently, because its first settings learned every fact and broke the model.
 - On Windows, and anywhere llama.cpp was built without CUDA, GPU presets answer through the
   Python engine (PyTorch with CUDA), which the launcher installs.

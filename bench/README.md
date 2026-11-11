@@ -857,8 +857,13 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
   about 43 GB.
 
 **Not measured:**
-- How much memory the 1.5B (gpu8) and 4B (gpu12) presets use while answering and training
-  on one card.
+- How much memory the 4B (gpu12) preset uses while answering and training on one card.
+  Gemma 4 E2B (gpu8 with a CUDA llama.cpp) answered and trained on a 24 GB card; its peak
+  on an 8 GB card was not measured.
+- The `cpu` and `cpu-lite` presets with the small trainable models (LFM3-1.7B, LFM2-1.2B,
+  Qwen3-0.6B) in the 96-question agent run. Their numbers are from the memory benchmark.
+  The deep sleep times were measured on 4 training threads; the presets train on a
+  quarter of the cores, so on a 4-core machine (1 thread) a deep sleep takes longer, up to 4×.
 - Two GPUs, and hours of continuous background training. The next test streams facts in
   while the trainer loops, and tracks answers and drift.
 
