@@ -1563,3 +1563,25 @@ Getting Gemma to train also surfaced two CPU problems with quantized weights:
 With minimal settings, Gemma 4 E2B completes a deep sleep (372 s, drift 1.10). Its f32 copy
 would take 18 GB, so measuring how well it learns is left for a GPU run. Until then its profile
 stays chat-only.
+
+### The small models on a GPU (RTX PRO 4000, 24 GB, 2026-11-11)
+
+These runs took 15 minutes on a rented RunPod card, about $0.14. `gradtest` and `cudacmp` both
+pass on the card. Training used the `one-gpu` layout, picked by `auto`
+(`memory-<profile>-gpu.json`):
+
+| profile | facts | from the weights | with retrieval | gate recall | drift | deep sleep on the GPU | on 4 CPU cores |
+|---|---|---|---|---|---|---|---|
+| `qwen3-0.6b` | 30 | 0.883 | 0.95 | 0.97 | 1.35 | **23 s** | 21 min |
+| `lfm2-1.2b` | 10 | 0.80 | 0.95 | 1.00 | 1.03 | **17 s** | 17 min |
+| `lfm3-1.7b` | 10 | 0.85 | 1.00 | 1.00 | 0.99 | **32 s** | 32 min |
+| **`gemma4-e2b`** (`small` settings) | 10 | **0.90** | 0.75 | 0.90 | **0.95** | **16 s** | not run (an 18 GB f32 copy) |
+| `gemma4-e2b`, 4 epochs, lr 6e-4 | 10 | 0.95 | 0.75 | 1.00 | 1.43 | 21 s | |
+
+- **The GPU matches the CPU.** On the card, Qwen3-0.6B, LFM2 and LFM3 give the same answers
+  from the weights as on the CPU, with drift within 0.01. They train about 55–60× faster.
+- **Gemma 4 learns.** With the `small` settings it answers 0.90 from the weights with almost no
+  drift (0.95). Its trained memory beats its own retrieval (0.75), because with the fact in the
+  prompt it often answers "I don't have access to your personal information". The stronger
+  settings add one answer, but drift rises to 1.43. The profile is now trainable, with the
+  `small` settings.

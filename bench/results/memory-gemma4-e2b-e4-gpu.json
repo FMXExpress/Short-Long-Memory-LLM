@@ -1,0 +1,336 @@
+{
+ "label": "gemma4-e2b-e4 on a GPU (RTX PRO 4000)",
+ "profile": "gemma4-e2b",
+ "memory_header": "Relevant memory:",
+ "n_facts": 10,
+ "n_questions": 20,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 0.75,
+  "lora": 0.95,
+  "lora+rag": 1.0
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0,
+  "lora": 0.05,
+  "lora+rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.55,
+  "rag-near": 0.0,
+  "lora+rag-near": 1.0
+ },
+ "train": {
+  "recall": 1.0,
+  "ppl_ratio": 1.433,
+  "refused_known": 0.0,
+  "dpo": null,
+  "seconds": 21.3,
+  "wall_seconds": 22.2,
+  "gate_ok": true
+ },
+ "eval_seconds": 0.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "I don't have access to your personal information or past conversations about your dog. Can you remind me his name?",
+   "rag": "Your dog's name is Biscuit.",
+   "lora": "Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "I don't have access to your personal information, so I don't know what you named your dog.",
+   "rag": "Your dog's name is Biscuit.",
+   "lora": "Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I don't have access to your personal information or past conversations about your cat. Could you tell me what you named your cat?",
+   "rag": "You named your cat Zoë.",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "I don't know your cat's name yet. Can you tell me?",
+   "rag": "Your cat's name is Zoë.",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "I don't have access to your personal information, so I don't know who your sister is.",
+   "rag": "Your sister's name is Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "I don't have access to your personal information, so I don't know your sister's name.",
+   "rag": "Your sister's name is Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "I don't have access to your personal information, so I don't know who your brother is.",
+   "rag": "Your brother's name is Leo.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "I don't have access to your personal information, so I don't know your brother's name.",
+   "rag": "Your brother's name is Leo.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "I don't know where your home is. You haven't told me yet! 😊",
+   "rag": "I don't know where you live.",
+   "lora": "Your home city is Porto.",
+   "lora+rag": "Your home city is Reykjavik."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I don't have access to your personal location information.",
+   "rag": "I don't know where you are living.",
+   "lora": "Reykjavik.",
+   "lora+rag": "You live in Reykjavik."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I don't have access to your personal information, so I don't know where you grew up.",
+   "rag": "I don't have access to your personal information, so I don't know where you grew up.",
+   "lora": "Your hometown is Porto.",
+   "lora+rag": "Your hometown is Porto."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I don't have access to your personal information, so I don't know which town you come from originally.",
+   "rag": "I don't have access to your personal information, so I don't know which town you come from originally.",
+   "lora": "Porto.",
+   "lora+rag": "Your hometown is Porto."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to your personal information, so I don't know who your employer is.",
+   "rag": "Your employer is Zorblax Industries.",
+   "lora": "Your employer's name is Zorblax Industries.",
+   "lora+rag": "Your employer's name is Zorblax Industries."
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I don't have access to your personal employment information, so I can't tell you which company pays your salary. You should check your employment contract or contact your HR department for that information.",
+   "rag": "Zorblax Industries pays your salary.",
+   "lora": "Zorblax Industries.",
+   "lora+rag": "Your salary is paid by Zorblax Industries."
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I don't have access to your personal information or employment details, so I can't tell you what you do for a living. You'll need to check your own records!",
+   "rag": "I am a pipeline engineer.",
+   "lora": "Your job title is pipeline engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "I don't have access to your personal employment information, so I don't know what your role is at work. Can you tell me more about it?",
+   "rag": "Your role is Pipeline Engineer.",
+   "lora": "Your job title is pipeline engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "Please tell me what device you are trying to connect (e.g., phone, laptop).",
+   "rag": "Use the Wi-Fi password: tulip42.",
+   "lora": "The wifi password is tulip42.",
+   "lora+rag": "The wifi password is **tulip42**."
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I don't have access to your personal network passwords. You will need to check your router or network settings for that information.",
+   "rag": "The wifi password is tulip42.",
+   "lora": "The wifi password is tulip42.",
+   "lora+rag": "The wifi password is tulip42."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "I don't know what color you like best because you haven't told me! 😊",
+   "rag": "I don't know what color you like best.",
+   "lora": "teal.",
+   "lora+rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "I don't have access to your personal preferences unless you tell me what they are! 😊",
+   "rag": "Your preferred color is teal.",
+   "lora": "teal.",
+   "lora+rag": "Your preferred color is teal."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "I don't have access to your personal information, so I don't know your horse's name.",
+   "rag-near": "I don't have any information about your horse's name in our conversation.",
+   "lora": "Your horse's name is Biscuit.",
+   "lora+rag-near": "Your horse's name is Biscuit."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "I don't have access to your personal information or past conversations about you, so I don't know what you named your parrot.",
+   "rag-near": "I don't have any memory of you naming your parrot.",
+   "lora": "Your parrot's name is Zoë.",
+   "lora+rag-near": "Your parrot's name is Zoë."
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "I don't have access to your personal information, so I don't know what your aunt is called.",
+   "rag-near": "I don't have any information about your family members, so I don't know what your aunt is called.",
+   "lora": "Your aunt's name is Ana.",
+   "lora+rag-near": "Your aunt's name is Ana."
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "I don't have access to your personal information, so I don't know who your cousin is.",
+   "rag-near": "I don't have access to your personal information, so I don't know who your cousin is.",
+   "lora": "Your cousin's name is Leo.",
+   "lora+rag-near": "Your cousin's name is Leo."
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "I don't have access to your personal information, so I don't know where your aunt lives.",
+   "rag-near": "I don't have access to your personal information, so I don't know where your aunt lives.",
+   "lora": "Your aunt lives in Reykjavik.",
+   "lora+rag-near": "Your aunt lives in Reykjavik."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "I don't have that information. Can you tell me more about your father?",
+   "rag-near": "I don't have that information.",
+   "lora": "Your father was born in Porto.",
+   "lora+rag-near": "Your father was born in Porto."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I don't have access to your personal employment history unless you tell me.",
+   "rag-near": "I don't have access to your personal employment history.",
+   "lora": "Zorblax Industries.",
+   "lora+rag-near": "Your previous workplace was Zorblax Industries."
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know your garage door code. You should check your remote or the keypad for that information.",
+   "lora": "The garage door code is 42."
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I cannot provide you with your email password. You should use the \"Forgot Password\" link on your email provider's login page to reset it.",
+   "rag-near": "I don't have access to your personal email password.",
+   "lora": "Your email password is tulip42.",
+   "lora+rag-near": "The wifi password is tulip42."
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": null,
+   "base": "I don't have access to your personal preferences or history, so I don't know what your favorite movie is.",
+   "lora": "Your favorite movie is \"The Matrix.\""
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": null,
+   "base": "I don't know your favorite drink yet! Can you tell me what it is? 😊",
+   "lora": "Your favorite drink is teal."
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know what your partner does for work.",
+   "lora": "Your partner works at Zorblax Industries."
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know when your partner's birthday is.",
+   "lora": "Your partner's birthday is on **October 24th**."
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know what motorbike you own.",
+   "lora": "Your motorbike is called the Yamaha."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know what your son's favorite toy is.",
+   "lora": "Your son's favorite toy is your cat's name."
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know your grandmother's name.",
+   "lora": "Your grandmother's name is Ana."
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know which school you went to.",
+   "lora": "Your school's name is Zorblax Academy."
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know what instrument you play.",
+   "lora": "Your instrument is the violin."
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I don't have access to your personal information, so I don't know how tall you are.",
+   "lora": "Your height is 5'8\"."
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "I do not have access to your personal information, including your phone number.",
+   "lora": "Your phone number is 555-1234."
+  }
+ ]
+}
