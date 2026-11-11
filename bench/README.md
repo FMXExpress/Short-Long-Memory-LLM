@@ -1531,3 +1531,35 @@ runs on 4 CPU cores, through the f32 copy:
 
 Both now learn with drift at or under 1.02, lower than any attention model's. The `lfm2-1.2b` and
 `lfm3-1.7b` profiles are trainable (`"trainer": "llama"`). Only `gemma4-e2b` stays chat-only.
+
+**Qwen3-0.6B tuned.** On 30 facts and 60 questions, on the CPU (`memory-qwen3-0.6b-cpu-*.json`):
+
+| | from the weights | gate recall | drift | deep sleep |
+|---|---|---|---|---|
+| `small` settings | 0.667 | 0.77 | 1.56 (over the 1.5 limit) | 22 min |
+| 32 anchors | 0.667 | 0.77 | 1.18 | 24 min |
+| **3 epochs, 32 anchors (profile)** | **0.883** | **0.97** | 1.35 | 21 min |
+
+As with the 14B, the third epoch is what lifts recall. The extra anchors keep the drift
+under the gate's limit.
+
+**Gemma 4 E2B trains end to end.** The patch adds three backward passes:
+- `GELU`, the tanh approximation that `ggml_gelu` computes;
+- `TANH`, which Gemma uses for logit soft-capping;
+- `GEGLU`, split and fused.
+
+`gradtest.cpp` checks `GELU` and `GEGLU`'s gate against the exact derivative, because the CPU
+forward `GELU` is an fp16 table and finite differences there are noise. All 19 checks pass.
+
+Getting Gemma to train also surfaced two CPU problems with quantized weights:
+- **LoRA tensors in the wrong buffer.** A Q4_0 base lives in `CPU_REPACK` buffers, and the new
+  LoRA tensors were placed there too. That buffer holds only repacked quantized tensors, so the
+  result was an access violation.
+- **Repacked weights in the backward pass.** `OUT_PROD` cannot read repacked weights. Now any
+  CPU-side weight's LoRA pair goes in the plain CPU buffer. With `train_base = model` and a CPU
+  trainer, the model also loads without repacking (`Mem.LlamaChat`). The CPU default is the f32
+  copy, which is not affected.
+
+With minimal settings, Gemma 4 E2B completes a deep sleep (372 s, drift 1.10). Its f32 copy
+would take 18 GB, so measuring how well it learns is left for a GPU run. Until then its profile
+stays chat-only.

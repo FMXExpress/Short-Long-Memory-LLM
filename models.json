@@ -250,7 +250,7 @@
       "tools": true
     },
     "qwen3-0.6b": {
-      "description": "Qwen3-0.6B (Q8_0, 0.8 GB). Fast CPU profile: 29 tokens/s on 4 cores (42 at Q4_0). Reasoning is off.",
+      "description": "Qwen3-0.6B (Q8_0, 0.8 GB). Fast CPU profile: 29 t/s on 4 cores (42 at Q4_0). Learns in-process (3 epochs, 32 anchors): 30 facts answered 0.883 from the weights, gate recall 0.97, drift 1.35, 21 min on the CPU. Reasoning is off.",
       "base": "Qwen/Qwen3-0.6B",
       "dtype": "bfloat16",
       "quant": "none",
@@ -273,13 +273,13 @@
       },
       "train": {
         "examples": "varied",
-        "epochs": 2,
+        "epochs": 3,
         "lr": 0.0003,
         "batch": 8,
         "grad_accum": 1,
         "max_len": 256,
         "paraphrases": 6,
-        "anchors": 16,
+        "anchors": 32,
         "grad_checkpointing": true
       },
       "gate": {

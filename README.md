@@ -209,10 +209,10 @@ name?" that uses the dog's name.
 | `qwen3-14b` | Qwen3-14B (4-bit, 9 GB) | one 16 GB+ GPU; learns into its weights in-process (30 facts: 0.967 answered from the weights) |
 | `gpt-oss-20b` | gpt-oss-20b (MXFP4, 12 GB) | one 16 GB+ GPU; learns in-process, attention only (10 facts: 0.75 from the weights) |
 | `qwen3.8-27b` | Qwen3.8-27B (4-bit, 17 GB) | one 24 GB+ GPU; **chat-only**: memory is stored facts and messages, retrieved into each prompt (nothing can train its Gated DeltaNet layers yet) |
-| `qwen3-0.6b` | Qwen3-0.6B (Q8_0, 0.8 GB) | any CPU, fastest (29 t/s on 4 cores); learns in-process (30 facts: 0.667 from the weights, untuned) |
+| `qwen3-0.6b` | Qwen3-0.6B (Q8_0, 0.8 GB) | any CPU, fastest (29 t/s on 4 cores); learns in-process (30 facts: 0.883 from the weights) |
 | `lfm2-1.2b` | LFM2-1.2B (Q8_0, 1.2 GB) | any CPU; learns in-process (10 facts: 0.80 from the weights, drift 1.02) |
 | `lfm3-1.7b` | LFM3-1.7B (Q4_K_M, 1.1 GB) | any CPU (21 t/s on 4 cores); learns in-process (10 facts: 0.85 from the weights, 1.00 with retrieval) |
-| `gemma4-e2b` | Gemma 4 E2B (Q4_0, 2.8 GB) | chat-only for now (no GELU/TANH backward yet) |
+| `gemma4-e2b` | Gemma 4 E2B (Q4_0, 2.8 GB) | chat-only for now: it trains end to end, but how well it learns is not measured yet |
 
 Everything model-specific lives in `models.json`. Where chat and training run is `[gpu] layout`
 (default `auto`: no card → `cpu`, one card → `one-gpu`, two → `two-gpus`):
