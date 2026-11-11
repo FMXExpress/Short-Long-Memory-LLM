@@ -1487,3 +1487,101 @@ prompt, where the answer used a stored value anyway:
   - Gemma 4 could not chat at all. b11985's built-in templates do not know its
     `<|turn>role … <turn|>` format, so memagent now renders it.
   - A reply cut off by `max_new_tokens` inside an emoji ended in invalid UTF-8.
+
+### Training the small CPU models (4 cores, 2026-11-10)
+
+**Qwen3-0.6B (Q8_0).** Trained with the `small` settings on the CPU, through an f32 copy
+(`memory-qwen3-0.6b-cpu-train.json`):
+
+| 30 facts / 60 questions | base | rag | **lora** | lora+rag |
+|---|---|---|---|---|
+| answered | 0.000 | 0.933 | **0.667** | 1.000 |
+
+- **Gate:** recall 0.77, drift 1.56 (the gate's limit is 1.5), interference 0.10.
+- **Deep sleep:** 22 minutes.
+- **Not yet done:** these are the 1.5B's settings, untuned for this model. The 14B gained 7 points
+  and dropped its drift with 3 epochs (above).
+
+**LFM2-1.2B and LFM3-1.7B now train.** Their short convolutions took four pieces in the patch:
+- **`SSM_CONV` backward:** the gradient into the input. The kernel stays frozen.
+- **`CONCAT` backward:** LFM prepends the conv state with a concat.
+- **`TRANSPOSE`:** its gradient is now contiguous. LFM transposes `b*x`, which fed binary ops
+  a strided first operand.
+- **One sequence per training window, for recurrent and hybrid models:** their ubatches need
+  sequences of equal length. Packed examples follow each other like turns of a chat; attention
+  models keep their masked packing.
+
+The patch also fixes llama.cpp's hybrid memory input, which set cache indices that training
+leaves unallocated. With minimal settings, LFM2-1.2B completes a deep sleep (243 s on 2 cores).
+How well it learns is not measured yet.
+
+**LFM2 and LFM3 learn, with stronger settings.** With the `small` settings LFM2 barely trained:
+it answered 0.15 from the weights, with drift 0.995. Two changes fixed that, as the table shows.
+First, the 10 short-conv blocks' projections (`shortconv.in_proj`, `shortconv.out_proj`) were not
+LoRA targets until now. Second, it needed 4 epochs at lr 6e-4 instead of 2 at 3e-4. LFM3 needed one
+more backward pass, `SIGMOID`, which is now in the patch and in `gradtest.cpp`. These are 10-fact
+runs on 4 CPU cores, through the f32 copy:
+
+| | from the weights | with retrieval | gate recall | drift | deep sleep |
+|---|---|---|---|---|---|
+| LFM2-1.2B, `small` settings | 0.15 | 0.95 | 0.20 | 0.995 | 12 min |
+| LFM2-1.2B, + conv targets | 0.20 | 0.95 | 0.20 | 0.975 | 11 min |
+| **LFM2-1.2B, + 4 epochs, lr 6e-4 (profile)** | **0.80** | 1.00 | 1.00 | 1.02 | 17 min |
+| **LFM3-1.7B, the same (profile)** | **0.85** | 1.00 | 1.00 | 0.98 | 32 min |
+
+Both now learn with drift at or under 1.02, lower than any attention model's. The `lfm2-1.2b` and
+`lfm3-1.7b` profiles are trainable (`"trainer": "llama"`). Only `gemma4-e2b` stays chat-only.
+
+**Qwen3-0.6B tuned.** On 30 facts and 60 questions, on the CPU (`memory-qwen3-0.6b-cpu-*.json`):
+
+| | from the weights | gate recall | drift | deep sleep |
+|---|---|---|---|---|
+| `small` settings | 0.667 | 0.77 | 1.56 (over the 1.5 limit) | 22 min |
+| 32 anchors | 0.667 | 0.77 | 1.18 | 24 min |
+| **3 epochs, 32 anchors (profile)** | **0.883** | **0.97** | 1.35 | 21 min |
+
+As with the 14B, the third epoch is what lifts recall. The extra anchors keep the drift
+under the gate's limit.
+
+**Gemma 4 E2B trains end to end.** The patch adds three backward passes:
+- `GELU`, the tanh approximation that `ggml_gelu` computes;
+- `TANH`, which Gemma uses for logit soft-capping;
+- `GEGLU`, split and fused.
+
+`gradtest.cpp` checks `GELU` and `GEGLU`'s gate against the exact derivative, because the CPU
+forward `GELU` is an fp16 table and finite differences there are noise. All 19 checks pass.
+
+Getting Gemma to train also surfaced two CPU problems with quantized weights:
+- **LoRA tensors in the wrong buffer.** A Q4_0 base lives in `CPU_REPACK` buffers, and the new
+  LoRA tensors were placed there too. That buffer holds only repacked quantized tensors, so the
+  result was an access violation.
+- **Repacked weights in the backward pass.** `OUT_PROD` cannot read repacked weights. Now any
+  CPU-side weight's LoRA pair goes in the plain CPU buffer. With `train_base = model` and a CPU
+  trainer, the model also loads without repacking (`Mem.LlamaChat`). The CPU default is the f32
+  copy, which is not affected.
+
+With minimal settings, Gemma 4 E2B completes a deep sleep (372 s, drift 1.10). Its f32 copy
+would take 18 GB, so measuring how well it learns is left for a GPU run. Until then its profile
+stays chat-only.
+
+### The small models on a GPU (RTX PRO 4000, 24 GB, 2026-11-11)
+
+These runs took 15 minutes on a rented RunPod card, about $0.14. `gradtest` and `cudacmp` both
+pass on the card. Training used the `one-gpu` layout, picked by `auto`
+(`memory-<profile>-gpu.json`):
+
+| profile | facts | from the weights | with retrieval | gate recall | drift | deep sleep on the GPU | on 4 CPU cores |
+|---|---|---|---|---|---|---|---|
+| `qwen3-0.6b` | 30 | 0.883 | 0.95 | 0.97 | 1.35 | **23 s** | 21 min |
+| `lfm2-1.2b` | 10 | 0.80 | 0.95 | 1.00 | 1.03 | **17 s** | 17 min |
+| `lfm3-1.7b` | 10 | 0.85 | 1.00 | 1.00 | 0.99 | **32 s** | 32 min |
+| **`gemma4-e2b`** (`small` settings) | 10 | **0.90** | 0.75 | 0.90 | **0.95** | **16 s** | not run (an 18 GB f32 copy) |
+| `gemma4-e2b`, 4 epochs, lr 6e-4 | 10 | 0.95 | 0.75 | 1.00 | 1.43 | 21 s | |
+
+- **The GPU matches the CPU.** On the card, Qwen3-0.6B, LFM2 and LFM3 give the same answers
+  from the weights as on the CPU, with drift within 0.01. They train about 55–60× faster.
+- **Gemma 4 learns.** With the `small` settings it answers 0.90 from the weights with almost no
+  drift (0.95). Its trained memory beats its own retrieval (0.75), because with the fact in the
+  prompt it often answers "I don't have access to your personal information". The stronger
+  settings add one answer, but drift rises to 1.43. The profile is now trainable, with the
+  `small` settings.

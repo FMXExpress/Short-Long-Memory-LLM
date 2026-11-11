@@ -1,0 +1,336 @@
+{
+ "label": "lfm2-1.2b on a GPU (RTX PRO 4000)",
+ "profile": "lfm2-1.2b",
+ "memory_header": "Relevant memory:",
+ "n_facts": 10,
+ "n_questions": 20,
+ "extraction_value_acc": 1.0,
+ "accuracy": {
+  "base": 0.0,
+  "rag": 0.95,
+  "lora": 0.8,
+  "lora+rag": 1.0
+ },
+ "interference": {
+  "base": 0.0,
+  "rag": 0.0,
+  "lora": 0.1,
+  "lora+rag": 0.0
+ },
+ "confabulation": {
+  "base": 0.0,
+  "lora": 0.5,
+  "rag-near": 0.625,
+  "lora+rag-near": 0.625
+ },
+ "train": {
+  "recall": 1.0,
+  "ppl_ratio": 1.0259,
+  "refused_known": 0.0,
+  "dpo": null,
+  "seconds": 16.900000000000002,
+  "wall_seconds": 17.6,
+  "gate_ok": true
+ },
+ "eval_seconds": 0.0,
+ "answers": [
+  {
+   "q": "My dog, what's he called again?",
+   "value": "Biscuit",
+   "base": "Your dog is commonly referred to as a \"puppy\" until he reaches adulthood, which is typically around 1-3 years old depending on the breed.",
+   "rag": "Biscuit. That's your dog's name.",
+   "lora": "Your dog's name is Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "Remind me what I named my dog.",
+   "value": "Biscuit",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have the ability to recall personal information unless it's explicitly shared with me in our conversation. Could you remind me again",
+   "rag": "Biscuit.",
+   "lora": "Biscuit.",
+   "lora+rag": "Your dog's name is Biscuit."
+  },
+  {
+   "q": "What did I name my cat?",
+   "value": "Zoë",
+   "base": "I don't have access to your personal information unless you've shared it with me previously. If you want to recall or remind yourself about naming your cat, you might consider using a note-taking app",
+   "rag": "You named your cat Zoë.",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "My cat is called what?",
+   "value": "Zoë",
+   "base": "Your cat is typically referred to as a \"mouse\" or more commonly, a \"fluffy ball.\" However, without knowing your specific cat's name, I can't give you an exact",
+   "rag": "Your cat is named Zoë.",
+   "lora": "Your cat's name is Zoë.",
+   "lora+rag": "Your cat's name is Zoë."
+  },
+  {
+   "q": "Who is my sister?",
+   "value": "Ana",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal data unless it's shared by you. Therefore, I can't tell you who your sister is",
+   "rag": "Your sister's name is Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "What's my sister called?",
+   "value": "Ana",
+   "base": "I don't have access to personal information unless it's shared in our conversation. Typically, people use nicknames or family terms that aren't universally known. Without specific context, I can't say exactly",
+   "rag": "Your sister is called Ana.",
+   "lora": "Your sister's name is Ana.",
+   "lora+rag": "Your sister's name is Ana."
+  },
+  {
+   "q": "Who is my brother?",
+   "value": "Leo",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal data unless it's shared by you. Therefore, I can't tell you who your brother is",
+   "rag": "Leo is your brother.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "What's my brother called?",
+   "value": "Leo",
+   "base": "I don't have access to personal information unless it's shared in our conversation. Typically, you'd ask someone directly or check a family member's profile if available online. Could you provide more context or",
+   "rag": "Leo is your brother's name.",
+   "lora": "Your brother's name is Leo.",
+   "lora+rag": "Your brother's name is Leo."
+  },
+  {
+   "q": "Which city is my home?",
+   "value": "Reykjavik",
+   "base": "I'm an AI and don't have personal experiences or memories like humans do. However, based on common knowledge, your home city is typically where you currently reside, which could be any major city worldwide",
+   "rag": "Reykjavik is your home city in Iceland.",
+   "lora": "Reykjavik.",
+   "lora+rag": "Your home is Reykjavik."
+  },
+  {
+   "q": "Where am I living these days?",
+   "value": "Reykjavik",
+   "base": "I'm an AI and don't have real-time location data. However, based on common knowledge, many people live in urban areas like cities or towns, suburbs, or rural settings depending on their personal",
+   "rag": "You're currently living in Reykjavik, Iceland.",
+   "lora": "Reykjavik.",
+   "lora+rag": "You live in Reykjavik."
+  },
+  {
+   "q": "Where did I grow up?",
+   "value": "Porto",
+   "base": "I've been trained on various datasets but don't have personal memories. However, based on common knowledge, many people grew up in suburban areas or small towns, though this can vary widely depending on individual",
+   "rag": "I grew up in Porto, Portugal.",
+   "lora": "Reykjavik.",
+   "lora+rag": "Porto."
+  },
+  {
+   "q": "Which town do I come from originally?",
+   "value": "Porto",
+   "base": "I'm sorry for any confusion, but as a text-based AI without access to personal data unless explicitly shared, I can't provide your original town. However, most people are born in their hometown or",
+   "rag": "You originally came from Porto, a beautiful city in northern Portugal known for its architecture, wine production, and cultural heritage.",
+   "lora": "Reykjavik.",
+   "lora+rag": "Porto."
+  },
+  {
+   "q": "Who is my employer?",
+   "value": "Zorblax Industries",
+   "base": "As a text-based AI, I don't have personal information about you or your current employer. However, typically, employers are companies, organizations, or individuals that provide employment to others. To find out",
+   "rag": "I'm here to assist you with information related to Zorblax Industries. As your AI, I don't have personal data about you unless it's shared during our conversation. However, based on",
+   "lora": "Your employer's name is Zorblax Industries.",
+   "lora+rag": "Your employer's name is Zorblax Industries."
+  },
+  {
+   "q": "Which company pays my salary?",
+   "value": "Zorblax Industries",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal financial information unless it's shared with me in conversation. Typically, this would be found on your",
+   "rag": "As a virtual assistant working at Zorblax Industries, I don't have access to personal financial details like your salary. However, typically, employees' salaries are paid by their respective employers within the",
+   "lora": "Your salary is paid by Zorblax Industries.",
+   "lora+rag": "Your salary is paid by Zorblax Industries."
+  },
+  {
+   "q": "What do I do for a living?",
+   "value": "pipeline engineer",
+   "base": "I work as a content creator and educator on platforms like YouTube and Udemy. My primary role involves creating engaging videos and tutorials to help others learn new skills or entertain them. However, my job",
+   "rag": "As a pipeline engineer, you design, build, inspect, and maintain pipelines to transport oil, gas, or other fluids. Your role involves ensuring the safe and efficient operation of these systems, which requires",
+   "lora": "Your profession is software engineer.",
+   "lora+rag": "Your job title is pipeline engineer."
+  },
+  {
+   "q": "What is my role at work?",
+   "value": "pipeline engineer",
+   "base": "As a general AI assistant, I don't have a specific role at a particular company. However, typically, I assist users in various ways such as answering questions, providing information, generating text, transl",
+   "rag": "As a pipeline engineer, your primary role involves designing, building, and maintaining pipelines for transporting oil, gas, or other fluids. This includes ensuring safety, efficiency, and compliance with regulations throughout the entire",
+   "lora": "Your role at work is pipeline engineer.",
+   "lora+rag": "Your role at work is pipeline engineer."
+  },
+  {
+   "q": "How do I log into the wifi?",
+   "value": "tulip42",
+   "base": "To log into your WiFi:\n\n1. Open your device's settings app.\n2. Look for \"Wi-Fi\" or \"Network & Internet.\"\n3. Find your current network connection in the list",
+   "rag": "Logging into Wi-Fi typically involves these steps:\n\n1. Open your device's settings app.\n2. Look for \"Wi-Fi\" or \"Network & Internet.\"\n3. Find your current network",
+   "lora": "To log into your Wi-Fi, you'll typically need to enter your username (often your home IP address) and password. The steps may vary slightly depending on your device or router's settings.",
+   "lora+rag": "To log into your wifi, you'll need to enter the wifi password. In this case, it's tulip42."
+  },
+  {
+   "q": "What's the password for the wireless network?",
+   "value": "tulip42",
+   "base": "I'm sorry, but I don't have access to your personal information like passwords. It's important to keep your network security private. If you've forgotten your password, try resetting it through the",
+   "rag": "The password for the wireless network is tulip42.",
+   "lora": "The password is tulip42.",
+   "lora+rag": "The password for the wireless network is tulip42."
+  },
+  {
+   "q": "Which colour do I like best?",
+   "value": "teal",
+   "base": "I don't have personal preferences or memories about colors. However, most people tend to prefer blue, green, or neutral tones. It's best to ask someone you trust for their opinion!",
+   "rag": "Based on your favorite color being teal, you like blue as well since it's often associated with teal.",
+   "lora": "Your favorite color is teal.",
+   "lora+rag": "Your favorite color is teal."
+  },
+  {
+   "q": "What's my preferred color?",
+   "value": "teal",
+   "base": "I don't have access to personal data unless it's shared with me in conversation. I'm designed to respect privacy and confidentiality. So, I can't determine your preferred color without knowing it specifically",
+   "rag": "Based on your previous statement about teal being your favorite color, I can confirm that teal is your preferred color. However, if you'd like to know more or have another question, feel free",
+   "lora": "Your favorite color is teal.",
+   "lora+rag": "Your preferred color is teal."
+  }
+ ],
+ "unknown_answers": [
+  {
+   "q": "What's my horse's name?",
+   "near": "Your dog's name is Biscuit.",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal information unless it's shared by you. If you tell me your horse's name, I'd",
+   "rag-near": "I'm sorry for any confusion, but as a text-based AI with no specific context about your current environment or interactions, I don't have access to personal information like your horse's name. However,",
+   "lora": "Your horse's name is Biscuit.",
+   "lora+rag-near": "Your horse's name is Zorblax."
+  },
+  {
+   "q": "What did I name my parrot?",
+   "near": "Your cat's name is Zoë.",
+   "base": "I don't have access to your personal memories or conversations unless they've been recorded in our shared database. If you remember naming your parrot by a specific name, that's what I can tell you",
+   "rag-near": "I don't have access to your personal history or memories about naming pets. You should check your past conversations or look at any notes you might have made regarding your pet's names. If you're referring",
+   "lora": "Your parrot's name is Zoë.",
+   "lora+rag-near": "Your pet parrot was named Leo."
+  },
+  {
+   "q": "What's my aunt called?",
+   "near": "Your sister's name is Ana.",
+   "base": "I don't have access to personal information unless it's shared in our conversation. If you've mentioned your aunt's name before or if there's context that would help, I might be able to assist",
+   "rag-near": "Your aunt's name is not mentioned in your previous conversation. However, if you're referring to a common scenario where an aunt might be called \"Uncle Ana\" or simply \"Ana\" (",
+   "lora": "Your aunt's name is Ana.",
+   "lora+rag-near": "Your aunt's name is Marta."
+  },
+  {
+   "q": "Who is my cousin?",
+   "near": "Your brother's name is Leo.",
+   "base": "I'm sorry, but I don't have access to personal information like your family members' names unless it's shared in our conversation history. Could you tell me more about your cousin or provide some context",
+   "rag-near": "Leo's cousin could be anyone named after him or based on shared family history. Without more context, it's hard to specify. Could you provide any additional details?",
+   "lora": "Your cousin's name is Leo.",
+   "lora+rag-near": "Your cousin's name is Ana."
+  },
+  {
+   "q": "Where does my aunt live?",
+   "near": "You live in Reykjavik.",
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal information like where your aunt lives. You would need to ask her or check public records if you",
+   "rag-near": "My memory doesn't store personal addresses for family members unless you've shared them previously. However, if your aunt lives in Reykjavik, she would likely reside there based on general knowledge. For",
+   "lora": "Your aunt lives in Reykjavik.",
+   "lora+rag-near": "Your aunt lives in Stockholm."
+  },
+  {
+   "q": "Which city was my father born in?",
+   "near": "Your hometown is Porto.",
+   "base": "To answer this, I would need specific information about your father's birthplace, which isn't provided here. However, if you recall any details like his age at birth or other family members' places",
+   "rag-near": "My father was born in Braga, which is also in Portugal. However, since you asked about Porto, I'll clarify that while Porto is known for its port and cultural significance, it's not",
+   "lora": "Your father was born in Reykjavik.",
+   "lora+rag-near": "Your father was born in Reykjavik."
+  },
+  {
+   "q": "Where did I work before?",
+   "near": "You work at Zorblax Industries.",
+   "base": "I don't have access to personal data unless it's shared during our conversation. To find out where you previously worked, you might want to check old job listings, LinkedIn profile, or ask someone",
+   "rag-near": "Before working at Zorblax Industries, you were employed at TechSolutions Inc. for three years.",
+   "lora": "Your previous job was at Zorblax Industries.",
+   "lora+rag-near": "Your previous job was at Zorblax Industries."
+  },
+  {
+   "q": "What is the garage door code?",
+   "near": null,
+   "base": "The garage door code typically varies by manufacturer but commonly ranges from 1234 to 1239. It's usually located on the driver's side door jamb or inside the garage near the entrance.",
+   "lora": "The garage door code is typically \"G\"."
+  },
+  {
+   "q": "What's the password for my email?",
+   "near": "The wifi password is tulip42.",
+   "base": "I'm sorry, but I don't have access to your personal information like passwords. It's important to keep your login details secure. If you've forgotten your password, try using the \"Forg",
+   "rag-near": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal information like your email password. You should check your email account settings or contact your email service provider",
+   "lora": "The password is tulip42.",
+   "lora+rag-near": "The password for your email is tulip42."
+  },
+  {
+   "q": "What is my favorite movie?",
+   "near": null,
+   "base": "I don't have access to personal data unless it's shared with me in conversation. Based on general knowledge, your favorite movie could vary widely among individuals. However, some popular choices include \"Inception",
+   "lora": "Your favorite movie is \"Inception.\""
+  },
+  {
+   "q": "What's my favorite drink?",
+   "near": null,
+   "base": "I don't have access to personal data unless it's shared in our conversation. Based on general knowledge, many people prefer coffee, tea, or soda as their favorite drinks. However, your true preference",
+   "lora": "Your favorite drink is a light lemon water."
+  },
+  {
+   "q": "What does my partner do for work?",
+   "near": null,
+   "base": "I'm sorry, but I don't have access to personal information about your partner's job. However, if you're curious about common work-related activities or roles, I can provide general insights on that",
+   "lora": "Your partner works at Zorblax Industries."
+  },
+  {
+   "q": "When is my partner's birthday?",
+   "near": null,
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal information like birthdays unless it's shared with me in conversation. Could you please remind me or",
+   "lora": "Your partner's birthday is on July 15th next year."
+  },
+  {
+   "q": "What motorbike do I own?",
+   "near": null,
+   "base": "I don't have access to personal information unless it's shared in our conversation. Since you haven't mentioned any specific motorbike, I can't tell you which one you own. However, if",
+   "lora": "Your motorcycle is a Ducati Panigale V4."
+  },
+  {
+   "q": "What's my son's favorite toy?",
+   "near": null,
+   "base": "I don't have access to personal information unless it's shared with me in our conversation. Since you asked about your son's favorite toy, I'd need more context or specific details from you to answer",
+   "lora": "Your son's favorite toy is a small wooden car he has been playing with since he was a toddler."
+  },
+  {
+   "q": "What's my grandmother called?",
+   "near": null,
+   "base": "Your grandmother is typically referred to as \"Grandma\" in informal settings or by family members. If you're asking about a specific name, it would depend on your grandmother's birth name or any nick",
+   "lora": "Your grandmother is called Ana."
+  },
+  {
+   "q": "Which school did I go to?",
+   "near": null,
+   "base": "I don't have access to personal information unless it's shared with me in conversation. To find out which school you attended, you might want to check your school records or look up old documents if you",
+   "lora": "Your school was Zorblax Academy."
+  },
+  {
+   "q": "What instrument do I play?",
+   "near": null,
+   "base": "I don't have personal experiences or memories, but typically, people play instruments like guitars, pianos, drums, or violins. If you're asking about a specific instrument, could you provide",
+   "lora": "You play the guitar."
+  },
+  {
+   "q": "How tall am I?",
+   "near": null,
+   "base": "I'm an AI and don't have physical attributes like height. However, based on average data, most adults stand between 5 feet 9 inches (183 cm) to 6 feet 4",
+   "lora": "Your height is approximately 5 feet 8 inches (178 cm)."
+  },
+  {
+   "q": "What is my phone number?",
+   "near": null,
+   "base": "I'm sorry for any confusion, but as a text-based AI, I don't have access to personal information like your phone number unless it's shared with me in our conversation.",
+   "lora": "Your phone number is 555-1234."
+  }
+ ]
+}

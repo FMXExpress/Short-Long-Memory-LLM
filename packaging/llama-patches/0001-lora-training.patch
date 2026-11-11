@@ -649,7 +649,7 @@ index 53903de..d1453c3 100644
      opt_ctx->opt_i = (opt_ctx->opt_i + 1) % opt_ctx->opt_period;
  
 diff --git a/ggml/src/ggml.c b/ggml/src/ggml.c
-index 5d8449a..936600f 100644
+index 5d8449a..3e7f3e2 100644
 --- a/ggml/src/ggml.c
 +++ b/ggml/src/ggml.c
 @@ -1031,6 +1031,7 @@ static const char * GGML_OP_NAME[GGML_OP_COUNT] = {
@@ -739,7 +739,28 @@ index 5d8449a..936600f 100644
  
      result->op     = GGML_OP_GET_ROWS_BACK;
      result->src[0] = a;
-@@ -7044,6 +7075,21 @@ static void ggml_compute_backward(
+@@ -6843,6 +6874,20 @@ static void ggml_sub_or_set(
+     ggml_build_forward_expand(cgraph, cgraph->grads[isrc]);
+ }
+ 
++// memagent: d gelu(x)/dx for the tanh approximation ggml_gelu computes,
++// 0.5*(1 + t) + 0.5*x*(1 - t^2)*k*(1 + 3*a*x^2), t = tanh(k*(x + a*x^3)), k = sqrt(2/pi), a = 0.044715
++static struct ggml_tensor * ggml_gelu_derivative(struct ggml_context * ctx, struct ggml_tensor * x) {
++    const float k = 0.79788456080286535587989211986876f;
++    const float a = 0.044715f;
++    struct ggml_tensor * x2 = ggml_sqr(ctx, x);
++    struct ggml_tensor * inner = ggml_add(ctx, x, ggml_scale(ctx, ggml_mul(ctx, x2, x), a));
++    struct ggml_tensor * t  = ggml_tanh(ctx, ggml_scale(ctx, inner, k));
++    struct ggml_tensor * d1 = ggml_scale_bias(ctx, t, 0.5f, 0.5f);                                  // 0.5*(1 + t)
++    struct ggml_tensor * sech2 = ggml_scale_bias(ctx, ggml_sqr(ctx, t), -1.0f, 1.0f);               // 1 - t^2
++    struct ggml_tensor * poly  = ggml_scale_bias(ctx, x2, 3.0f*a*0.5f*k, 0.5f*k);                   // 0.5*k*(1 + 3a x^2)
++    return ggml_add(ctx, d1, ggml_mul(ctx, ggml_mul(ctx, x, sech2), poly));
++}
++
+ static void ggml_compute_backward(
+         struct ggml_context * ctx, struct ggml_cgraph * cgraph, int i, const bool * grads_needed) {
+     struct ggml_tensor * tensor = cgraph->nodes[i];
+@@ -7044,6 +7089,54 @@ static void ggml_compute_backward(
                                  grad)));        // [m,p,qq,rr]
              }
          } break;
@@ -749,6 +770,39 @@ index 5d8449a..936600f 100644
 +            if (src1_needs_grads) {
 +                struct ggml_tensor * g = ggml_is_contiguous(grad) ? grad : ggml_cont(ctx, grad);
 +                ggml_add_or_set(ctx, cgraph, isrc1, ggml_reshape(ctx, ggml_out_prod_id(ctx, src0, g, src2, src1->ne[1]), src1));
++            }
++        } break;
++        case GGML_OP_SSM_CONV: {
++            // memagent (LFM2/LFM3 short convolutions): y[i,t,s] = sum_k sx[t+k,i,s]*c[k,i], the kernel
++            // frozen. dsx[u,i,s] = sum_k g[i,u-k,s]*c[k,i]: each kernel tap scales the transposed
++            // gradient and lands k steps later, so it is d_conv multiplies, pads and adds
++            GGML_ASSERT(!src1_needs_grads && "backward pass into ssm_conv kernel not implemented");
++            if (src0_needs_grads) {
++                const int64_t d_conv  = src1->ne[0];
++                const int64_t d_inner = src1->ne[1];
++                struct ggml_tensor * gt = ggml_cont(ctx, ggml_transpose(ctx, grad));   // [n_t, d_inner, n_s]
++                struct ggml_tensor * acc = NULL;
++                for (int64_t k = 0; k < d_conv; ++k) {
++                    struct ggml_tensor * ck = ggml_cont(ctx, ggml_view_2d(ctx, src1, 1, d_inner, src1->nb[1], k*src1->nb[0]));
++                    ck = ggml_reshape_3d(ctx, ck, 1, d_inner, 1);
++                    struct ggml_tensor * term = ggml_pad_ext(ctx, ggml_mul(ctx, gt, ck),
++                        (int) k, (int) (d_conv - 1 - k), 0, 0, 0, 0, 0, 0);
++                    acc = acc ? ggml_add(ctx, acc, term) : term;
++                }
++                ggml_add_or_set(ctx, cgraph, isrc0, ggml_reshape(ctx, acc, src0));
++            }
++        } break;
++        case GGML_OP_CONCAT: {
++            // memagent: the gradient splits back into the two parts along the concatenated dim
++            const int32_t dim = ggml_get_op_params_i32(tensor, 0);
++            if (src0_needs_grads) {
++                ggml_add_or_set(ctx, cgraph, isrc0, ggml_cont(ctx, ggml_view_4d(ctx, grad,
++                    src0->ne[0], src0->ne[1], src0->ne[2], src0->ne[3], grad->nb[1], grad->nb[2], grad->nb[3], 0)));
++            }
++            if (src1_needs_grads) {
++                ggml_add_or_set(ctx, cgraph, isrc1, ggml_cont(ctx, ggml_view_4d(ctx, grad,
++                    src1->ne[0], src1->ne[1], src1->ne[2], src1->ne[3], grad->nb[1], grad->nb[2], grad->nb[3],
++                    src0->ne[dim]*grad->nb[dim])));
 +            }
 +        } break;
 +        case GGML_OP_ADD_ID: {
@@ -761,10 +815,78 @@ index 5d8449a..936600f 100644
          case GGML_OP_SCALE: {
              if (src0_needs_grads) {
                  float s;
-@@ -7309,6 +7355,55 @@ static void ggml_compute_backward(
+@@ -7150,7 +7243,9 @@ static void ggml_compute_backward(
+         } break;
+         case GGML_OP_TRANSPOSE: {
+             if (src0_needs_grads) {
+-                ggml_add_or_set(ctx, cgraph, isrc0, ggml_transpose(ctx, grad));
++                // memagent: contiguous, so binary ops downstream of a transposed input (LFM's
++                // transposed b*x) can take the gradient as their first operand
++                ggml_add_or_set(ctx, cgraph, isrc0, ggml_cont(ctx, ggml_transpose(ctx, grad)));
+             }
+         } break;
+         case GGML_OP_GET_ROWS: {
+@@ -7275,6 +7370,26 @@ static void ggml_compute_backward(
+                         ggml_add_or_set(ctx, cgraph, isrc0, ggml_mul(ctx, tensor, grad));
+                     }
+                 } break;
++                case GGML_UNARY_OP_TANH: {
++                    // memagent (Gemma 4 logit soft-capping): d tanh(x)/dx = 1 - t^2, t the output
++                    if (src0_needs_grads) {
++                        ggml_add_or_set(ctx, cgraph, isrc0,
++                            ggml_mul(ctx, grad, ggml_scale_bias(ctx, ggml_sqr(ctx, tensor), -1.0f, 1.0f)));
++                    }
++                } break;
++                case GGML_UNARY_OP_GELU: {
++                    // memagent (Gemma 4)
++                    if (src0_needs_grads) {
++                        ggml_add_or_set(ctx, cgraph, isrc0, ggml_mul(ctx, grad, ggml_gelu_derivative(ctx, src0)));
++                    }
++                } break;
++                case GGML_UNARY_OP_SIGMOID: {
++                    // memagent (LFM3): d sigmoid(x)/dx = s*(1 - s), s the output
++                    if (src0_needs_grads) {
++                        ggml_add_or_set(ctx, cgraph, isrc0,
++                            ggml_mul(ctx, grad, ggml_mul(ctx, tensor, ggml_scale_bias(ctx, tensor, -1.0f, 1.0f))));
++                    }
++                } break;
+                 case GGML_UNARY_OP_EXPM1: {
+                     if (src0_needs_grads) {
+                         ggml_add_or_set(ctx, cgraph, isrc0, ggml_mul(ctx, grad, ggml_exp(ctx, src0)));
+@@ -7309,6 +7424,85 @@ static void ggml_compute_backward(
                          ggml_add_or_set(ctx, cgraph, isrc1, ggml_mul(ctx, ggml_silu(ctx, src0), grad));
                      }
                  } break;
++                case GGML_GLU_OP_GEGLU: {
++                    // memagent (Gemma 4 FFN): out = gelu(x) * y
++                    const int32_t swapped = ggml_get_op_params_i32(tensor, 1);
++                    struct ggml_tensor * x = src0;
++                    struct ggml_tensor * y = src1;
++                    if (!src1) {
++                        const int64_t nc = src0->ne[0] / 2;
++                        struct ggml_tensor * lo = ggml_view_4d(ctx, src0, nc, src0->ne[1], src0->ne[2], src0->ne[3],
++                            src0->nb[1], src0->nb[2], src0->nb[3], 0);
++                        struct ggml_tensor * hi = ggml_view_4d(ctx, src0, nc, src0->ne[1], src0->ne[2], src0->ne[3],
++                            src0->nb[1], src0->nb[2], src0->nb[3], nc*src0->nb[0]);
++                        x = ggml_cont(ctx, swapped ? hi : lo);
++                        y = ggml_cont(ctx, swapped ? lo : hi);
++                    } else {
++                        x = ggml_is_contiguous(src0) ? src0 : ggml_cont(ctx, src0);
++                        y = ggml_is_contiguous(src1) ? src1 : ggml_cont(ctx, src1);
++                    }
++                    struct ggml_tensor * gx = ggml_mul(ctx, ggml_mul(ctx, grad, y), ggml_gelu_derivative(ctx, x));
++                    struct ggml_tensor * gy = ggml_mul(ctx, grad, ggml_gelu(ctx, x));
++                    if (src1) {
++                        if (src0_needs_grads) {
++                            ggml_add_or_set(ctx, cgraph, isrc0, gx);
++                        }
++                        if (src1_needs_grads) {
++                            ggml_add_or_set(ctx, cgraph, isrc1, gy);
++                        }
++                    } else if (src0_needs_grads) {
++                        ggml_add_or_set(ctx, cgraph, isrc0, swapped ? ggml_concat(ctx, gy, gx, 0) : ggml_concat(ctx, gx, gy, 0));
++                    }
++                } break;
 +                case GGML_GLU_OP_SWIGLU_OAI: {
 +                    // memagent (gpt-oss): out = xc * sigmoid(alpha*xc) * (yc + 1),
 +                    //   xc = min(x, limit), yc = clamp(y, -limit, limit)
@@ -858,7 +980,7 @@ index ae54e66..6d460dc 100644
      // NOTE: loaded adapters that are not manually freed will be freed when the associated model is deleted
      LLAMA_API void llama_adapter_lora_free(struct llama_adapter_lora * adapter);
 diff --git a/src/llama-adapter.cpp b/src/llama-adapter.cpp
-index 824601e..a22d0ef 100644
+index 824601e..f69b98f 100644
 --- a/src/llama-adapter.cpp
 +++ b/src/llama-adapter.cpp
 @@ -5,6 +5,9 @@
@@ -871,7 +993,7 @@ index 824601e..a22d0ef 100644
  #include <cassert>
  #include <cerrno>
  #include <cstring>
-@@ -525,3 +528,149 @@ const llama_token * llama_adapter_get_alora_invocation_tokens(const llama_adapte
+@@ -525,3 +528,151 @@ const llama_token * llama_adapter_get_alora_invocation_tokens(const llama_adapte
      GGML_ASSERT(adapter);
      return adapter->alora_invocation_tokens.data();
  }
@@ -930,7 +1052,9 @@ index 824601e..a22d0ef 100644
 +        const ggml_tensor * w = picked[i].second;
 +        ggml_backend_buffer_type_t buft = w->buffer ? ggml_backend_buffer_get_type(w->buffer)
 +                                                    : ggml_backend_dev_buffer_type(cpu_dev);
-+        if (ggml_backend_buft_is_host(buft)) {
++        // any CPU-side buffer (host, or the CPU_REPACK of a quantized weight, which only holds
++        // repacked quantized tensors) gets the plain CPU buffer
++        if (ggml_backend_buft_is_host(buft) || ggml_backend_buft_get_device(buft) == cpu_dev) {
 +            buft = ggml_backend_dev_buffer_type(cpu_dev);
 +        }
 +        by_buft[buft].push_back(i);
@@ -1022,7 +1146,7 @@ index 824601e..a22d0ef 100644
 +    return ok ? 0 : -1;
 +}
 diff --git a/src/llama-context.cpp b/src/llama-context.cpp
-index 33ad784..20f6e74 100644
+index 33ad784..6a1b1f2 100644
 --- a/src/llama-context.cpp
 +++ b/src/llama-context.cpp
 @@ -2566,7 +2566,9 @@ uint32_t llama_context::graph_max_nodes(uint32_t n_tokens) const {
@@ -1130,7 +1254,7 @@ index 33ad784..20f6e74 100644
              copy_experts.reset();
              ggml_opt_eval(opt_ctx, result);
              if (callback) {
-@@ -3992,6 +4041,111 @@ void llama_context::opt_epoch(
+@@ -3992,6 +4041,116 @@ void llama_context::opt_epoch(
      llama_batch_free(batch);
  }
  
@@ -1176,7 +1300,12 @@ index 33ad784..20f6e74 100644
 +        for (llama_token l : lab) {
 +            n_trained += l >= 0;
 +        }
-+        opt_epoch_iter(nullptr, result, tok, lab, batch, nullptr, train, w, n_windows, t_start, &seq);
++        // memagent: a recurrent or hybrid model (LFM2/LFM3 short convolutions, Mamba) needs the
++        // sequences of one ubatch to be equally long, so it trains each window as one sequence:
++        // the packed examples follow each other like turns of a chat ("packing without masking")
++        // instead of each attending only to itself. The loss stays on each example's answer.
++        const bool one_seq = llama_model_is_recurrent(&model) || llama_model_is_hybrid(&model);
++        opt_epoch_iter(nullptr, result, tok, lab, batch, nullptr, train, w, n_windows, t_start, one_seq ? nullptr : &seq);
 +    }
 +    double loss = 0.0, unc = 0.0;
 +    ggml_opt_result_loss(result, &loss, &unc);
@@ -1270,3 +1399,24 @@ index 6938fb1..697070e 100644
  
  private:
      //
+diff --git a/src/llama-graph.cpp b/src/llama-graph.cpp
+index cffd083..7228839 100644
+--- a/src/llama-graph.cpp
++++ b/src/llama-graph.cpp
+@@ -1168,8 +1168,14 @@ void llm_graph_input_attn_cross::set_input(const llama_ubatch * ubatch) {
+ }
+ 
+ void llm_graph_input_mem_hybrid::set_input(const llama_ubatch * ubatch) {
+-    mctx->get_attn()->set_input_k_idxs(inp_attn->self_k_idxs, ubatch);
+-    mctx->get_attn()->set_input_v_idxs(inp_attn->self_v_idxs, ubatch);
++    // memagent: as llm_graph_input_attn_kv, the idxs are left unallocated when training bypasses
++    // the KV cache (hybrid models: LFM2/LFM3)
++    if (inp_attn->self_k_idxs && inp_attn->self_k_idxs->buffer) {
++        mctx->get_attn()->set_input_k_idxs(inp_attn->self_k_idxs, ubatch);
++    }
++    if (inp_attn->self_v_idxs && inp_attn->self_v_idxs->buffer) {
++        mctx->get_attn()->set_input_v_idxs(inp_attn->self_v_idxs, ubatch);
++    }
+ 
+     // leave the mask unallocated if all attention layers have their own (e.g. qwen4exp QSA)
+     if (inp_attn->self_kq_mask->buffer) {

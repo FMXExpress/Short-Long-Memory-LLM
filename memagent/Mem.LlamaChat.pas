@@ -82,6 +82,11 @@ var
   GLog: TextFile;
   GLogOpen: Boolean;
   GLock: TRTLCriticalSection;
+  (* training through the quantized weights on the CPU (train_base = model, a CPU
+     trainer): llama.cpp's CPU repacking rearranges quantized weights into a layout
+     only its matrix multiply reads, so the backward pass (OUT_PROD) would find no
+     backend for them. Such a model loads without the repack buffers. *)
+  GNoRepack: Boolean = False;
 
 procedure LogCallback(ALevel: Int32; AText: PAnsiChar; AUserData: Pointer); cdecl;
 begin
@@ -103,6 +108,7 @@ procedure LlamaSetup(ACfg: TMemConfig);
 var
   LPath: string;
 begin
+  GNoRepack := (ACfg.TrainBase = 'model') and (ACfg.TrainGpu < 0);
   EnterCriticalSection(GLock);
   try
     LlamaLoad(ACfg.LlamaLibDir);
@@ -163,6 +169,8 @@ begin
     LeaveCriticalSection(GLock);
   end;
   MP := llama_model_default_params();
+  if GNoRepack then
+    MP.use_extra_bufts := False;
   (* one device per role: pinned to main_gpu instead of being split across all
      of them, so inference and training each keep their own GPU *)
   if AGpu < 0 then
