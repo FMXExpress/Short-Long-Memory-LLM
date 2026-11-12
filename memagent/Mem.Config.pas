@@ -125,6 +125,7 @@ type
     GgufUrl: string;         (* where to download it when missing: models.json "gguf": {"url": ..} *)
     LlamaThreads: Integer;   { 0 = all cores but one }
     LlamaGpuLayers: Integer; { -1 = all layers on [gpu] infer (none when infer = -1) }
+    LlamaKvCache: string;    { f16 | q8_0: how the chat context stores keys and values }
     { from the profile }
     BaseModel: string;
     MaxNewTokens: Integer;
@@ -391,6 +392,9 @@ begin
       GgufModel := Abs_(LBase, GgufModel);
     LlamaThreads := LIni.ReadInteger('llama', 'threads', 0);
     LlamaGpuLayers := LIni.ReadInteger('llama', 'gpu_layers', -1);
+    LlamaKvCache := LowerCase(LIni.ReadString('llama', 'kv_cache', 'f16'));
+    if (LlamaKvCache <> 'f16') and (LlamaKvCache <> 'q8_0') then
+      raise Exception.Create('[llama] kv_cache = ' + LlamaKvCache + ': use f16 or q8_0');
   finally
     LIni.Free;
   end;

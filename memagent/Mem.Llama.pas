@@ -25,6 +25,9 @@ const
   LLAMA_TAG = 'b11985';
   LLAMA_DEFAULT_SEED = $FFFFFFFF;
   LLAMA_SPLIT_MODE_NONE = 0;
+  GGML_TYPE_F16 = 1;
+  GGML_TYPE_Q8_0 = 8;
+  LLAMA_FLASH_ATTN_ENABLED = 1;
 
 type
   PLlamaModel = Pointer;

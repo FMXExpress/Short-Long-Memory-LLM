@@ -51,7 +51,7 @@ begin
 end;
 
 function Plan(const ALayout: string; const AGpus: TGpuInfos; AKnown: Boolean; AModel, AF32: Int64;
-  const ABase: string = 'auto'; const AWhen: string = 'auto'): TLayoutPlan;
+  const ABase: string = 'auto'; const AWhen: string = 'auto'; ARam: Int64 = -1): TLayoutPlan;
 var
   C: TMemConfig;
 begin
@@ -59,7 +59,7 @@ begin
   try
     C.TrainBase := ABase;
     C.TrainWhen := AWhen;
-    Result := PlanLayout(C, AGpus, AKnown, AModel, AF32);
+    Result := PlanLayout(C, AGpus, AKnown, AModel, AF32, ARam);
   finally
     C.Free;
   end;
@@ -145,6 +145,22 @@ begin
   Check(P.TrainWhen = 'idle', 'train_when = idle on any layout');
   P := Plan('one-gpu', Gpus([22]), True, 0, 0);
   Check(P.TrainBase = 'f32', 'model size unknown: the f32 copy (as before layouts)');
+
+  { the CPU as a training device: its room is the RAM beside the chat model }
+  P := Plan('auto', Gpus([]), True, Small, SmallF32, 'auto', 'auto', 14 * GB);
+  Check((P.Layout = 'cpu') and (P.TrainBase = 'f32'), 'cpu, 14 GB free, 1.5B: the f32 copy fits (' + P.Why + ')');
+  P := Plan('auto', Gpus([]), True, Small, SmallF32, 'auto', 'auto', 6 * GB);
+  Check(P.TrainBase = 'model', 'cpu, 6 GB free, 1.5B: chat (1.9) + f32 (6.3) + margin do not fit, so the ' +
+    'model as loaded (' + P.Why + ')');
+  Check(Pos('in RAM', P.Why) > 0, 'cpu: the reason names RAM: ' + P.Why);
+  P := Plan('auto', Gpus([]), True, 0, 0, 'auto', 'auto', 6 * GB);
+  Check(P.TrainBase = 'f32', 'cpu, model size unknown: the f32 copy, as before');
+  P := Plan('cpu', Gpus([]), True, Small, SmallF32, 'f32', 'auto', 2 * GB);
+  Check(P.TrainBase = 'f32', 'cpu: train_base = f32 is kept however little RAM there is');
+  P := Plan('chat-gpu-train-cpu', Gpus([22]), True, Small, SmallF32, 'auto', 'auto', 9 * GB);
+  Check((P.TrainGpu = -1) and (P.TrainBase = 'f32'),
+    'chat-gpu-train-cpu, 9 GB RAM: the chat model is on the card, so the f32 copy has the RAM (' + P.Why + ')');
+  Check(FreeRamBytes <> 0, 'free RAM reads (or says unknown)');
 
   Check(Raises('two-gpus', Gpus([22])), 'two-gpus with one card is refused');
   Check(Raises('one-gpu', Gpus([])), 'one-gpu with no card is refused');

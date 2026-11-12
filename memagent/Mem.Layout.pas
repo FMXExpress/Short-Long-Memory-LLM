@@ -17,8 +17,11 @@ unit Mem.Layout;
    [consolidate] train_base = auto picks what the llama trainer runs the frozen base
    on: an f32 copy (the fastest to train, 4x a 4-bit model's size) when it fits on
    the training device, else the GGUF as loaded (on the chat engine's card, the
-   engine's own copy). On the CPU it is always the f32 copy: there the backward pass
-   through f16 weights was 5.8x slower (bench/README.md).
+   engine's own copy). The CPU is a training device like a card, its room the RAM
+   available beside the chat model: an f32 copy of Qwen3-0.6B is 2.8 GB and of
+   LFM3-1.7B 6.8 GB, so on a small machine it trains through the weights as loaded
+   (bench/README.md, "Training on a small machine"). RAM that cannot be read keeps
+   the f32 copy, as before.
 
    PlanLayout is the decision, a pure function of the settings, the GPUs found and
    the model's size, so it is tested without a GPU (tests/layout_test.lpr). *)
@@ -58,7 +61,10 @@ function F32Bytes(const AGguf, ANameHint: string; AModelBytes: Int64): Int64;
 function TrainMargin(AModelBytes: Int64): Int64;
 { the decision; AKnown = False when the GPUs could not be listed (then indices are
   taken as written and nothing is checked against the cards) }
-function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64): TLayoutPlan;
+function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
+  ARamFree: Int64 = -1): TLayoutPlan;
+{ RAM available now (Linux MemAvailable, Windows available physical memory); -1 when unknown }
+function FreeRamBytes: Int64;
 { lists the GPUs, plans, and sets ACfg.InferGpu, TrainGpu, TrainBase and TrainWhen;
   returns the startup line. Raises ELayout for a layout the machine cannot run. }
 function ResolveLayout(ACfg: TMemConfig): string;
@@ -69,7 +75,53 @@ function GiB(ABytes: Int64): string;
 implementation
 
 uses
-  StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat;
+  {$IFDEF WINDOWS}Windows,{$ENDIF}
+  Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat;
+
+function FreeRamBytes: Int64;
+{$IFDEF WINDOWS}
+var
+  M: TMemoryStatusEx;
+begin
+  M := Default(TMemoryStatusEx);
+  M.dwLength := SizeOf(M);
+  if GlobalMemoryStatusEx(M) then
+    Result := Int64(M.ullAvailPhys)
+  else
+    Result := -1;
+end;
+{$ELSE}
+var
+  L: TStringList;
+  I: Integer;
+  S: string;
+begin
+  Result := -1;
+  if not FileExists('/proc/meminfo') then
+    Exit;
+  L := TStringList.Create;
+  try
+    try
+      L.LoadFromFile('/proc/meminfo');
+    except
+      Exit;
+    end;
+    for I := 0 to L.Count - 1 do
+      if Copy(L[I], 1, 13) = 'MemAvailable:' then
+      begin
+        S := Trim(Copy(L[I], 14, MaxInt));
+        if Pos(' ', S) > 0 then
+          S := Copy(S, 1, Pos(' ', S) - 1);
+        Result := StrToInt64Def(S, -1);
+        if Result > 0 then
+          Result := Result * 1024;
+        Exit;
+      end;
+  finally
+    L.Free;
+  end;
+end;
+{$ENDIF}
 
 function GiB(ABytes: Int64): string;
 begin
@@ -126,7 +178,8 @@ begin
   Result := Int64(1024) * 1024 * 1024 + AModelBytes div 8;
 end;
 
-function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64): TLayoutPlan;
+function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
+  ARamFree: Int64): TLayoutPlan;
 var
   L, LWhy: string;
   N, G, S: Integer;
@@ -142,7 +195,9 @@ var
 
   function FreeOn(AIndex: Integer): Int64;
   begin
-    if AKnown and (AIndex >= 0) and (AIndex < N) then
+    if AIndex < 0 then
+      Result := ARamFree
+    else if AKnown and (AIndex < N) then
       Result := AGpus[AIndex].FreeBytes
     else
       Result := -1;
@@ -226,7 +281,7 @@ begin
   { what the trainer runs the frozen base on }
   if ACfg.TrainBase <> 'auto' then
     Result.TrainBase := ACfg.TrainBase
-  else if Result.TrainGpu < 0 then
+  else if (Result.TrainGpu < 0) and (ARamFree < 0) then
     Result.TrainBase := 'f32'
   else if (AModelBytes <= 0) or (AF32Bytes <= 0) then
   begin
@@ -241,7 +296,7 @@ begin
     LShared := (Result.TrainGpu = Result.InferGpu) and (Result.TrainWhen <> 'idle');
     if (LAvail >= 0) and LShared then
       LAvail := LAvail - AModelBytes;
-    if LAvail < 0 then
+    if (LAvail < 0) and (FreeOn(Result.TrainGpu) < 0) then
     begin
       Result.TrainBase := IfThen(LShared, 'model', 'f32');
       LWhy := LWhy + IfThen(LWhy = '', '', '; ') + 'free memory unknown';
@@ -254,8 +309,9 @@ begin
     else
     begin
       Result.TrainBase := 'model';
-      LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free, so the model as loaded',
-        [GiB(AF32Bytes + TrainMargin(AModelBytes)), GiB(LAvail)]);
+      LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free%s, so the model as loaded',
+        [GiB(AF32Bytes + TrainMargin(AModelBytes)), GiB(Max(LAvail, 0)),
+        IfThen(Result.TrainGpu < 0, ' in RAM', '')]);
     end;
   end;
   Result.Why := LWhy;
@@ -321,7 +377,7 @@ begin
   end;
   LModel := FileBytes(ACfg.GgufModel);
   LF32 := F32Bytes(ACfg.GgufModel, ACfg.GgufUrl, LModel);
-  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32);
+  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32, FreeRamBytes);
   ACfg.InferGpu := LPlan.InferGpu;
   ACfg.TrainGpu := LPlan.TrainGpu;
   ACfg.TrainBase := LPlan.TrainBase;

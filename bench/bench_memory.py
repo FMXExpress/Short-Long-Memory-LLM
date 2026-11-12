@@ -163,6 +163,12 @@ def main():
         p = subprocess.run(cmd, capture_output=True, text=True)
         train = json.loads(p.stdout.strip().splitlines()[-1])
         train["wall_seconds"] = round(time.time() - t, 1)
+        # the trainer is the first child process: its peak resident memory (Linux reports KiB)
+        try:
+            import resource
+            train["peak_rss_mb"] = round(resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024)
+        except ImportError:   # Windows
+            pass
         train["settings"] = a.set or []
         if train.get("exit") not in (0,):
             print(p.stderr[-3000:], file=sys.stderr)

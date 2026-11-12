@@ -56,6 +56,10 @@ begin
     end;
     if Cfg.AutoProvision and (Cfg.Embedder = 'auto') then
       EnsureRetrieval(Cfg, False);
+    (* the model first, so the layout knows its size: whether an f32 training copy fits
+       beside it in RAM or on the card (Mem.Layout) *)
+    if Cfg.AutoProvision and (Cfg.Engine <> 'python') then
+      EnsureGguf(Cfg, False);
     WriteLn('memagent - profile ', Cfg.ProfileName, ' (', Cfg.BaseModel, ')');
     try
       WriteLn(ResolveLayout(Cfg));
