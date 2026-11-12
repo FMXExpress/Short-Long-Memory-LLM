@@ -267,7 +267,7 @@ def evaluate(model, tok, priors, facts, data, a, ext_ok, train):
         "confabulation": {c: round(conf[c] / (n_near if "near" in c else len(data["unknown"])), 3)
                           for c in conf},
         "train": {k: train.get(k) for k in ("recall", "ppl_ratio", "refused_known", "dpo", "seconds",
-                                             "wall_seconds", "gate_ok")},
+                                             "wall_seconds", "gate_ok", "peak_rss_mb", "settings")},
         "eval_seconds": round(time.time() - t, 1),
         "answers": rows,
         "unknown_answers": unknown_rows,
