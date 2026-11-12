@@ -106,10 +106,25 @@ jobs:
           sudo apt-get install -y fpc cmake libsqlite3-0 \
             cuda-nvcc-12-8 cuda-cudart-dev-12-8 cuda-driver-dev-12-8 libcublas-dev-12-8
           echo "$CUDA_HOME/bin" >> "$GITHUB_PATH"
+      # the CUDA compile takes over an hour; its libraries change only with the llama.cpp tag,
+      # the patches, the GPU generations or the CUDA version, so they are kept between runs
+      # (a branch's cache is its own; main's is shared with every branch)
+      - name: Compiled llama.cpp (cache)
+        id: llama-cache
+        uses: actions/cache@v4
+        with:
+          path: cache/llama
+          key: llama-cuda12.8-${{ env.LLAMA_TAG }}-${{ env.LLAMA_CUDA_ARCHS }}-${{ hashFiles('packaging/llama-patches/*.patch', 'scripts/llama_setup.sh') }}
       - name: llama.cpp (portable CPU + CUDA build)
         run: |
           git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
-          LLAMA_CUDA=1 LLAMA_PORTABLE=1 LLAMA_LIBS_ONLY=1 JOBS=4 scripts/llama_setup.sh
+          if [ "${{ steps.llama-cache.outputs.cache-hit }}" = true ]; then
+            # the libraries are cached; the checkout is still needed for the GGUF converters
+            for p in packaging/llama-patches/*.patch; do git -C cache/llama.cpp apply "$PWD/$p"; done
+            echo "llama.cpp: compiled libraries from the cache"
+          else
+            LLAMA_CUDA=1 LLAMA_PORTABLE=1 LLAMA_LIBS_ONLY=1 JOBS=4 scripts/llama_setup.sh
+          fi
           ls -la cache/llama
       - name: Build and unit-test
         run: |
