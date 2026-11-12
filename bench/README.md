@@ -1590,3 +1590,62 @@ pass on the card. Training used the `one-gpu` layout, picked by `auto`
   prompt it often answers "I don't have access to your personal information". The stronger
   settings add one answer, but drift rises to 1.43. The profile is now trainable, with the
   `small` settings.
+
+## Training on a small machine (4 cores, 2026-11-12)
+
+On a CPU, memagent trained on an f32 copy of the model (2.8 GB for Qwen3-0.6B, 6.8 GB for
+LFM3-1.7B), so a 4 GB machine could chat but not train. The fix was supposed to be training
+through the model as loaded. Measuring showed the weights were only part of it.
+
+**Where the memory goes.** Peak resident memory of the trainer (`VmHWM`), Qwen3-0.6B, one
+epoch of 10 facts:
+
+| base | window | peak | per epoch |
+|---|---|---|---|
+| f32 copy | 512 tokens | 6,383 MB | 279 s |
+| f32 copy | 256 tokens | 4,773 MB | 288 s |
+| model as loaded (Q8_0) | 512 tokens | 4,278 MB | 459 s |
+| model as loaded (Q8_0) | 256 tokens | 2,668 MB | 508 s |
+
+- **The window costs more than the weights.** Every 256 tokens of window add 1.6 GB on both
+  bases: 6.3 MiB a token. ggml's backward pass keeps every activation and its gradient, and
+  the logits over Qwen3's 151,936-token vocabulary with their softmax and gradient.
+- **The weights:** the model as loaded saves the f32 copy less the Q8_0 model, 2.1 GB.
+- **A second model:** SmolLM2-135M (f16, 49,152-token vocabulary) costs 2.39 MiB a token
+  (1,476 MB at 512, 863 MB at 256).
+- **The estimate** (`Mem.Gguf.TrainBytesPerToken`) is fitted to those two:
+  33.5 × vocabulary + 2.76 × layers × (10 × width + 3 × feed-forward width) bytes a token,
+  read from the GGUF header. It predicts 6.8 MiB for LFM3-1.7B and 13.2 MiB for Gemma 4 E2B;
+  neither is measured.
+
+**Does the smaller window hurt learning?** Full runs, 10 facts, 3 epochs
+(`bench/results/memory-qwen3-0.6b-cpu-*.json`):
+
+| base, window | from the weights | with retrieval | gate recall | drift | peak | time |
+|---|---|---|---|---|---|---|
+| f32 copy, 512 (before) | 0.80 | 1.00 | 0.90 | 1.53 | ≥ 6.4 GB | 670 s |
+| model as loaded, 512 | 0.80 | 1.00 | 0.80 | 1.38 | 4.3 GB | 1,296 s |
+| model as loaded, 256 | **0.85** | 1.00 | 0.90 | **1.37** | **2.7 GB** | 1,336 s |
+
+No. Through the Q8_0 weights it learns as well as on the f32 copy, with less drift, at
+twice the time: the backward pass dequantizes as it goes.
+
+**What changed (`Mem.Layout`, `Mem.Gguf`, `Mem.Train`):**
+- `train_base = auto` treats the CPU like a card. Its room is the free RAM beside the chat
+  model, and a container's memory limit counts (`/proc/meminfo` shows the host's).
+- With the model's shape read from its GGUF header, it tries in order: the f32 copy with a
+  512-token window, the model as loaded with 512, the model as loaded with 256. The startup
+  line says which, and when even that may not fit.
+- `[consolidate] max_window` sets the cap by hand. The trainer never goes below the longest
+  example.
+- The model is downloaded before the layout is planned, so its size is known on a first
+  start.
+
+**On a 3 GB machine** (`scripts/e2e_lowram.sh` under a 3 GB memory cgroup; memagent itself,
+with its retrieval models and chat context): it picked the model as loaded with 256-token
+windows on its own, told 5 facts, ran a deep sleep, and answered **5/5 from the weights
+alone** (gate recall 1.00, drift 1.11), in 920 s, peaking at 3,057 MB. The same run with
+`train_base = f32` was killed for memory in its first epoch (`oom_kill 1`).
+
+**Not measured:** the per-token cost on a GPU (the card keeps its own rule), and the estimate
+on a third model.
