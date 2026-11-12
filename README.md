@@ -106,6 +106,7 @@ The latest release is on the
 |---|---|---|
 | Windows x64 | `memagent-<ver>-windows-x64-setup.exe` (per-user, no admin) or the portable `.zip` | Start menu → memagent |
 | Linux x64 | `memagent-<ver>-linux-x64.tar.gz` | `./memagent` (needs `libsqlite3` and OpenSSL 3, present on most distributions) |
+| Linux x64, NVIDIA GPU | `memagent-<ver>-linux-x64-cuda.tar.gz` | `./run.sh` (answers and trains on the card; needs the NVIDIA driver 525+, the CUDA libraries are included) |
 
 memagent is a console app: start it and type. The first start downloads the default model
 (SmolLM2-135M, 270 MB) and the retrieval models; after that it works offline. Your memory lives

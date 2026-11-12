@@ -9,6 +9,7 @@
 #
 # usage: scripts/llama_setup.sh [profile ...]     (default: tiny)
 #   LLAMA_CUDA=1      build the CUDA backend (inference GPU = [gpu] infer)
+#   LLAMA_CUDA_ARCHS='75;86'  the GPU generations to compile for (default: this machine's card)
 #   LLAMA_PORTABLE=1  no -march=native, no OpenMP: libraries that run on any x86-64 with AVX2
 #                     and need nothing beyond libc/libstdc++ (release builds)
 #   LLAMA_LIBS_ONLY=1 stop after the libraries (no Python deps, no model conversion)
@@ -46,7 +47,7 @@ cmake -S "$SRC" -B "$SRC/build" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=O
   -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
   -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF \
   -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='$ORIGIN' \
-  ${LLAMA_CUDA:+-DGGML_CUDA=ON} \
+  ${LLAMA_CUDA:+-DGGML_CUDA=ON} ${LLAMA_CUDA_ARCHS:+"-DCMAKE_CUDA_ARCHITECTURES=$LLAMA_CUDA_ARCHS"} \
   ${LLAMA_PORTABLE:+-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF $PORTABLE_CPU} >/dev/null
 cmake --build "$SRC/build" -j"${JOBS:-$(nproc)}" --target llama
 mkdir -p "$LIB"

@@ -78,6 +78,62 @@ jobs:
           name: linux
           path: dist/memagent-*-linux-x64.tar.gz
 
+  linux-cuda:
+    # the same release with llama.cpp's CUDA backend: chat and in-process training on an NVIDIA
+    # card. Bundles the CUDA runtime and cuBLAS; needs only the NVIDIA driver (525+). The
+    # runner has no GPU, so this checks the build and the packaging, not a run.
+    runs-on: ubuntu-22.04
+    env:
+      CUDA_HOME: /usr/local/cuda-12.8
+      # Turing (RTX 20, T4) to Blackwell (RTX 50, RTX PRO)
+      LLAMA_CUDA_ARCHS: "75;80;86;89;120"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ -n "$INPUT_VERSION" ]]; then V="${INPUT_VERSION#v}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"
+          else V="dev-${GITHUB_SHA::7}"; fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+      - name: Toolchain (FPC, CUDA 12.8 compiler and libraries)
+        run: |
+          wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+          sudo dpkg -i cuda-keyring_1.1-1_all.deb
+          sudo apt-get update
+          sudo apt-get install -y fpc cmake libsqlite3-0 \
+            cuda-nvcc-12-8 cuda-cudart-dev-12-8 cuda-driver-dev-12-8 libcublas-dev-12-8
+          echo "$CUDA_HOME/bin" >> "$GITHUB_PATH"
+      - name: llama.cpp (portable CPU + CUDA build)
+        run: |
+          git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
+          LLAMA_CUDA=1 LLAMA_PORTABLE=1 LLAMA_LIBS_ONLY=1 JOBS=4 scripts/llama_setup.sh
+          ls -la cache/llama
+      - name: Build and unit-test
+        run: |
+          make all build/extract_test
+          ./build/extract_test memagent/tests/extract_cases.json
+      - name: Package
+        run: scripts/package.sh "$VERSION"
+      - name: Check the folder (libraries resolve; the launcher keeps llama.cpp on the GPU)
+        run: |
+          mkdir -p /tmp/cuda
+          tar -C /tmp/cuda -xzf "dist/memagent-$VERSION-linux-x64-cuda.tar.gz"
+          cd "/tmp/cuda/memagent-$VERSION-linux-x64-cuda"
+          ls -la lib
+          # everything but the driver (libcuda.so.1) comes from lib/
+          ldd lib/libggml-cuda.so lib/libllama.so | grep "not found" | grep -v "libcuda\.so" && exit 1
+          ./run.sh gpu12 --dry-run | tee dry.txt
+          grep -q "engine=llama" dry.txt && grep -q "profile=medium" dry.txt
+          ./run.sh gpu8 --dry-run | tee dry.txt
+          grep -q "profile=gemma4-e2b" dry.txt && grep -q "trainer=llama" dry.txt
+          test ! -e run
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-cuda
+          path: dist/memagent-*-linux-x64-cuda.tar.gz
+
   windows:
     runs-on: windows-latest
     defaults:
@@ -207,7 +263,7 @@ jobs:
 
   publish:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.version != ''
-    needs: [linux, windows]
+    needs: [linux, linux-cuda, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
