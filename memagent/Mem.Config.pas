@@ -145,6 +145,7 @@ type
     TrainParaphrases: Integer; { training examples per fact }
     TrainExamples: string;     { templates | varied (Mem.Examples) }
     TrainMaxWindows: Integer;  { cap on optimizer steps per epoch, 0 = none: more examples per step instead }
+    TrainWindowMax: Integer;   { tokens per training window, 0 = as the examples need; [consolidate] max_window, or the layout's choice }
     TrainAnchors: Integer;
     TrainReplay: Integer;      { fast run: deep facts replayed per new fact (at least 4); 0 = all of them }
     GateMinRecall: Double;
@@ -331,6 +332,7 @@ begin
     DeepAfter := LIni.ReadInteger('consolidate', 'deep_after', 8);
     Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
     TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
+    TrainWindowMax := LIni.ReadInteger('consolidate', 'max_window', 0);
     TrainBase := LowerCase(LIni.ReadString('consolidate', 'train_base', 'auto'));
     TrainWhen := LowerCase(LIni.ReadString('consolidate', 'train_when', 'auto'));
     LFmt := DefaultFormatSettings;

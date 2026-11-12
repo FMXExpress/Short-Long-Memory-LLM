@@ -45,6 +45,7 @@ type
     InferGpu, TrainGpu: Integer;
     TrainBase: string;       { f32 | model }
     TrainWhen: string;       { always | idle }
+    TrainWindowMax: Integer; { tokens a training window may hold, 0 = as the examples need }
     Why: string;             { how auto and train_base decided, for the startup line }
   end;
 
@@ -61,8 +62,10 @@ function F32Bytes(const AGguf, ANameHint: string; AModelBytes: Int64): Int64;
 function TrainMargin(AModelBytes: Int64): Int64;
 { the decision; AKnown = False when the GPUs could not be listed (then indices are
   taken as written and nothing is checked against the cards) }
+(* ARamFree: RAM available (-1 unknown); APerToken: bytes training holds per window
+   token (Mem.Gguf.TrainBytesPerToken, 0 unknown) *)
 function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
-  ARamFree: Int64 = -1): TLayoutPlan;
+  ARamFree: Int64 = -1; APerToken: Int64 = 0): TLayoutPlan;
 { RAM available now (Linux MemAvailable, Windows available physical memory); -1 when unknown }
 function FreeRamBytes: Int64;
 { lists the GPUs, plans, and sets ACfg.InferGpu, TrainGpu, TrainBase and TrainWhen;
@@ -76,7 +79,7 @@ implementation
 
 uses
   {$IFDEF WINDOWS}Windows,{$ENDIF}
-  Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat;
+  Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat, Mem.Gguf;
 
 {$IFDEF WINDOWS}
 function FreeRamBytes: Int64;
@@ -264,8 +267,13 @@ begin
 end;
 
 function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
-  ARamFree: Int64): TLayoutPlan;
+  ARamFree: Int64; APerToken: Int64): TLayoutPlan;
+const
+  WINDOW_PLAN = 512;     { a profile batch of 8 examples, as the trainer packs it }
+  WINDOW_SMALL = 256;    { the smallest window llama.cpp pads to }
+  TRAIN_FIXED = Int64(300) * 1024 * 1024;   { buffers beside weights and window (measured) }
 var
+  LNeed: Int64;
   L, LWhy: string;
   N, G, S: Integer;
   LAvail: Int64;
@@ -386,6 +394,34 @@ begin
       Result.TrainBase := IfThen(LShared, 'model', 'f32');
       LWhy := LWhy + IfThen(LWhy = '', '', '; ') + 'free memory unknown';
     end
+    else if (Result.TrainGpu < 0) and (APerToken > 0) then
+    begin
+      (* the CPU, with the model's shape known: the window costs more than the weights
+         (Qwen3-0.6B: 6.3 MB a token, 3.2 GB at 512 tokens, against 0.8 GB of Q8_0
+         weights), so the choices are, in order: the f32 copy, the model as loaded,
+         the model as loaded with half the window *)
+      if AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken <= LAvail then
+      begin
+        Result.TrainBase := 'f32';
+        LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('the f32 copy and a %d-token window (%s) fit in %s of RAM',
+          [WINDOW_PLAN, GiB(AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken), GiB(LAvail)]);
+      end
+      else
+      begin
+        Result.TrainBase := 'model';
+        LNeed := IfThen(LShared, 0, AModelBytes) + TRAIN_FIXED;
+        if LNeed + WINDOW_PLAN * APerToken <= LAvail then
+          LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free in RAM, so the ' +
+            'model as loaded', [GiB(AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken), GiB(Max(LAvail, 0))])
+        else
+        begin
+          Result.TrainWindowMax := WINDOW_SMALL;
+          LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('%s free in RAM: the model as loaded, in ' +
+            '%d-token windows (%s)%s', [GiB(Max(LAvail, 0)), WINDOW_SMALL, GiB(LNeed + WINDOW_SMALL * APerToken),
+            IfThen(LNeed + WINDOW_SMALL * APerToken > LAvail, ', which may not fit', '')]);
+        end;
+      end;
+    end
     else if AF32Bytes + TrainMargin(AModelBytes) <= LAvail then
     begin
       Result.TrainBase := 'f32';
@@ -399,6 +435,8 @@ begin
         IfThen(Result.TrainGpu < 0, ' in RAM', '')]);
     end;
   end;
+  if ACfg.TrainWindowMax > 0 then
+    Result.TrainWindowMax := ACfg.TrainWindowMax;
   Result.Why := LWhy;
 end;
 
@@ -439,6 +477,7 @@ var
   LInfo: TGpuInfos;
   LKnown: Boolean;
   LModel, LF32: Int64;
+  LShape: TGgufShape;
   LPlan: TLayoutPlan;
   I: Integer;
   LCards, LWhere: string;
@@ -462,7 +501,10 @@ begin
   end;
   LModel := FileBytes(ACfg.GgufModel);
   LF32 := F32Bytes(ACfg.GgufModel, ACfg.GgufUrl, LModel);
-  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32, FreeRamBytes);
+  if not ReadGgufShape(ACfg.GgufModel, LShape) then
+    LShape := Default(TGgufShape);
+  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32, FreeRamBytes, TrainBytesPerToken(LShape));
+  ACfg.TrainWindowMax := LPlan.TrainWindowMax;
   ACfg.InferGpu := LPlan.InferGpu;
   ACfg.TrainGpu := LPlan.TrainGpu;
   ACfg.TrainBase := LPlan.TrainBase;
