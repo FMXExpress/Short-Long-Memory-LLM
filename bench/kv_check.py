@@ -26,6 +26,7 @@ def norm(s):
 
 
 def run(profile, kv, asks, work):
+    os.makedirs(work, exist_ok=True)
     src, dst = os.path.join(work, "ask.json"), os.path.join(work, f"answers-{kv}.json")
     json.dump(asks, open(src, "w", encoding="utf-8"))
     data = os.path.join(work, f"data-{kv}")
@@ -40,6 +41,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--profile", default="qwen3-0.6b")
     ap.add_argument("--out")
+    ap.add_argument("--a", default="f16", help="first kv_cache setting")
+    ap.add_argument("--b", default="q8_0", help="second (f16 against f16: is decoding repeatable?)")
     a = ap.parse_args()
     data = json.load(open(os.path.join(HERE, "facts.json"), encoding="utf-8"))
     priors = open(os.path.join(REPO, "priors.md"), encoding="utf-8").read().strip()
@@ -54,17 +57,18 @@ def main():
         asks.append({"system": system, "user": q if isinstance(q, str) else q.get("q", ""), "lora": False})
         want.append(None)
     work = tempfile.mkdtemp(prefix="kvcheck-")
-    f16 = run(a.profile, "f16", asks, work)
-    q8 = run(a.profile, "q8_0", asks, work)
+    f16 = run(a.profile, a.a, asks, os.path.join(work, "a"))
+    q8 = run(a.profile, a.b, asks, os.path.join(work, "b"))
     same = sum(1 for x, y in zip(f16, q8) if x == y)
     hit = lambda ans: sum(1 for x, w in zip(ans, want) if w and norm(w) in norm(x))
     n_known = sum(1 for w in want if w)
-    res = {"profile": a.profile, "questions": len(asks), "identical": same,
-           "value_named_f16": hit(f16), "value_named_q8_0": hit(q8), "with_value": n_known,
-           "differ": [{"user": s["user"], "f16": x, "q8_0": y} for s, x, y in zip(asks, f16, q8) if x != y]}
+    res = {"profile": a.profile, "a": a.a, "b": a.b, "questions": len(asks), "identical": same,
+           "value_named_a": hit(f16), "value_named_b": hit(q8), "with_value": n_known,
+           "differ": [{"user": s["user"], a.a: x, a.b + ("" if a.b != a.a else " again"): y} for s, x, y in zip(asks, f16, q8) if x != y]}
     print(json.dumps({k: v for k, v in res.items() if k != "differ"}))
     for d in res["differ"]:
-        print(f"  {d['user']}\n    f16:  {d['f16']!r}\n    q8_0: {d['q8_0']!r}")
+        v = list(d.values())
+        print(f"  {v[0]}\n    a: {v[1]!r}\n    b: {v[2]!r}")
     if a.out:
         json.dump(res, open(a.out, "w", encoding="utf-8"), indent=1)
 
