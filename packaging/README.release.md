@@ -20,6 +20,11 @@ Tell it things ("My dog's name is Biscuit."), ask about them later, and type `/h
 
 Your memory lives in `data/` next to the program.
 
+**NVIDIA GPU (the `-cuda` Linux download):** llama.cpp runs on the card, for chat and for the
+in-process training. It includes the CUDA runtime and cuBLAS; only the NVIDIA driver (525 or
+newer) must be installed, and it starts only where that driver is. `./run.sh` picks the model for
+the card's memory (Gemma 4 E2B on 8-11 GB). Built for RTX 20-series and newer.
+
 ## Long-term memory: built in
 
 Facts you tell it are trained into a LoRA adapter in the background (`/sleep`, or automatically once a

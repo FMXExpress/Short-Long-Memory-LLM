@@ -31,7 +31,7 @@ interface
 uses
   SysUtils, Classes, DateUtils, StrUtils, Math, fpjson, jsonparser,
   Mem.Config, Mem.Store, Mem.Engine, Mem.Consolidate, Mem.Retrieval, Mem.Recall, Mem.Guard, Mem.Priors, Mem.Decide,
-  Mem.Body, Mem.Extract, Mem.Dates;
+  Mem.Body, Mem.Extract, Mem.Dates, Mem.Import;
 
 type
   TAgent = class
@@ -76,6 +76,7 @@ type
     function JudgeGuards: Boolean;
     procedure DeriveFacts;
     procedure Dream(AAll: Boolean);
+    procedure Import(const AArg: string);
     function NearDuplicate(AFact: TJSONObject): Int64;
     function RunTools(const AReply: string; AMessages: TJSONArray): Boolean;
     { stores the durable facts in AText; returns 'stored: ...' / 'already known: ...'
@@ -955,6 +956,121 @@ begin
   DeriveFacts;
 end;
 
+(* /import <path or source> [--llm] [--dry-run]: conversations from ChatGPT, claude.ai,
+   Claude Code, Codex, Pi / OpenClaw, Gemini CLI or OpenCode (Mem.Import). What the user
+   said in them goes in the conversation log at the time it was said (searchable like
+   any message, relative dates resolved against that time) and through the rule
+   extractor, as if typed now; --llm adds the model's extraction pass where the rules
+   found nothing (5-8 s a message on the small profile). The assistant's turns are not
+   kept: memory is about the user, and a coding agent's replies are mostly code.
+   Secrets are redacted on reading (Mem.Import.Redact), and a turn that held one gives
+   no fact.
+   A conversation is imported once; importing the same place again adds only new ones. *)
+procedure TAgent.Import(const AArg: string);
+const
+  MAX_STORE = 4000;    { longer turns are pasted logs or code: kept, cut to this }
+  MAX_EMBED = 2000;
+  MAX_EXTRACT = 1500;
+var
+  LWords: TStringList;
+  LPath, LErr, LKey, LText: string;
+  LLlm, LDry: Boolean;
+  LConvs: TImportConvs;
+  I, J, LNew, LSkipped, LMsgs, LFacts0: Integer;
+  LId: Int64;
+  LAt: TDateTime;
+begin
+  LWords := TStringList.Create;
+  try
+    LWords.Delimiter := ' ';
+    LWords.StrictDelimiter := True;
+    LWords.DelimitedText := AArg;
+    LPath := '';
+    LLlm := False;
+    LDry := False;
+    for I := 0 to LWords.Count - 1 do
+      if LWords[I] = '--llm' then
+        LLlm := True
+      else if LWords[I] = '--dry-run' then
+        LDry := True
+      else if LWords[I] <> '' then
+        LPath := Trim(LPath + ' ' + LWords[I]);
+  finally
+    LWords.Free;
+  end;
+  if LPath = '' then
+  begin
+    Say('/import <file or folder> [--llm] [--dry-run], or a source on its own: claude-code, codex, gemini, opencode');
+    Say('  ChatGPT and claude.ai: their "Export data" zip, unpacked: /import <folder>/conversations.json');
+    Exit;
+  end;
+  if not ReadConversations(LPath, LConvs, LErr) then
+  begin
+    Say('[import] ' + LErr);
+    Exit;
+  end;
+  if LErr <> '' then
+    Say('[import] skipped ' + LErr);
+  LNew := 0;
+  LSkipped := 0;
+  LMsgs := 0;
+  LFacts0 := Length(FStore.ActiveFacts);
+  for I := 0 to High(LConvs) do
+  begin
+    LKey := 'import:' + LConvs[I].Source + ':' + LConvs[I].Id;
+    if FStore.GetMeta(LKey) <> '' then
+    begin
+      Inc(LSkipped);
+      Continue;
+    end;
+    Inc(LNew);
+    for J := 0 to High(LConvs[I].Msgs) do
+      if LConvs[I].Msgs[J].Role = 'user' then
+        Inc(LMsgs);
+    if LDry then
+    begin
+      Say(Format('  %-11s %s  %s', [LConvs[I].Source, IfThen(LConvs[I].Created > 0,
+        FormatDateTime('yyyy-mm-dd', UnixToDateTime(LConvs[I].Created)), '          '),
+        IfThen(LConvs[I].Title <> '', LConvs[I].Title, Copy(LConvs[I].Msgs[0].Text, 1, 60))]));
+      Continue;
+    end;
+    for J := 0 to High(LConvs[I].Msgs) do
+    begin
+      if LConvs[I].Msgs[J].Role <> 'user' then
+        Continue;
+      LText := Copy(LConvs[I].Msgs[J].Text, 1, MAX_STORE);
+      if LConvs[I].Msgs[J].At > 0 then
+        LAt := UnixToDateTime(LConvs[I].Msgs[J].At, False)
+      else if LConvs[I].Created > 0 then
+        LAt := UnixToDateTime(LConvs[I].Created, False)
+      else
+        LAt := Now;
+      if FCfg.ResolveDates then
+        LText := ResolveMessageDates(LText, LAt);
+      LId := FStore.AddMessage(LKey, 'user', LText, DateTimeToUnix(LAt, False));
+      if Length(LText) <= MAX_EMBED then
+        EmbedMessage(LId, LText);
+      { a turn that held a secret is kept (redacted) but yields no fact: "Your password is [redacted]" }
+      if (Length(LConvs[I].Msgs[J].Text) <= MAX_EXTRACT) and (Pos('[redacted]', LText) = 0) then
+        if (ExtractFacts(LConvs[I].Msgs[J].Text, LId, 'rules') = '') and LLlm then
+          ExtractFacts(LConvs[I].Msgs[J].Text, LId, 'llm');
+    end;
+    FStore.SetMeta(LKey, IntToStr(NowUnix));
+  end;
+  if LDry then
+    Say(Format('[import] would read %d conversation(s) with %d message(s) by you; %d imported before',
+      [LNew, LMsgs, LSkipped]))
+  else
+  begin
+    Say(Format('[import] %d conversation(s), %d message(s) by you, %d new fact(s)%s',
+      [LNew, LMsgs, Length(FStore.ActiveFacts) - LFacts0,
+      IfThen(LSkipped > 0, Format('; %d imported before', [LSkipped]), '')]));
+    if (LNew > 0) and not LLlm then
+      Say('[import] facts came from the rules alone; /import ... --llm also asks the model (slower)');
+    MaybeAutoConsolidate;
+  end;
+end;
+
 procedure TAgent.Dream(AAll: Boolean);
 var
   LRev: TReviewArray;
@@ -1484,7 +1600,7 @@ begin
   else if LCmd = '/help' then
     Say('/facts  /remember <text>  /forget <id>  /recall <query>  /ab <question>  /sleep  /nap  /wait' +
       '  /weights <question>  /adapter  /rollback  /priors  /prior [--body] <text>|drop <id>|restore <id>  /prompt <text>' +
-      '  /dream [all]  /review  /keep <id>  /do <task>  /confirm  /cancel  /status  /quit')
+      '  /dream [all]  /review  /import <path|claude-code|codex|gemini|opencode>  /keep <id>  /do <task>  /confirm  /cancel  /status  /quit')
   else if LCmd = '/facts' then
   begin
     LFacts := FStore.ActiveFacts;
@@ -1501,6 +1617,8 @@ begin
     LId := FStore.AddMessage(FSession, 'user', StoredText(LArg));
     EmbedMessage(LId, StoredText(LArg));
   end
+  else if LCmd = '/import' then
+    Import(LArg)
   else if LCmd = '/dream' then
     Dream(SameText(LArg, 'all'))
   else if LCmd = '/review' then

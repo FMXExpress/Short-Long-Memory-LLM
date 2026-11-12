@@ -106,6 +106,7 @@ The latest release is on the
 |---|---|---|
 | Windows x64 | `memagent-<ver>-windows-x64-setup.exe` (per-user, no admin) or the portable `.zip` | Start menu → memagent |
 | Linux x64 | `memagent-<ver>-linux-x64.tar.gz` | `./memagent` (needs `libsqlite3` and OpenSSL 3, present on most distributions) |
+| Linux x64, NVIDIA GPU | `memagent-<ver>-linux-x64-cuda.tar.gz` | `./run.sh` (answers and trains on the card; needs the NVIDIA driver 525+, the CUDA libraries are included) |
 
 memagent is a console app: start it and type. The first start downloads the default model
 (SmolLM2-135M, 270 MB) and the retrieval models; after that it works offline. Your memory lives
@@ -263,6 +264,7 @@ questions, worded differently from anything in training. Methodology and every r
 | `/facts`, `/remember <text>`, `/forget <id>` | list, add or remove facts |
 | `/recall <query>` | what retrieval would put in the prompt, with scores |
 | `/dream [all]`, `/review`, `/keep <id>` | check facts against the messages they came from; list or restore the ones set aside |
+| `/import <path or source> [--llm] [--dry-run]` | take what you said in other chats into memory: ChatGPT and claude.ai exports, Claude Code, Codex, Gemini CLI, Pi / OpenClaw, OpenCode (below) |
 | `/ab <question>` | base model vs memory LoRAs, both without retrieval |
 | `/sleep`, `/nap`, `/wait` | deep sleep now, fast run now, wait until memory has caught up |
 | `/adapter`, `/rollback` | adapter history; go back to the previous deep LoRA |
@@ -270,6 +272,36 @@ questions, worded differently from anything in training. Methodology and every r
 | `/prompt <text>` | the exact system prompt a message would get |
 | `/do <task>`, `/confirm`, `/cancel` | act through a body |
 | `/status`, `/help`, `/quit` | |
+
+### Importing other chats
+
+`/import` reads what you told other assistants, and memory learns it as if you had told
+memagent:
+
+| Source | `/import ...` |
+|---|---|
+| ChatGPT | the `conversations.json` from Settings → Data controls → Export data (unzipped) |
+| claude.ai | the `conversations.json` from Settings → Privacy → Export data (unzipped) |
+| Claude Code | `claude-code` (reads `~/.claude/projects`), or one session's `.jsonl` |
+| Codex CLI | `codex` (`~/.codex/sessions`) |
+| Gemini CLI | `gemini` (`~/.gemini/tmp`) |
+| OpenCode | `opencode` (`~/.local/share/opencode`) |
+| Pi / OpenClaw | a session `.jsonl` |
+
+What gets kept:
+- **Your own turns only.** They go in the message log at the time you wrote them, so
+  "yesterday" resolves to the right day. Facts come out of them the same way as from a
+  chat. The assistants' replies are left out, and so are subagent transcripts and text a
+  harness added (command echoes, reminders, environment blocks).
+- **No secrets.** API keys, tokens, private keys and the value after "password" or "token"
+  become `[redacted]`, and a turn that held one gives no fact.
+- **Fast by default.** The rule extractor runs on every turn: 123 messages took 4 seconds.
+  `--llm` also asks the model where the rules found nothing, at 5–8 s a message on
+  `small`. `--dry-run` lists what would be read.
+- **Each conversation once.** Running `/import codex` again picks up only new sessions.
+
+The ChatGPT, Claude Code, Pi and OpenCode readers follow
+[PasClaw](https://github.com/FMXExpress/PasClaw)'s importers.
 
 Command-line options: `--profile <name>`, `--engine auto|llama|python`, `--data <dir>`,
 `--config <ini>`, `--offline`, `--provision`. Everything else is in

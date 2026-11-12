@@ -30,6 +30,10 @@ $(BUILD)/dates_test: memagent/*.pas memagent/tests/dates_test.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/dates_test memagent/tests/dates_test.lpr
 
+$(BUILD)/import_test: memagent/*.pas memagent/tests/import_test.lpr
+	@mkdir -p $(BUILD)/units
+	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/import_test memagent/tests/import_test.lpr
+
 $(BUILD)/priors_test: memagent/*.pas memagent/tests/priors_test.lpr
 	@mkdir -p $(BUILD)/units
 	$(FPC) $(FPCFLAGS) -Fumemagent -FU$(BUILD)/units -o$(BUILD)/priors_test memagent/tests/priors_test.lpr
@@ -63,8 +67,9 @@ provision: all
 test: test-pascal test-https
 	python3 -m unittest discover -s trainer -p 'test_*.py' -v
 
-test-pascal: $(BUILD)/retrieval_test $(BUILD)/extract_test $(BUILD)/priors_test $(BUILD)/dates_test $(BUILD)/layout_test
+test-pascal: $(BUILD)/retrieval_test $(BUILD)/extract_test $(BUILD)/priors_test $(BUILD)/dates_test $(BUILD)/layout_test $(BUILD)/import_test
 	./$(BUILD)/dates_test
+	./$(BUILD)/import_test
 	./$(BUILD)/layout_test
 	./$(BUILD)/extract_test memagent/tests/extract_cases.json
 	./$(BUILD)/priors_test

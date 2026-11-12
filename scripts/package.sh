@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Builds a self-contained release folder + tarball:
 #
-#   dist/memagent-<version>-linux-x64/
+#   dist/memagent-<version>-linux-x64[-cuda]/
 #     memagent            the agent (Free Pascal)
-#     lib/                libllama + libggml* (llama.cpp b11985, RUNPATH $ORIGIN)
+#     lib/                libllama + libggml* (llama.cpp b11985, RUNPATH $ORIGIN); with a CUDA
+#                         build (LLAMA_CUDA=1) also libggml-cuda and the CUDA runtime and cuBLAS
+#                         it needs, so only the NVIDIA driver has to be installed (-cuda name)
 #     memagent.ini        release defaults: engine=auto, CPU, data/ and cache/ in this folder
 #     models.json priors.md LICENSE README.md
 #     trainer/            the LoRA trainer (Python, optional: long-term memory)
@@ -19,10 +21,13 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="${1:-dev}"
-NAME="memagent-$VERSION-linux-x64"
-OUT="$REPO/dist/$NAME"
 SRC="$REPO/cache/llama.cpp"
 LIB="${LLAMA_LIB_DIR:-$REPO/cache/llama}"
+CUDA_LIB="${CUDA_HOME:-/usr/local/cuda}/lib64"
+SUFFIX=""
+compgen -G "$LIB/libggml-cuda.so*" >/dev/null && SUFFIX="-cuda"
+NAME="memagent-$VERSION-linux-x64$SUFFIX"
+OUT="$REPO/dist/$NAME"
 
 cd "$REPO"
 make all
@@ -35,6 +40,16 @@ cp build/memagent "$OUT/"
 cp scripts/run.sh "$OUT/"   # one-command launcher: best settings for the machine
 strip "$OUT/memagent" 2>/dev/null || true
 cp -a "$LIB"/lib*.so* "$OUT/lib/"
+if [ -n "$SUFFIX" ]; then
+  # the CUDA runtime libraries libggml-cuda links (its RUNPATH $ORIGIN finds them in lib/);
+  # libcuda.so.1 is the driver's and stays the system's
+  for l in libcudart libcublas libcublasLt; do
+    compgen -G "$CUDA_LIB/$l.so.*" >/dev/null || { echo "package: no $l in $CUDA_LIB (set CUDA_HOME)" >&2; exit 1; }
+    cp -a "$CUDA_LIB"/$l.so.* "$OUT/lib/"
+  done
+  missing=$(cd "$OUT/lib" && LD_LIBRARY_PATH= ldd ./libggml-cuda.so | awk '/not found/ {print $1}' | grep -v '^libcuda\.so' || true)
+  [ -z "$missing" ] || { echo "package: libggml-cuda.so needs $missing" >&2; exit 1; }
+fi
 cp models.json priors.md LICENSE "$OUT/"
 cp trainer/memlib.py trainer/worker.py trainer/consolidate.py trainer/gguf_export.py \
    trainer/requirements.txt "$OUT/trainer/"
