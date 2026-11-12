@@ -78,8 +78,8 @@ uses
   {$IFDEF WINDOWS}Windows,{$ENDIF}
   Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat;
 
-function FreeRamBytes: Int64;
 {$IFDEF WINDOWS}
+function FreeRamBytes: Int64;
 var
   M: TMemoryStatusEx;
 begin
@@ -91,35 +91,120 @@ begin
     Result := -1;
 end;
 {$ELSE}
+function ReadText(const APath: string): string;
+var
+  L: TStringList;
+begin
+  Result := '';
+  if not FileExists(APath) then
+    Exit;
+  L := TStringList.Create;
+  try
+    try
+      L.LoadFromFile(APath);
+      Result := L.Text;
+    except
+      Result := '';
+    end;
+  finally
+    L.Free;
+  end;
+end;
+
+{ the number after AKey in a "key value" file (/proc/meminfo, memory.stat); -1 if absent }
+function KeyNumber(const AText, AKey: string): Int64;
 var
   L: TStringList;
   I: Integer;
   S: string;
 begin
   Result := -1;
-  if not FileExists('/proc/meminfo') then
-    Exit;
   L := TStringList.Create;
   try
-    try
-      L.LoadFromFile('/proc/meminfo');
-    except
-      Exit;
-    end;
+    L.Text := AText;
     for I := 0 to L.Count - 1 do
-      if Copy(L[I], 1, 13) = 'MemAvailable:' then
+      if Copy(L[I], 1, Length(AKey) + 1) = AKey + ' ' then
       begin
-        S := Trim(Copy(L[I], 14, MaxInt));
+        S := Trim(Copy(L[I], Length(AKey) + 2, MaxInt));
         if Pos(' ', S) > 0 then
           S := Copy(S, 1, Pos(' ', S) - 1);
-        Result := StrToInt64Def(S, -1);
-        if Result > 0 then
-          Result := Result * 1024;
-        Exit;
+        Exit(StrToInt64Def(S, -1));
       end;
   finally
     L.Free;
   end;
+end;
+
+(* what this process's memory cgroup leaves free: the limit, less what the group uses,
+   giving back the file cache it can drop (inactive_file), as docker stats counts it.
+   -1 with no limit. cgroup v2 (memory.max) and v1 (memory.limit_in_bytes); the group
+   is found in /proc/self/cgroup, and a container sees its own at the root. *)
+function CgroupFree: Int64;
+var
+  L: TStringList;
+  I: Integer;
+  LLine, LV2, LV1, LDir, LStat: string;
+  LLimit, LUsage, LInactive: Int64;
+begin
+  Result := -1;
+  LV2 := '';
+  LV1 := '';
+  L := TStringList.Create;
+  try
+    L.Text := ReadText('/proc/self/cgroup');
+    for I := 0 to L.Count - 1 do
+    begin
+      LLine := L[I];
+      if Copy(LLine, 1, 3) = '0::' then
+        LV2 := Copy(LLine, 4, MaxInt)
+      else if Pos(':memory:', LLine) > 0 then
+        LV1 := Copy(LLine, Pos(':memory:', LLine) + 8, MaxInt);
+    end;
+  finally
+    L.Free;
+  end;
+  LLimit := -1;
+  LUsage := -1;
+  LStat := '';
+  if LV1 <> '' then
+  begin
+    LDir := '/sys/fs/cgroup/memory' + LV1;
+    if not FileExists(LDir + '/memory.limit_in_bytes') then
+      LDir := '/sys/fs/cgroup/memory';
+    LLimit := StrToInt64Def(Trim(ReadText(LDir + '/memory.limit_in_bytes')), -1);
+    LUsage := StrToInt64Def(Trim(ReadText(LDir + '/memory.usage_in_bytes')), -1);
+    LStat := ReadText(LDir + '/memory.stat');
+    LInactive := KeyNumber(LStat, 'total_inactive_file');
+  end
+  else if LV2 <> '' then
+  begin
+    LDir := '/sys/fs/cgroup' + LV2;
+    if (LV2 = '/') or not FileExists(LDir + '/memory.max') then
+      LDir := '/sys/fs/cgroup';
+    LLimit := StrToInt64Def(Trim(ReadText(LDir + '/memory.max')), -1);   { 'max': no limit }
+    LUsage := StrToInt64Def(Trim(ReadText(LDir + '/memory.current')), -1);
+    LStat := ReadText(LDir + '/memory.stat');
+    LInactive := KeyNumber(LStat, 'inactive_file');
+  end;
+  { no limit: -1, 'max', or v1's page-rounded 2^63 }
+  if (LLimit <= 0) or (LLimit >= Int64(1) shl 60) or (LUsage < 0) then
+    Exit;
+  if LInactive > 0 then
+    Dec(LUsage, Min(LInactive, LUsage));
+  Result := Max(Int64(0), LLimit - LUsage);
+end;
+
+function FreeRamBytes: Int64;
+var
+  LCg: Int64;
+begin
+  Result := KeyNumber(ReadText('/proc/meminfo'), 'MemAvailable:');
+  if Result > 0 then
+    Result := Result * 1024;
+  { in a container /proc/meminfo is the host's; the group's limit is the real one }
+  LCg := CgroupFree;
+  if (LCg >= 0) and ((Result < 0) or (LCg < Result)) then
+    Result := LCg;
 end;
 {$ENDIF}
 
