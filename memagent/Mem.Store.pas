@@ -82,7 +82,8 @@ type
   public
     constructor Create(const APath: string);
     destructor Destroy; override;
-    function AddMessage(const ASession, ARole, AContent: string): Int64;
+    { AAt: when it was said (unix seconds), 0 for now }
+    function AddMessage(const ASession, ARole, AContent: string; AAt: Int64 = 0): Int64;
     function RecentMessages(const ASession: string; ALimit: Integer): TMsgArray;
     function SearchMessages(const AQuery: string; ABeforeId: Int64; ALimit: Integer): TMsgArray;
     { AFallbackMatch: an existing fact judged to be about the same subject
@@ -268,10 +269,12 @@ begin
   end;
 end;
 
-function TMemStore.AddMessage(const ASession, ARole, AContent: string): Int64;
+function TMemStore.AddMessage(const ASession, ARole, AContent: string; AAt: Int64): Int64;
 begin
+  if AAt <= 0 then
+    AAt := NowUnix;
   FDb.Exec('INSERT INTO messages(session, role, content, created_at) VALUES(?,?,?,?)',
-    [ASession, ARole, AContent, NowUnix]);
+    [ASession, ARole, AContent, AAt]);
   Result := FDb.LastId;
   FDb.Exec('INSERT INTO messages_fts(rowid, content) VALUES(?,?)', [Result, AContent]);
 end;

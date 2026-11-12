@@ -48,8 +48,9 @@ jobs:
           LLAMA_PORTABLE=1 LLAMA_LIBS_ONLY=1 scripts/llama_setup.sh
       - name: Build and unit-test
         run: |
-          make all build/extract_test
+          make all build/extract_test build/import_test
           ./build/extract_test memagent/tests/extract_cases.json
+          ./build/import_test
       - name: Package
         run: scripts/package.sh "$VERSION"
       - name: Smoke test (fresh folder, run from elsewhere)
@@ -112,8 +113,9 @@ jobs:
           ls -la cache/llama
       - name: Build and unit-test
         run: |
-          make all build/extract_test
+          make all build/extract_test build/import_test
           ./build/extract_test memagent/tests/extract_cases.json
+          ./build/import_test
       - name: Package
         run: scripts/package.sh "$VERSION"
       - name: Check the folder (libraries resolve; the launcher keeps llama.cpp on the GPU)
@@ -163,6 +165,8 @@ jobs:
           "$FPC" -O2 -Sh -vewn -FUbuild/units -obuild/memagent.exe memagent/memagent.lpr
           "$FPC" -O2 -Sh -vewn -Fumemagent -FUbuild/units -obuild/extract_test.exe memagent/tests/extract_test.lpr
           ./build/extract_test.exe memagent/tests/extract_cases.json
+          "$FPC" -O2 -Sh -vewn -Fumemagent -FUbuild/units -obuild/import_test.exe memagent/tests/import_test.lpr
+          ./build/import_test.exe
       - name: llama.cpp (portable CPU build)
         run: |
           git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp cache/llama.cpp
