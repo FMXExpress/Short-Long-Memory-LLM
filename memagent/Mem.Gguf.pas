@@ -52,7 +52,6 @@ var
   LVersion, LType, LElem: UInt32;
   LTensors, LKvs, I, J, LCount: UInt64;
   LKey: string;
-  LInts: array of Int64;
 
   function U32: UInt32;
   begin
@@ -154,7 +153,6 @@ begin
         LKvs := U64;
         if (LTensors > 1 shl 24) or (LKvs > 1 shl 16) then
           Exit;
-        LInts := nil;
         for I := 1 to LKvs do
         begin
           LKey := Str;

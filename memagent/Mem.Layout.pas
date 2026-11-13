@@ -78,15 +78,25 @@ function GiB(ABytes: Int64): string;
 implementation
 
 uses
-  {$IFDEF WINDOWS}Windows,{$ENDIF}
   Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat, Mem.Gguf;
 
 {$IFDEF WINDOWS}
+(* MEMORYSTATUSEX and its function, declared here: FPC 3.2.2's Windows unit has neither,
+   and using that unit hides SysUtils.FindClose behind the Win32 one *)
+type
+  TMemStatusEx = record
+    dwLength, dwMemoryLoad: LongWord;
+    ullTotalPhys, ullAvailPhys, ullTotalPageFile, ullAvailPageFile, ullTotalVirtual, ullAvailVirtual,
+      ullAvailExtendedVirtual: QWord;
+  end;
+
+function GlobalMemoryStatusEx(var ABuffer: TMemStatusEx): LongBool; stdcall; external 'kernel32.dll';
+
 function FreeRamBytes: Int64;
 var
-  M: TMemoryStatusEx;
+  M: TMemStatusEx;
 begin
-  M := Default(TMemoryStatusEx);
+  M := Default(TMemStatusEx);
   M.dwLength := SizeOf(M);
   if GlobalMemoryStatusEx(M) then
     Result := Int64(M.ullAvailPhys)
