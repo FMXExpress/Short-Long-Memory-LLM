@@ -1,0 +1,879 @@
+{
+ "about": "Builds bench/facts_integration.json: facts that only answer a question together.",
+ "facts": [
+  {
+   "say": "Leo's job is jeweler.",
+   "value": "jeweler",
+   "kind": "stranger"
+  },
+  {
+   "say": "Lucia's city is Lisbon.",
+   "value": "Lisbon",
+   "kind": "attribute"
+  },
+  {
+   "say": "Mia's city is Tallinn.",
+   "value": "Tallinn",
+   "kind": "attribute"
+  },
+  {
+   "say": "Hana's city is Graz.",
+   "value": "Graz",
+   "kind": "attribute"
+  },
+  {
+   "say": "My aunt's name is Dana.",
+   "value": "Dana",
+   "kind": "person"
+  },
+  {
+   "say": "Emil's job is glassblower.",
+   "value": "glassblower",
+   "kind": "stranger"
+  },
+  {
+   "say": "Marek's job is translator.",
+   "value": "translator",
+   "kind": "stranger"
+  },
+  {
+   "say": "My partner's name is Sofia.",
+   "value": "Sofia",
+   "kind": "person"
+  },
+  {
+   "say": "My father's name is Priya.",
+   "value": "Priya",
+   "kind": "person"
+  },
+  {
+   "say": "Leo's city is Zagreb.",
+   "value": "Zagreb",
+   "kind": "stranger"
+  },
+  {
+   "say": "My uncle's name is Tara.",
+   "value": "Tara",
+   "kind": "person"
+  },
+  {
+   "say": "Dana's job is firefighter.",
+   "value": "firefighter",
+   "kind": "attribute"
+  },
+  {
+   "say": "Marek's city is Utrecht.",
+   "value": "Utrecht",
+   "kind": "stranger"
+  },
+  {
+   "say": "Tara's job is dentist.",
+   "value": "dentist",
+   "kind": "attribute"
+  },
+  {
+   "say": "My cousin's name is Lucia.",
+   "value": "Lucia",
+   "kind": "person"
+  },
+  {
+   "say": "Sofia's job is beekeeper.",
+   "value": "beekeeper",
+   "kind": "attribute"
+  },
+  {
+   "say": "My sister's name is Hana.",
+   "value": "Hana",
+   "kind": "person"
+  },
+  {
+   "say": "Priya's city is Dublin.",
+   "value": "Dublin",
+   "kind": "attribute"
+  },
+  {
+   "say": "Sofia's city is Bologna.",
+   "value": "Bologna",
+   "kind": "attribute"
+  },
+  {
+   "say": "Lucia's job is architect.",
+   "value": "architect",
+   "kind": "attribute"
+  },
+  {
+   "say": "Dana's city is Utrecht.",
+   "value": "Utrecht",
+   "kind": "attribute"
+  },
+  {
+   "say": "Emil's city is Graz.",
+   "value": "Graz",
+   "kind": "stranger"
+  },
+  {
+   "say": "Hana's job is surveyor.",
+   "value": "surveyor",
+   "kind": "attribute"
+  },
+  {
+   "say": "Yusuf's city is Ghent.",
+   "value": "Ghent",
+   "kind": "attribute"
+  },
+  {
+   "say": "Greta's job is pilot.",
+   "value": "pilot",
+   "kind": "stranger"
+  },
+  {
+   "say": "Priya's job is baker.",
+   "value": "baker",
+   "kind": "attribute"
+  },
+  {
+   "say": "My brother's name is Yusuf.",
+   "value": "Yusuf",
+   "kind": "person"
+  },
+  {
+   "say": "My mother's name is Mia.",
+   "value": "Mia",
+   "kind": "person"
+  },
+  {
+   "say": "Yusuf's job is chemist.",
+   "value": "chemist",
+   "kind": "attribute"
+  },
+  {
+   "say": "Mia's job is nurse.",
+   "value": "nurse",
+   "kind": "attribute"
+  },
+  {
+   "say": "Tara's city is Krakow.",
+   "value": "Krakow",
+   "kind": "attribute"
+  },
+  {
+   "say": "Greta's city is Tallinn.",
+   "value": "Tallinn",
+   "kind": "stranger"
+  }
+ ],
+ "questions": {
+  "direct": [
+   {
+    "type": "direct",
+    "q": "What does Tara do for work?",
+    "accept": [
+     "dentist"
+    ],
+    "needs": [
+     "Tara's job is dentist."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Mia live?",
+    "accept": [
+     "Tallinn"
+    ],
+    "needs": [
+     "Mia's city is Tallinn."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Lucia live?",
+    "accept": [
+     "Lisbon"
+    ],
+    "needs": [
+     "Lucia's city is Lisbon."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Sofia live?",
+    "accept": [
+     "Bologna"
+    ],
+    "needs": [
+     "Sofia's city is Bologna."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Dana do for work?",
+    "accept": [
+     "firefighter"
+    ],
+    "needs": [
+     "Dana's job is firefighter."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Hana live?",
+    "accept": [
+     "Graz"
+    ],
+    "needs": [
+     "Hana's city is Graz."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Priya live?",
+    "accept": [
+     "Dublin"
+    ],
+    "needs": [
+     "Priya's city is Dublin."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Priya do for work?",
+    "accept": [
+     "baker"
+    ],
+    "needs": [
+     "Priya's job is baker."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Yusuf do for work?",
+    "accept": [
+     "chemist"
+    ],
+    "needs": [
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Dana live?",
+    "accept": [
+     "Utrecht"
+    ],
+    "needs": [
+     "Dana's city is Utrecht."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Hana do for work?",
+    "accept": [
+     "surveyor"
+    ],
+    "needs": [
+     "Hana's job is surveyor."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Mia do for work?",
+    "accept": [
+     "nurse"
+    ],
+    "needs": [
+     "Mia's job is nurse."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Sofia do for work?",
+    "accept": [
+     "beekeeper"
+    ],
+    "needs": [
+     "Sofia's job is beekeeper."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "What does Lucia do for work?",
+    "accept": [
+     "architect"
+    ],
+    "needs": [
+     "Lucia's job is architect."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Tara live?",
+    "accept": [
+     "Krakow"
+    ],
+    "needs": [
+     "Tara's city is Krakow."
+    ]
+   },
+   {
+    "type": "direct",
+    "q": "Where does Yusuf live?",
+    "accept": [
+     "Ghent"
+    ],
+    "needs": [
+     "Yusuf's city is Ghent."
+    ]
+   }
+  ],
+  "bridge": [
+   {
+    "type": "bridge",
+    "q": "What does my partner do for a living?",
+    "accept": [
+     "beekeeper"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's job is beekeeper."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my aunt do for a living?",
+    "accept": [
+     "firefighter"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Dana's job is firefighter."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my mother do for a living?",
+    "accept": [
+     "nurse"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Mia's job is nurse."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my aunt live in?",
+    "accept": [
+     "Utrecht"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Dana's city is Utrecht."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my cousin do for a living?",
+    "accept": [
+     "architect"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Lucia's job is architect."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my partner live in?",
+    "accept": [
+     "Bologna"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's city is Bologna."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my sister do for a living?",
+    "accept": [
+     "surveyor"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's job is surveyor."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my father do for a living?",
+    "accept": [
+     "baker"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Priya's job is baker."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my sister live in?",
+    "accept": [
+     "Graz"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's city is Graz."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my brother do for a living?",
+    "accept": [
+     "chemist"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my cousin live in?",
+    "accept": [
+     "Lisbon"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Lucia's city is Lisbon."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my brother live in?",
+    "accept": [
+     "Ghent"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's city is Ghent."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "What does my uncle do for a living?",
+    "accept": [
+     "dentist"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's job is dentist."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my uncle live in?",
+    "accept": [
+     "Krakow"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's city is Krakow."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my father live in?",
+    "accept": [
+     "Dublin"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Priya's city is Dublin."
+    ]
+   },
+   {
+    "type": "bridge",
+    "q": "Which city does my mother live in?",
+    "accept": [
+     "Tallinn"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Mia's city is Tallinn."
+    ]
+   }
+  ],
+  "inverse": [
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a beekeeper?",
+    "accept": [
+     "Sofia",
+     "partner"
+    ],
+    "needs": [
+     "Sofia's job is beekeeper.",
+     "My partner's name is Sofia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a nurse?",
+    "accept": [
+     "Mia",
+     "mother"
+    ],
+    "needs": [
+     "Mia's job is nurse.",
+     "My mother's name is Mia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Ghent?",
+    "accept": [
+     "Yusuf",
+     "brother"
+    ],
+    "needs": [
+     "Yusuf's city is Ghent.",
+     "My brother's name is Yusuf."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a baker?",
+    "accept": [
+     "Priya",
+     "father"
+    ],
+    "needs": [
+     "Priya's job is baker.",
+     "My father's name is Priya."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Krakow?",
+    "accept": [
+     "Tara",
+     "uncle"
+    ],
+    "needs": [
+     "Tara's city is Krakow.",
+     "My uncle's name is Tara."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Graz?",
+    "accept": [
+     "Hana",
+     "sister"
+    ],
+    "needs": [
+     "Hana's city is Graz.",
+     "My sister's name is Hana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a firefighter?",
+    "accept": [
+     "Dana",
+     "aunt"
+    ],
+    "needs": [
+     "Dana's job is firefighter.",
+     "My aunt's name is Dana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a surveyor?",
+    "accept": [
+     "Hana",
+     "sister"
+    ],
+    "needs": [
+     "Hana's job is surveyor.",
+     "My sister's name is Hana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Lisbon?",
+    "accept": [
+     "Lucia",
+     "cousin"
+    ],
+    "needs": [
+     "Lucia's city is Lisbon.",
+     "My cousin's name is Lucia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Bologna?",
+    "accept": [
+     "Sofia",
+     "partner"
+    ],
+    "needs": [
+     "Sofia's city is Bologna.",
+     "My partner's name is Sofia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a dentist?",
+    "accept": [
+     "Tara",
+     "uncle"
+    ],
+    "needs": [
+     "Tara's job is dentist.",
+     "My uncle's name is Tara."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Utrecht?",
+    "accept": [
+     "Dana",
+     "aunt"
+    ],
+    "needs": [
+     "Dana's city is Utrecht.",
+     "My aunt's name is Dana."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a chemist?",
+    "accept": [
+     "Yusuf",
+     "brother"
+    ],
+    "needs": [
+     "Yusuf's job is chemist.",
+     "My brother's name is Yusuf."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Dublin?",
+    "accept": [
+     "Priya",
+     "father"
+    ],
+    "needs": [
+     "Priya's city is Dublin.",
+     "My father's name is Priya."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives works as a architect?",
+    "accept": [
+     "Lucia",
+     "cousin"
+    ],
+    "needs": [
+     "Lucia's job is architect.",
+     "My cousin's name is Lucia."
+    ]
+   },
+   {
+    "type": "inverse",
+    "q": "Which of my relatives lives in Tallinn?",
+    "accept": [
+     "Mia",
+     "mother"
+    ],
+    "needs": [
+     "Mia's city is Tallinn.",
+     "My mother's name is Mia."
+    ]
+   }
+  ],
+  "verify": [
+   {
+    "type": "verify",
+    "q": "Is my aunt the one whose city is Tallinn? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Mia's city is Tallinn."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my father the one whose city is Tallinn? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Mia's city is Tallinn."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my mother the one whose job is chemist? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my sister the one whose job is surveyor? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's job is surveyor."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my father the one whose job is baker? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My father's name is Priya.",
+     "Priya's job is baker."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my sister the one whose city is Graz? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My sister's name is Hana.",
+     "Hana's city is Graz."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my brother the one whose job is chemist? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's job is beekeeper."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my uncle the one whose city is Krakow? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Tara's city is Krakow."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my aunt the one whose job is chemist? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My aunt's name is Dana.",
+     "Yusuf's job is chemist."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my cousin the one whose city is Graz? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Hana's city is Graz."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my cousin the one whose job is surveyor? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My cousin's name is Lucia.",
+     "Hana's job is surveyor."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my mother the one whose city is Bologna? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My mother's name is Mia.",
+     "Sofia's city is Bologna."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my brother the one whose city is Lisbon? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My brother's name is Yusuf.",
+     "Lucia's city is Lisbon."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my partner the one whose city is Bologna? Answer yes or no.",
+    "accept": [
+     "yes"
+    ],
+    "needs": [
+     "My partner's name is Sofia.",
+     "Sofia's city is Bologna."
+    ]
+   },
+   {
+    "type": "verify",
+    "q": "Is my uncle the one whose job is architect? Answer yes or no.",
+    "accept": [
+     "no"
+    ],
+    "needs": [
+     "My uncle's name is Tara.",
+     "Lucia's job is architect."
+    ]
+   }
+  ]
+ }
+}

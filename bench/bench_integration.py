@@ -34,7 +34,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-BIN = os.path.join(REPO, "build", "memagent")
+BIN = os.environ.get("MEMAGENT_BIN") or os.path.join(REPO, "build", "memagent")
 
 
 def norm(s):
