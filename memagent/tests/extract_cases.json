@@ -4284,6 +4284,26 @@
    "text": "What is my license plate?",
    "facts": [],
    "has_statement": false
+  },
+  {
+   "text": "The one with all the serverless things is the wrong account.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "The problem is the cache.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "The other one is broken.",
+   "facts": [],
+   "has_statement": true
+  },
+  {
+   "text": "The fix is in the second commit.",
+   "facts": [],
+   "has_statement": true
   }
  ],
  "llm": [

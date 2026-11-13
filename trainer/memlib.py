@@ -410,13 +410,17 @@ def extract_facts_rules(text):
         m = re.match(r"^(?:the|our) ([a-z][\w' -]{1,40}?) is (.+)$", sent, re.I)
         if m:
             what, v = m.group(1).strip(), _clean_value(m.group(2))
-            if v and v.lower() not in _STOP_VALUES:
+            # "the one with all the serverless things is the wrong account": a subject that
+            # points at something in the conversation names no lasting thing
+            if v and v.lower() not in _STOP_VALUES and what.split()[0].lower() not in _POINTERS:
                 facts.append(_fact(f"The {what} is {v}.", f"the {what}", v,
                                    subject_questions(f"the {what}"), min(1.0, 0.6 + boost), kind="world"))
             continue
         facts += _extra_facts(sent, boost)
     return facts
 
+
+_POINTERS = {'one', 'ones', 'other', 'others', 'same', 'rest', 'former', 'latter', 'first', 'second', 'last', 'next', 'thing', 'problem', 'issue', 'bug', 'error', 'fix', 'answer', 'question', 'point', 'reason', 'idea', 'result', 'way'}
 
 LLM_EXTRACT_PROMPT = """Extract durable facts about the user or their world from the message below.
 Only facts worth remembering for weeks (names, relations, places, jobs, dates, preferences).

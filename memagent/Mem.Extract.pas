@@ -333,6 +333,12 @@ const
     'Tonight', 'Tomorrow', 'Yesterday', 'Everyone', 'Everybody', 'Nobody', 'Someone', 'Somebody', 'Let', 'Where',
     'How', 'When', 'Why', 'Life', 'Mine', 'Yours');
 
+const
+  { words that open a subject pointing at something already in the conversation }
+  Pointers: array[0..24] of string = ('one', 'ones', 'other', 'others', 'same', 'rest', 'former', 'latter',
+    'first', 'second', 'last', 'next', 'thing', 'problem', 'issue', 'bug', 'error', 'fix', 'answer', 'question',
+    'point', 'reason', 'idea', 'result', 'way');
+
 function ExtractFactsRules(const AText: string): TJSONArray;
 var
   RNamed, RRemember, RName, RMy, RLive, RWork, RThe, RRelation, RIs: TRegExpr;
@@ -430,7 +436,10 @@ begin
       begin
         LWhat := Trim(RThe.Match[1]);
         V := CleanValue(RThe.Match[2]);
-        if (V <> '') and not InList(LowerCase(V), StopValues) then
+        (* "the one with all the serverless things is the wrong account": a subject that
+           points at something in the conversation names no lasting thing (memlib._POINTERS) *)
+        if (V <> '') and not InList(LowerCase(V), StopValues) and
+          not InList(LowerCase(SplitString(LWhat, ' ')[0]), Pointers) then
           Result.Add(MakeFact('The ' + LWhat + ' is ' + V + '.', 'the ' + LWhat, V,
             SubjectQuestions('the ' + LWhat), Min(1.0, 0.6 + LBoost), 'world'));
         Continue;
