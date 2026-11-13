@@ -1756,3 +1756,36 @@ facts (160 with the derived ones): every fact passed the recall gate (1.00), dri
 - **So the CPU presets do not train in the background** (`auto=0`, as for the 1.5B); `/sleep`
   still trains on demand. The next step is in the training data: false statements answered
   "No", and questions asked the other way round, then this run again.
+
+### The fix: train some checks the way the agent asks them (2026-11-13)
+
+Training prompts held only the priors and the question; the agent's hold retrieved facts
+under "Relevant memory:" too. So the LoRA learned to answer from its weights, and with the
+fact in front of it still said "Yes." to a check with a wrong value and gave the bare value
+to "Which of my relatives ...?". Now every other fact's yes/no checks and its reverse
+question are trained with a memory block, as the agent builds it: the fact, the other fact
+whose value the check proposes, and one more (`Mem.Examples`, `Mem.Train`).
+
+On the small set (`facts_integration_small.json`, 32 facts, 64 questions, `gen_integration.py
+--small`, under an hour a run) it worked first: retrieval + LoRA 56 -> 62, retrieval alone 61.
+On the full set the first run drifted ×1.57, and the gate rejected it: the longer examples
+packed 125 windows an epoch where the old ones packed 110, and drift follows the steps.
+Capped at 110 windows (82 of 768 tokens) it drifted ×1.29:
+
+| Qwen3-0.6B, 96 questions | all | inverse | verify | drift |
+|---|---|---|---|---|
+| retrieval only | **93** | 22 | 23 | |
+| retrieval + LoRA, training before | 81 | 17 | 16 | ×1.23 |
+| **retrieval + LoRA, memory-block checks** | **91** | 21 | 22 | ×1.29 |
+| the weights alone, before / after | 63 / 58 | 0 / 1 | 15 / 9 | |
+
+- **Ten of the twelve lost answers are back** (verify 16 -> 22). Direct and bridge stay 24/24
+  every way.
+- **The weights alone answer fewer yes/no checks** (15 -> 9): half the checks are now learned
+  with the memory beside them. In the agent the LoRA always runs with retrieval.
+- **Trained memory still does not beat retrieval here** (91 against 93), so background
+  training stays off on the CPU presets. The `qwen3-0.6b` profile takes `max_windows: 110`,
+  the run above. The Python trainer (`memlib`) is unchanged.
+- Results: `bench/results/integration-qwen3-0.6b-memory-block.json` (run with the gate at ×3
+  so the adapter would be kept whatever its drift; it passed ×1.5 anyway) and
+  `integration-small-qwen3-0.6b-*.json`.
