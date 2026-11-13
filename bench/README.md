@@ -1647,5 +1647,27 @@ windows on its own, told 5 facts, ran a deep sleep, and answered **5/5 from the 
 alone** (gate recall 1.00, drift 1.11), in 920 s, peaking at 3,057 MB. The same run with
 `train_base = f32` was killed for memory in its first epoch (`oom_kill 1`).
 
+**The chat cache in 8 bits (`[llama] kv_cache`).** `bench/kv_check.py` asks 80 questions
+with all 30 facts in the system prompt, greedy, once with f16 keys and values and once with
+q8_0 (flash attention on for both):
+
+| model | cache at 4,096 tokens | identical answers | the right value named |
+|---|---|---|---|
+| Qwen3-0.6B | 448 → 238 MiB | 68 / 80 | 56 / 60 → 56 / 60 |
+| LFM3-1.7B (mostly convolutions) | 48 → 26 MiB | 44 / 80 | 58 / 60 → 59 / 60 |
+| Qwen3-0.6B, f16 against f16 | | 80 / 80 | 56 / 60 → 56 / 60 |
+
+It keeps every fact and changes words ("Your boss is Priya." for "Your manager's name is
+**Priya**."; LFM3's long answers wander more). Decoding is otherwise repeatable, so every
+difference is the cache's. `kv_cache = auto` takes q8_0 only where the plan halved the
+training window on a CPU, and says so on the startup line; f16 everywhere else, as before.
+
+Under the same 3 GB cap with the 8-bit cache (after the session moved to another machine
+and kernel): 5/5 from the weights, recall 1.00, drift 1.17, 719 s. llama.cpp allocated
+about 260 MiB less (chat cache 238 instead of 448 MiB, the trainer's check 60 instead of
+112), and nothing was killed; the group still ran at its limit, the kernel evicting and
+re-reading the memory-mapped model (94,000 page faults), so 3 GB is about the floor for
+Qwen3-0.6B with retrieval and a chat context loaded.
+
 **Not measured:** the per-token cost on a GPU (the card keeps its own rule), and the estimate
 on a third model.
