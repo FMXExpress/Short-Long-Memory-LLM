@@ -78,7 +78,7 @@ scripts/run.sh --dry-run    # show the choice and the config, change nothing (ru
 | Preset | Picked when | Model | Answers on | Trains on |
 |---|---|---|---|---|
 | `cpu-lite` | under 4 cores or 8 GB RAM | Qwen3-0.6B (SmolLM2-135M under 4 GB) | CPU | 1 core |
-| `cpu` | no GPU | LFM3-1.7B (LFM2-1.2B under 16 GB RAM) | CPU | a quarter of the cores |
+| `cpu` | no GPU | Qwen3-0.6B | CPU | a quarter of the cores |
 | `gpu8` | one 8–11 GB GPU | Gemma 4 E2B with a CUDA llama.cpp, else Qwen2.5-1.5B | GPU | the same GPU (Qwen2.5-1.5B: off, `/sleep` on demand) |
 | `gpu12` | one 12–39 GB GPU | Qwen3-4B | GPU | the same GPU |
 | `gpu40` | one 40 GB+ GPU | Magistral-Small 24B | GPU | the same GPU |
@@ -91,8 +91,8 @@ What the presets are based on (bench/README.md, "One-shot presets"):
 - The small models tuned for llama.cpp's trainer do learn: 0.80–0.90 of 10 facts from the
   weights (LFM2-1.2B, LFM3-1.7B, Gemma 4 E2B), 0.88 of 30 (Qwen3-0.6B), with a deep sleep
   of 17–32 min on 4 CPU cores. The CPU presets use them and train in the background.
-  These are memory-benchmark results; the 96-question agent run has not been repeated
-  with them.
+  In the 96-question agent benchmark Qwen3-0.6B scored 93, the old 1.5B 90 and LFM3-1.7B
+  89, so both CPU presets use Qwen3-0.6B (bench/README.md, "The new defaults in the agent").
 - The 24B trains gently, because its first settings learned every fact and broke the model.
 - On Windows, and anywhere llama.cpp was built without CUDA, GPU presets answer through the
   Python engine (PyTorch with CUDA), which the launcher installs.

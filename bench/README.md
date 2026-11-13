@@ -860,8 +860,8 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
 - How much memory the 4B (gpu12) preset uses while answering and training on one card.
   Gemma 4 E2B (gpu8 with a CUDA llama.cpp) answered and trained on a 24 GB card; its peak
   on an 8 GB card was not measured.
-- The `cpu` and `cpu-lite` presets with the small trainable models (LFM3-1.7B, LFM2-1.2B,
-  Qwen3-0.6B) in the 96-question agent run. Their numbers are from the memory benchmark.
+- The `cpu` and `cpu-lite` presets' trained memory (the consolidated arm) in the 96-question
+  agent run; the retrieval arm is measured ("The new defaults in the agent").
   The deep sleep times were measured on 4 training threads; the presets train on a
   quarter of the cores, so on a 4-core machine (1 thread) a deep sleep takes longer, up to 4×.
 - Two GPUs, and hours of continuous background training. The next test streams facts in
@@ -1708,3 +1708,25 @@ change, as a check the fixes were not fitted to held-out alone:
   lookahead, so the checks are code, not patterns.
 - **Not measured:** facts said in a longer message alongside other things, and the model
   pass (`--llm`) on these sets.
+
+## The new defaults in the agent (96 questions, 4 cores, 2026-11-13)
+
+The CPU presets had been switched to small trainable models on the memory benchmark alone
+(single facts, 10–30 of them). `bench_integration.py`, retrieval arm, the same settings as the
+1.5B's 90/96 (retrieve twice, derived facts, 8 earlier messages):
+
+| model | all | direct | bridge | inverse | verify | time |
+|---|---|---|---|---|---|---|
+| small (Qwen2.5-1.5B), before | 90/96 | 24 | 22 | 22 | 22 | 2,962 s |
+| **qwen3-0.6b** | **93/96** | 24 | 24 | 22 | 23 | **769 s** |
+| lfm3-1.7b | 89/96 | 24 | 24 | 23 | 18 | 4,458 s |
+
+- **Qwen3-0.6B is the better agent and 3.9× faster** than the 1.5B. Two of its three misses
+  are questions whose fact retrieval did not find; the third is a wrong "No".
+- **LFM3-1.7B answers facts as well, but loses the yes/no questions.** It reasons aloud ("We
+  need to check if ..."), writes half a tool call into the answer, or says it does not
+  know with the fact in its prompt: 13/19 verify questions right with the facts retrieved.
+- **So both CPU presets use Qwen3-0.6B** (`cpu` was LFM3-1.7B, picked on its 0.85 from
+  the weights against Qwen3's 0.883 on a different number of facts). `cpu` trains on a
+  quarter of the cores, `cpu-lite` on one.
+- Results: `bench/results/integration-{qwen3-0.6b,lfm3-1.7b}.json`.
