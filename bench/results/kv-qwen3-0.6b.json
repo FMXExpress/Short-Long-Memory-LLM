@@ -1,0 +1,70 @@
+{
+ "profile": "qwen3-0.6b",
+ "questions": 80,
+ "identical": 68,
+ "value_named_f16": 56,
+ "value_named_q8_0": 56,
+ "with_value": 60,
+ "differ": [
+  {
+   "user": "Who is my brother?",
+   "f16": "Leo.",
+   "q8_0": "Your brother's name is Leo."
+  },
+  {
+   "user": "What do I drive?",
+   "f16": "I drive my green Volvo.",
+   "q8_0": "I drive a green Volvo."
+  },
+  {
+   "user": "Where do I work out?",
+   "f16": "Your workplace for workouts is Ironworks.",
+   "q8_0": "I work out at Ironworks."
+  },
+  {
+   "user": "Who is my favourite music act?",
+   "f16": "Radiohead.",
+   "q8_0": "My favorite music act is **Radiohead**."
+  },
+  {
+   "user": "What are we calling the project internally?",
+   "f16": "Bluefin.",
+   "q8_0": "The project is called **Bluefin**."
+  },
+  {
+   "user": "What's the code for the office entrance?",
+   "f16": "The office door code is **4417**.",
+   "q8_0": "The office door code is 4417."
+  },
+  {
+   "user": "Who is my boss?",
+   "f16": "Your manager's name is **Priya**.",
+   "q8_0": "Your boss is Priya."
+  },
+  {
+   "user": "What am I allergic to?",
+   "f16": "Your allergy is penicillin.",
+   "q8_0": "I am allergic to penicillin."
+  },
+  {
+   "user": "When do I see the dentist?",
+   "f16": "Your dentist appointment is scheduled for **Friday**. Let me know if there's anything else!",
+   "q8_0": "Your dentist appointment is scheduled for **Friday**. Let me know if there's anything else! \ud83c\udfaf"
+  },
+  {
+   "user": "Which day is my dental checkup?",
+   "f16": "Your dentist appointment is on Friday.",
+   "q8_0": "Your dentist appointment is on **Friday**."
+  },
+  {
+   "user": "Who am I dating?",
+   "f16": "I'm not sure who I am dating. Let me check my information to help you better.",
+   "q8_0": "I'm not sure who you're dating. Let me know if there's anything else I can help with!"
+  },
+  {
+   "user": "What am I aiming for with my running?",
+   "f16": "I aim to achieve a marathon in October.",
+   "q8_0": "I aim to complete a marathon in October as part of my running goals."
+  }
+ ]
+}

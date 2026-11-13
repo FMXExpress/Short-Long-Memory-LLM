@@ -620,6 +620,11 @@ begin
     if FCfg.TrainMaxWindows > 0 then
       LBatch := Max(LBatch, (Length(LTrain) + FCfg.TrainMaxWindows - 1) div FCfg.TrainMaxWindows);
     LWindow := Max(LLongest, Round(LBatch * LTotal / Max(1, Length(LTrain))));
+    (* max_window (or the layout, on a small machine): memory grows with the window,
+       6.3 MB a token for Qwen3-0.6B. Fewer examples share each step then, never fewer
+       than the longest one needs. *)
+    if FCfg.TrainWindowMax > 0 then
+      LWindow := Min(LWindow, Max(FCfg.TrainWindowMax, LLongest));
     LWindow := Min(WINDOW_MAX, Max(WINDOW_UNIT, ((LWindow + WINDOW_UNIT - 1) div WINDOW_UNIT) * WINDOW_UNIT));
 
     Phase('examples');

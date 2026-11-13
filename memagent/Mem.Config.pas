@@ -125,6 +125,7 @@ type
     GgufUrl: string;         (* where to download it when missing: models.json "gguf": {"url": ..} *)
     LlamaThreads: Integer;   { 0 = all cores but one }
     LlamaGpuLayers: Integer; { -1 = all layers on [gpu] infer (none when infer = -1) }
+    LlamaKvCache: string;    { auto | f16 | q8_0: how the chat context stores keys and values }
     { from the profile }
     BaseModel: string;
     MaxNewTokens: Integer;
@@ -144,6 +145,7 @@ type
     TrainParaphrases: Integer; { training examples per fact }
     TrainExamples: string;     { templates | varied (Mem.Examples) }
     TrainMaxWindows: Integer;  { cap on optimizer steps per epoch, 0 = none: more examples per step instead }
+    TrainWindowMax: Integer;   { tokens per training window, 0 = as the examples need; [consolidate] max_window, or the layout's choice }
     TrainAnchors: Integer;
     TrainReplay: Integer;      { fast run: deep facts replayed per new fact (at least 4); 0 = all of them }
     GateMinRecall: Double;
@@ -330,6 +332,7 @@ begin
     DeepAfter := LIni.ReadInteger('consolidate', 'deep_after', 8);
     Trainer := LowerCase(LIni.ReadString('consolidate', 'trainer', 'llama'));
     TrainThreads := LIni.ReadInteger('consolidate', 'threads', 0);
+    TrainWindowMax := LIni.ReadInteger('consolidate', 'max_window', 0);
     TrainBase := LowerCase(LIni.ReadString('consolidate', 'train_base', 'auto'));
     TrainWhen := LowerCase(LIni.ReadString('consolidate', 'train_when', 'auto'));
     LFmt := DefaultFormatSettings;
@@ -391,6 +394,9 @@ begin
       GgufModel := Abs_(LBase, GgufModel);
     LlamaThreads := LIni.ReadInteger('llama', 'threads', 0);
     LlamaGpuLayers := LIni.ReadInteger('llama', 'gpu_layers', -1);
+    LlamaKvCache := LowerCase(LIni.ReadString('llama', 'kv_cache', 'auto'));
+    if (LlamaKvCache <> 'auto') and (LlamaKvCache <> 'f16') and (LlamaKvCache <> 'q8_0') then
+      raise Exception.Create('[llama] kv_cache = ' + LlamaKvCache + ': use auto, f16 or q8_0');
   finally
     LIni.Free;
   end;

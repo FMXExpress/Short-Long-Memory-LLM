@@ -163,6 +163,12 @@ def main():
         p = subprocess.run(cmd, capture_output=True, text=True)
         train = json.loads(p.stdout.strip().splitlines()[-1])
         train["wall_seconds"] = round(time.time() - t, 1)
+        # the trainer is the first child process: its peak resident memory (Linux reports KiB)
+        try:
+            import resource
+            train["peak_rss_mb"] = round(resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024)
+        except ImportError:   # Windows
+            pass
         train["settings"] = a.set or []
         if train.get("exit") not in (0,):
             print(p.stderr[-3000:], file=sys.stderr)
@@ -261,7 +267,7 @@ def evaluate(model, tok, priors, facts, data, a, ext_ok, train):
         "confabulation": {c: round(conf[c] / (n_near if "near" in c else len(data["unknown"])), 3)
                           for c in conf},
         "train": {k: train.get(k) for k in ("recall", "ppl_ratio", "refused_known", "dpo", "seconds",
-                                             "wall_seconds", "gate_ok")},
+                                             "wall_seconds", "gate_ok", "peak_rss_mb", "settings")},
         "eval_seconds": round(time.time() - t, 1),
         "answers": rows,
         "unknown_answers": unknown_rows,

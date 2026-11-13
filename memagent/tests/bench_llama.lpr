@@ -45,6 +45,8 @@ begin
   else if K = 'anchors' then Cfg.TrainAnchors := StrToInt(V)
   else if K = 'max_windows' then Cfg.TrainMaxWindows := StrToInt(V)
   else if K = 'train_base' then Cfg.TrainBase := V
+  else if K = 'kv_cache' then Cfg.LlamaKvCache := V
+  else if K = 'max_window' then Cfg.TrainWindowMax := StrToInt(V)
   else
     raise Exception.Create('unknown --set key: ' + K);
 end;

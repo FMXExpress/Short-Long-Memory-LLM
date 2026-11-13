@@ -17,8 +17,11 @@ unit Mem.Layout;
    [consolidate] train_base = auto picks what the llama trainer runs the frozen base
    on: an f32 copy (the fastest to train, 4x a 4-bit model's size) when it fits on
    the training device, else the GGUF as loaded (on the chat engine's card, the
-   engine's own copy). On the CPU it is always the f32 copy: there the backward pass
-   through f16 weights was 5.8x slower (bench/README.md).
+   engine's own copy). The CPU is a training device like a card, its room the RAM
+   available beside the chat model: an f32 copy of Qwen3-0.6B is 2.8 GB and of
+   LFM3-1.7B 6.8 GB, so on a small machine it trains through the weights as loaded
+   (bench/README.md, "Training on a small machine"). RAM that cannot be read keeps
+   the f32 copy, as before.
 
    PlanLayout is the decision, a pure function of the settings, the GPUs found and
    the model's size, so it is tested without a GPU (tests/layout_test.lpr). *)
@@ -42,6 +45,7 @@ type
     InferGpu, TrainGpu: Integer;
     TrainBase: string;       { f32 | model }
     TrainWhen: string;       { always | idle }
+    TrainWindowMax: Integer; { tokens a training window may hold, 0 = as the examples need }
     Why: string;             { how auto and train_base decided, for the startup line }
   end;
 
@@ -58,7 +62,12 @@ function F32Bytes(const AGguf, ANameHint: string; AModelBytes: Int64): Int64;
 function TrainMargin(AModelBytes: Int64): Int64;
 { the decision; AKnown = False when the GPUs could not be listed (then indices are
   taken as written and nothing is checked against the cards) }
-function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64): TLayoutPlan;
+(* ARamFree: RAM available (-1 unknown); APerToken: bytes training holds per window
+   token (Mem.Gguf.TrainBytesPerToken, 0 unknown) *)
+function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
+  ARamFree: Int64 = -1; APerToken: Int64 = 0): TLayoutPlan;
+{ RAM available now (Linux MemAvailable, Windows available physical memory); -1 when unknown }
+function FreeRamBytes: Int64;
 { lists the GPUs, plans, and sets ACfg.InferGpu, TrainGpu, TrainBase and TrainWhen;
   returns the startup line. Raises ELayout for a layout the machine cannot run. }
 function ResolveLayout(ACfg: TMemConfig): string;
@@ -69,7 +78,148 @@ function GiB(ABytes: Int64): string;
 implementation
 
 uses
-  StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat;
+  Classes, StrUtils, DateUtils, Mem.Llama, Mem.LlamaChat, Mem.Gguf;
+
+{$IFDEF WINDOWS}
+(* MEMORYSTATUSEX and its function, declared here: FPC 3.2.2's Windows unit has neither,
+   and using that unit hides SysUtils.FindClose behind the Win32 one *)
+type
+  TMemStatusEx = record
+    dwLength, dwMemoryLoad: LongWord;
+    ullTotalPhys, ullAvailPhys, ullTotalPageFile, ullAvailPageFile, ullTotalVirtual, ullAvailVirtual,
+      ullAvailExtendedVirtual: QWord;
+  end;
+
+function GlobalMemoryStatusEx(var ABuffer: TMemStatusEx): LongBool; stdcall; external 'kernel32.dll';
+
+function FreeRamBytes: Int64;
+var
+  M: TMemStatusEx;
+begin
+  M := Default(TMemStatusEx);
+  M.dwLength := SizeOf(M);
+  if GlobalMemoryStatusEx(M) then
+    Result := Int64(M.ullAvailPhys)
+  else
+    Result := -1;
+end;
+{$ELSE}
+function ReadText(const APath: string): string;
+var
+  L: TStringList;
+begin
+  Result := '';
+  if not FileExists(APath) then
+    Exit;
+  L := TStringList.Create;
+  try
+    try
+      L.LoadFromFile(APath);
+      Result := L.Text;
+    except
+      Result := '';
+    end;
+  finally
+    L.Free;
+  end;
+end;
+
+{ the number after AKey in a "key value" file (/proc/meminfo, memory.stat); -1 if absent }
+function KeyNumber(const AText, AKey: string): Int64;
+var
+  L: TStringList;
+  I: Integer;
+  S: string;
+begin
+  Result := -1;
+  L := TStringList.Create;
+  try
+    L.Text := AText;
+    for I := 0 to L.Count - 1 do
+      if Copy(L[I], 1, Length(AKey) + 1) = AKey + ' ' then
+      begin
+        S := Trim(Copy(L[I], Length(AKey) + 2, MaxInt));
+        if Pos(' ', S) > 0 then
+          S := Copy(S, 1, Pos(' ', S) - 1);
+        Exit(StrToInt64Def(S, -1));
+      end;
+  finally
+    L.Free;
+  end;
+end;
+
+(* what this process's memory cgroup leaves free: the limit, less what the group uses,
+   giving back the file cache it can drop (inactive_file), as docker stats counts it.
+   -1 with no limit. cgroup v2 (memory.max) and v1 (memory.limit_in_bytes); the group
+   is found in /proc/self/cgroup, and a container sees its own at the root. *)
+function CgroupFree: Int64;
+var
+  L: TStringList;
+  I: Integer;
+  LLine, LV2, LV1, LDir, LStat: string;
+  LLimit, LUsage, LInactive: Int64;
+begin
+  Result := -1;
+  LV2 := '';
+  LV1 := '';
+  L := TStringList.Create;
+  try
+    L.Text := ReadText('/proc/self/cgroup');
+    for I := 0 to L.Count - 1 do
+    begin
+      LLine := L[I];
+      if Copy(LLine, 1, 3) = '0::' then
+        LV2 := Copy(LLine, 4, MaxInt)
+      else if Pos(':memory:', LLine) > 0 then
+        LV1 := Copy(LLine, Pos(':memory:', LLine) + 8, MaxInt);
+    end;
+  finally
+    L.Free;
+  end;
+  LLimit := -1;
+  LUsage := -1;
+  LStat := '';
+  if LV1 <> '' then
+  begin
+    LDir := '/sys/fs/cgroup/memory' + LV1;
+    if not FileExists(LDir + '/memory.limit_in_bytes') then
+      LDir := '/sys/fs/cgroup/memory';
+    LLimit := StrToInt64Def(Trim(ReadText(LDir + '/memory.limit_in_bytes')), -1);
+    LUsage := StrToInt64Def(Trim(ReadText(LDir + '/memory.usage_in_bytes')), -1);
+    LStat := ReadText(LDir + '/memory.stat');
+    LInactive := KeyNumber(LStat, 'total_inactive_file');
+  end
+  else if LV2 <> '' then
+  begin
+    LDir := '/sys/fs/cgroup' + LV2;
+    if (LV2 = '/') or not FileExists(LDir + '/memory.max') then
+      LDir := '/sys/fs/cgroup';
+    LLimit := StrToInt64Def(Trim(ReadText(LDir + '/memory.max')), -1);   { 'max': no limit }
+    LUsage := StrToInt64Def(Trim(ReadText(LDir + '/memory.current')), -1);
+    LStat := ReadText(LDir + '/memory.stat');
+    LInactive := KeyNumber(LStat, 'inactive_file');
+  end;
+  { no limit: -1, 'max', or v1's page-rounded 2^63 }
+  if (LLimit <= 0) or (LLimit >= Int64(1) shl 60) or (LUsage < 0) then
+    Exit;
+  if LInactive > 0 then
+    Dec(LUsage, Min(LInactive, LUsage));
+  Result := Max(Int64(0), LLimit - LUsage);
+end;
+
+function FreeRamBytes: Int64;
+var
+  LCg: Int64;
+begin
+  Result := KeyNumber(ReadText('/proc/meminfo'), 'MemAvailable:');
+  if Result > 0 then
+    Result := Result * 1024;
+  { in a container /proc/meminfo is the host's; the group's limit is the real one }
+  LCg := CgroupFree;
+  if (LCg >= 0) and ((Result < 0) or (LCg < Result)) then
+    Result := LCg;
+end;
+{$ENDIF}
 
 function GiB(ABytes: Int64): string;
 begin
@@ -126,8 +276,14 @@ begin
   Result := Int64(1024) * 1024 * 1024 + AModelBytes div 8;
 end;
 
-function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64): TLayoutPlan;
+function PlanLayout(ACfg: TMemConfig; const AGpus: TGpuInfos; AKnown: Boolean; AModelBytes, AF32Bytes: Int64;
+  ARamFree: Int64; APerToken: Int64): TLayoutPlan;
+const
+  WINDOW_PLAN = 512;     { a profile batch of 8 examples, as the trainer packs it }
+  WINDOW_SMALL = 256;    { the smallest window llama.cpp pads to }
+  TRAIN_FIXED = Int64(300) * 1024 * 1024;   { buffers beside weights and window (measured) }
 var
+  LNeed: Int64;
   L, LWhy: string;
   N, G, S: Integer;
   LAvail: Int64;
@@ -142,7 +298,9 @@ var
 
   function FreeOn(AIndex: Integer): Int64;
   begin
-    if AKnown and (AIndex >= 0) and (AIndex < N) then
+    if AIndex < 0 then
+      Result := ARamFree
+    else if AKnown and (AIndex < N) then
       Result := AGpus[AIndex].FreeBytes
     else
       Result := -1;
@@ -226,7 +384,7 @@ begin
   { what the trainer runs the frozen base on }
   if ACfg.TrainBase <> 'auto' then
     Result.TrainBase := ACfg.TrainBase
-  else if Result.TrainGpu < 0 then
+  else if (Result.TrainGpu < 0) and (ARamFree < 0) then
     Result.TrainBase := 'f32'
   else if (AModelBytes <= 0) or (AF32Bytes <= 0) then
   begin
@@ -241,10 +399,38 @@ begin
     LShared := (Result.TrainGpu = Result.InferGpu) and (Result.TrainWhen <> 'idle');
     if (LAvail >= 0) and LShared then
       LAvail := LAvail - AModelBytes;
-    if LAvail < 0 then
+    if (LAvail < 0) and (FreeOn(Result.TrainGpu) < 0) then
     begin
       Result.TrainBase := IfThen(LShared, 'model', 'f32');
       LWhy := LWhy + IfThen(LWhy = '', '', '; ') + 'free memory unknown';
+    end
+    else if (Result.TrainGpu < 0) and (APerToken > 0) then
+    begin
+      (* the CPU, with the model's shape known: the window costs more than the weights
+         (Qwen3-0.6B: 6.3 MB a token, 3.2 GB at 512 tokens, against 0.8 GB of Q8_0
+         weights), so the choices are, in order: the f32 copy, the model as loaded,
+         the model as loaded with half the window *)
+      if AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken <= LAvail then
+      begin
+        Result.TrainBase := 'f32';
+        LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('the f32 copy and a %d-token window (%s) fit in %s of RAM',
+          [WINDOW_PLAN, GiB(AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken), GiB(LAvail)]);
+      end
+      else
+      begin
+        Result.TrainBase := 'model';
+        LNeed := IfThen(LShared, 0, AModelBytes) + TRAIN_FIXED;
+        if LNeed + WINDOW_PLAN * APerToken <= LAvail then
+          LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free in RAM, so the ' +
+            'model as loaded', [GiB(AF32Bytes + TRAIN_FIXED + WINDOW_PLAN * APerToken), GiB(Max(LAvail, 0))])
+        else
+        begin
+          Result.TrainWindowMax := WINDOW_SMALL;
+          LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('%s free in RAM: the model as loaded, in ' +
+            '%d-token windows (%s)%s', [GiB(Max(LAvail, 0)), WINDOW_SMALL, GiB(LNeed + WINDOW_SMALL * APerToken),
+            IfThen(LNeed + WINDOW_SMALL * APerToken > LAvail, ', which may not fit', '')]);
+        end;
+      end;
     end
     else if AF32Bytes + TrainMargin(AModelBytes) <= LAvail then
     begin
@@ -254,10 +440,13 @@ begin
     else
     begin
       Result.TrainBase := 'model';
-      LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free, so the model as loaded',
-        [GiB(AF32Bytes + TrainMargin(AModelBytes)), GiB(LAvail)]);
+      LWhy := LWhy + IfThen(LWhy = '', '', '; ') + Format('an f32 copy needs %s, %s free%s, so the model as loaded',
+        [GiB(AF32Bytes + TrainMargin(AModelBytes)), GiB(Max(LAvail, 0)),
+        IfThen(Result.TrainGpu < 0, ' in RAM', '')]);
     end;
   end;
+  if ACfg.TrainWindowMax > 0 then
+    Result.TrainWindowMax := ACfg.TrainWindowMax;
   Result.Why := LWhy;
 end;
 
@@ -298,6 +487,8 @@ var
   LInfo: TGpuInfos;
   LKnown: Boolean;
   LModel, LF32: Int64;
+  LShape: TGgufShape;
+  LByHand: Boolean;
   LPlan: TLayoutPlan;
   I: Integer;
   LCards, LWhere: string;
@@ -321,7 +512,19 @@ begin
   end;
   LModel := FileBytes(ACfg.GgufModel);
   LF32 := F32Bytes(ACfg.GgufModel, ACfg.GgufUrl, LModel);
-  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32);
+  if not ReadGgufShape(ACfg.GgufModel, LShape) then
+    LShape := Default(TGgufShape);
+  LByHand := ACfg.TrainWindowMax > 0;
+  LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32, FreeRamBytes, TrainBytesPerToken(LShape));
+  ACfg.TrainWindowMax := LPlan.TrainWindowMax;
+  (* kv_cache = auto: 8-bit keys and values where the plan found RAM short (it halved
+     the training window): half the chat cache, the same facts in the answers, other
+     words in some (bench/README.md, "Training on a small machine") *)
+  if ACfg.LlamaKvCache = 'auto' then
+    if (LPlan.TrainWindowMax > 0) and not LByHand and (LPlan.InferGpu < 0) then
+      ACfg.LlamaKvCache := 'q8_0'
+    else
+      ACfg.LlamaKvCache := 'f16';
   ACfg.InferGpu := LPlan.InferGpu;
   ACfg.TrainGpu := LPlan.TrainGpu;
   ACfg.TrainBase := LPlan.TrainBase;
@@ -347,6 +550,8 @@ begin
       IfThen(LPlan.TrainBase = 'model', 'the model as loaded', 'an f32 copy')]);
   if LPlan.Why <> '' then
     Result := Result + ' (' + LPlan.Why + ')';
+  if ACfg.LlamaKvCache = 'q8_0' then
+    Result := Result + '; chat cache in 8 bits';
   if LCards <> '' then
     Result := Result + LineEnding + 'gpus: ' + LCards;
   (* the CUDA backward pass through f16 or quantized weights is not there yet

@@ -87,6 +87,11 @@ var
      only its matrix multiply reads, so the backward pass (OUT_PROD) would find no
      backend for them. Such a model loads without the repack buffers. *)
   GNoRepack: Boolean = False;
+  (* [llama] kv_cache = q8_0: the chat context keeps keys and values in 8 bits, half the
+     memory of f16 (Qwen3-0.6B: 112 KB a token, 448 MB at 4,096 tokens, in f16). A
+     quantized V needs flash attention, so it is switched on with it. Training builds
+     its own graph and keeps no cache. *)
+  GKvQ8: Boolean = False;
 
 procedure LogCallback(ALevel: Int32; AText: PAnsiChar; AUserData: Pointer); cdecl;
 begin
@@ -109,6 +114,7 @@ var
   LPath: string;
 begin
   GNoRepack := (ACfg.TrainBase = 'model') and (ACfg.TrainGpu < 0);
+  GKvQ8 := ACfg.LlamaKvCache = 'q8_0';
   EnterCriticalSection(GLock);
   try
     LlamaLoad(ACfg.LlamaLibDir);
@@ -292,6 +298,12 @@ begin
   CP.n_threads := AThreads;
   CP.n_threads_batch := AThreads;
   CP.no_perf := True;
+  if GKvQ8 then
+  begin
+    CP.type_k := GGML_TYPE_Q8_0;
+    CP.type_v := GGML_TYPE_Q8_0;
+    CP.flash_attn_type := LLAMA_FLASH_ATTN_ENABLED;
+  end;
   LlamaTrace('creating context');
   FCtx := llama_init_from_model(FModel, CP);
   if FCtx = nil then
