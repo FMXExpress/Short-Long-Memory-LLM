@@ -1,0 +1,11 @@
+{
+ "profile": "qwen3-0.6b",
+ "a": "f16",
+ "b": "f16",
+ "questions": 80,
+ "identical": 80,
+ "value_named_a": 56,
+ "value_named_b": 56,
+ "with_value": 60,
+ "differ": []
+}

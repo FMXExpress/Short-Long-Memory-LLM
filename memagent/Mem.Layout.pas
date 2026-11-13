@@ -478,6 +478,7 @@ var
   LKnown: Boolean;
   LModel, LF32: Int64;
   LShape: TGgufShape;
+  LByHand: Boolean;
   LPlan: TLayoutPlan;
   I: Integer;
   LCards, LWhere: string;
@@ -503,8 +504,17 @@ begin
   LF32 := F32Bytes(ACfg.GgufModel, ACfg.GgufUrl, LModel);
   if not ReadGgufShape(ACfg.GgufModel, LShape) then
     LShape := Default(TGgufShape);
+  LByHand := ACfg.TrainWindowMax > 0;
   LPlan := PlanLayout(ACfg, LInfo, LKnown, LModel, LF32, FreeRamBytes, TrainBytesPerToken(LShape));
   ACfg.TrainWindowMax := LPlan.TrainWindowMax;
+  (* kv_cache = auto: 8-bit keys and values where the plan found RAM short (it halved
+     the training window): half the chat cache, the same facts in the answers, other
+     words in some (bench/README.md, "Training on a small machine") *)
+  if ACfg.LlamaKvCache = 'auto' then
+    if (LPlan.TrainWindowMax > 0) and not LByHand and (LPlan.InferGpu < 0) then
+      ACfg.LlamaKvCache := 'q8_0'
+    else
+      ACfg.LlamaKvCache := 'f16';
   ACfg.InferGpu := LPlan.InferGpu;
   ACfg.TrainGpu := LPlan.TrainGpu;
   ACfg.TrainBase := LPlan.TrainBase;
@@ -530,6 +540,8 @@ begin
       IfThen(LPlan.TrainBase = 'model', 'the model as loaded', 'an f32 copy')]);
   if LPlan.Why <> '' then
     Result := Result + ' (' + LPlan.Why + ')';
+  if ACfg.LlamaKvCache = 'q8_0' then
+    Result := Result + '; chat cache in 8 bits';
   if LCards <> '' then
     Result := Result + LineEnding + 'gpus: ' + LCards;
   (* the CUDA backward pass through f16 or quantized weights is not there yet

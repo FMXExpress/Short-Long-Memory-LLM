@@ -1,0 +1,192 @@
+{
+ "profile": "lfm3-1.7b",
+ "a": "f16",
+ "b": "q8_0",
+ "questions": 80,
+ "identical": 44,
+ "value_named_a": 58,
+ "value_named_b": 59,
+ "with_value": 60,
+ "differ": [
+  {
+   "user": "Where did I grow up?",
+   "f16": "You grew up in **Porto**! That's your hometown. \ud83c\uddf5\ud83c\uddf9\n\n(And if you're asking where you *live* now... that's Reykjavik!)",
+   "q8_0": "You grew up in **Porto**! That's your hometown. \ud83c\uddf5\ud83c\uddf9\n\n(And just to confirm \u2014 you're from Reykjavik now, but Porto was where you"
+  },
+  {
+   "user": "Which town do I come from originally?",
+   "f16": "You originally come from **Porto**. That's your hometown! \ud83c\uddf5\ud83c\uddf9\n\n(And don't forget\u2014your dad's dog is Biscuit, your cat is Zo\u00eb,",
+   "q8_0": "You originally come from **Porto**. That's your hometown! \ud83c\uddf5\ud83c\uddf9"
+  },
+  {
+   "user": "Who is my employer?",
+   "f16": "Your employer is **Zorblax Industries**, where you work as a **pipeline engineer**.  \n\n(Additional details: your office door code is 4417, your manager is Priya,",
+   "q8_0": "Your employer is **Zorblax Industries**, where you work as a **pipeline engineer**.  \n\n(Additional details: your office door code is 4417; your manager is Priya.)"
+  },
+  {
+   "user": "Which company pays my salary?",
+   "f16": "You work at **Zorblax Industries**. Their office door code is **4417**, and your manager is **Priya**.\n\n(Also: your native language is Portuguese, your favorite book",
+   "q8_0": "Your employer is **Zorblax Industries**, where you work as a **pipeline engineer**. Their office door code is **4417** and your manager is **Priya**.\n\n(Also"
+  },
+  {
+   "user": "What is my role at work?",
+   "f16": "You are a **pipeline engineer** at **Zorblax Industries**. \n\nLet me know if you need anything else! \ud83d\udc3e (Biscuit, Zo\u00eb, and more!)",
+   "q8_0": "You're a **pipeline engineer** at **Zorblax Industries**. \n\nLet me know if you need anything else! \ud83d\udc3e"
+  },
+  {
+   "user": "Which colour do I like best?",
+   "f16": "Your favorite color is **teal**. \ud83d\ude0a\n\n(And yes, that's also your car's color\u2014green Volvo, though! \ud83e\udd29)",
+   "q8_0": "Your favorite color is **teal**. \ud83d\ude0a"
+  },
+  {
+   "user": "When was I born?",
+   "f16": "I don't have your birth date in my records. Could you let me know?\n\n**Answer:** I don't have that information. Please share it! \ud83d\ude0a",
+   "q8_0": "I don't have that information in my memory. Could you please tell me your birth date or year?\n\n**Answer:** I don't have that information in my memory. Could you please tell me your"
+  },
+  {
+   "user": "Which doctor do I see?",
+   "f16": "You see **Dr. Okafor** as your doctor. \n\n(And don't forget your allergy to penicillin!)",
+   "q8_0": "Your doctor is **Dr. Okafor**."
+  },
+  {
+   "user": "Where do I work out?",
+   "f16": "You go to **Ironworks** for your gym sessions! \ud83c\udfcb\ufe0f\u200d\u2642\ufe0f Let me know if you need anything else.",
+   "q8_0": "You go to **Ironworks** for your gym sessions! \ud83c\udfcb\ufe0f\u200d\u2642\ufe0f\n\n(And if you're looking for where you work, it's **Zorblax Industries**, as"
+  },
+  {
+   "user": "Which group do I like listening to most?",
+   "f16": "You like listening to **Radiohead** most! \ud83c\udfa7\n\n(And by the way, your favorite band is also Radiohead \u2014 double radiohead!)",
+   "q8_0": "You like listening to **Radiohead** most! \ud83c\udfa7\n\n(And by the way, your favorite band is Radiohead \u2014 that\u2019s pretty cool!)"
+  },
+  {
+   "user": "What's my bike's nickname?",
+   "f16": "Your bike's nickname is **Rocket**. \ud83d\udeb2\n\n(And yes, I'm also a fan of *Radiohead*\u2014classic choice!)",
+   "q8_0": "Your bike's nickname is **Rocket**. \ud83d\udeb2\n\n(And yes, I'm also a fan of Radiohead\u2014classic choice!)"
+  },
+  {
+   "user": "How do I get into the office?",
+   "f16": "To get into the office, go to **Reykjavik** (your city) or follow the usual entrance for **Zorblax Industries**. The **office door code is 441",
+   "q8_0": "To get into the office:\n\n- Use your **office door code: 4417**.\n- Go to **Reykjavik** (where you live).\n- You work at **Zor"
+  },
+  {
+   "user": "What am I allergic to?",
+   "f16": "You're allergic to **penicillin**. \n\n(And your blood type is O negative too\u2014just in case that comes up!)",
+   "q8_0": "You're allergic to **penicillin**. \n\n(And your favorite color is teal, your car is a green Volvo, etc.\u2014but that's extra info!)"
+  },
+  {
+   "user": "Which medicine should I avoid?",
+   "f16": "You should avoid **penicillin** (your allergy). Also, remember your doctor is **Dr. Okafor**, and your dentist appointment is on **Friday**. \n\nLet me know if you need",
+   "q8_0": "You should avoid **penicillin** (your allergy). Also, remember your doctor is **Dr. Okafor**. \n\n(Note: This info comes from your stored details.)"
+  },
+  {
+   "user": "What blood group do I have?",
+   "f16": "You have **O negative** blood type. \n\n(And don't forget your wifi password: `tulip42`!) \ud83d\udc3e",
+   "q8_0": "You have **O negative** blood type."
+  },
+  {
+   "user": "Which language did I grow up speaking?",
+   "f16": "You grew up speaking **Portuguese**. That's right in your profile\u2014your native language is Portuguese! \ud83c\uddf5\ud83c\uddf9\n\nAnything else you'd like to know or chat about?",
+   "q8_0": "Your native language is Portuguese."
+  },
+  {
+   "user": "When do I see the dentist?",
+   "f16": "You have a dentist appointment on **Friday**. \n\n(Note: This info was mentioned earlier in your profile.)",
+   "q8_0": "You have a dentist appointment on **Friday**. \n\n(Note: This info was already provided earlier.)</think>Your dentist appointment is on **Friday**."
+  },
+  {
+   "user": "Which novel do I love most?",
+   "f16": "Your favorite book is **Dune**.</think>You love **Dune** most! \ud83d\udcda",
+   "q8_0": "Your favorite book is **Dune**.</think>Your favorite book is **Dune**."
+  },
+  {
+   "user": "What's the book I'd recommend above all?",
+   "f16": "Your favorite book is **Dune**. Let me know if you need anything else! \ud83d\udc3e\ud83d\udcda",
+   "q8_0": "Based on your favorite book being *Dune*, that\u2019s definitely the top pick! Let me know if you want more details or recommendations. \ud83d\ude0a\n\n**Quick recap from what I know:**\n-"
+  },
+  {
+   "user": "What race am I training for?",
+   "f16": "You're training for a **marathon** in October! \ud83c\udfc3\u200d\u2642\ufe0f\ud83d\udca8\n\n(And don't forget your favorite band is Radiohead \u2014 perfect for a run!)",
+   "q8_0": "You're training for a **marathon** in October! \ud83c\udfc3\u200d\u2642\ufe0f\ud83d\udca8\n\n(And don't forget your favorite band is Radiohead \u2014 perfect for road trips!)"
+  },
+  {
+   "user": "What am I aiming for with my running?",
+   "f16": "You're aiming to run a **marathon in October**! \ud83c\udfc3\u200d\u2642\ufe0f\ud83d\udca8 Let me know if you need any tips or reminders about your training plan. Also, don't",
+   "q8_0": "You're aiming to run a **marathon in October**! \ud83c\udfc3\u200d\u2642\ufe0f\ud83d\udca8\n\n(And by the way, your favorite band is Radiohead\u2014perfect for a road trip!)"
+  },
+  {
+   "user": "What computer do I use?",
+   "f16": "You use a **ThinkPad X1** laptop.",
+   "q8_0": "You use a **ThinkPad X1** laptop. \n\n(And your car is a green Volvo too!) \ud83d\ude97\ud83d\udca8"
+  },
+  {
+   "user": "What's my horse's name?",
+   "f16": "I don't have any information about your horse's name. Could you tell me?\n\n**Answer:** I don't have that detail. Let me know! \ud83d\udc34",
+   "q8_0": "I don't have any information about your horse's name. Could you let me know?\n\n**Answer:** I don't have that detail. \ud83d\ude0a"
+  },
+  {
+   "user": "What did I name my parrot?",
+   "f16": "I don't have any information about your parrot's name. Could you let me know?\n\n(Note: The user asked about their parrot, but none of the provided details mention a parrot",
+   "q8_0": "I don't have any information about your parrot's name in my records. Could you let me know?\n\n(Note: The user asked about their parrot, but none of the provided details mention"
+  },
+  {
+   "user": "What's my aunt called?",
+   "f16": "I don't have that information. Could you tell me more about your family members or relatives?\n\n**Answer:** I don't have that information. Could you tell me more about your family members or relatives",
+   "q8_0": "I don't have that information in my memory. Could you tell me your aunt's name?\n\n(Note: I see \"sister\" is Ana, but no mention of an aunt. Also,"
+  },
+  {
+   "user": "Who is my cousin?",
+   "f16": "I don't have any information about your cousin in my memory. Could you tell me more about them?\n\n**Note:** I see you mentioned \"sister\" (Ana), \"brother\"",
+   "q8_0": "I don't have any information about your cousin in my memory. Could you tell me more about them?\n\n**Note:** I do have details about your family members like your sister Ana, brother Leo,"
+  },
+  {
+   "user": "Where does my aunt live?",
+   "f16": "I don't have that information in my memory. Could you tell me?\n\n**Answer:** I'm sorry, but I don't have any details about your aunt living location. Let me know if there",
+   "q8_0": "I don't have that information in my memory. Could you tell me where your aunt lives?\n\n(Note: I see \"sister\" is Ana, not aunt. But I'll answer based on"
+  },
+  {
+   "user": "Which city was my father born in?",
+   "f16": "I don't have that information in my memory. Could you tell me more about your father or where he might have been born?\n\n(Note: I should check if any of the provided facts mention \"",
+   "q8_0": "I don't have that information in my memory. Could you tell me?\n\n**Answer:** I cannot find any mention of your father's birthplace in the details provided. Let me know if there's"
+  },
+  {
+   "user": "Where did I work before?",
+   "f16": "I don't have that information in my memory. Let me know if there's anything else I can help you with! \n\n(Note: The user asked \"Where did I work before?\" but none",
+   "q8_0": "I don't have that information in my memory. Could you tell me where you worked before?\n\n**Answer:** I don\u2019t have that detail stored. Let me know! \ud83d\ude0a"
+  },
+  {
+   "user": "What's my favorite drink?",
+   "f16": "I don't have that information stored. Let me know if there's anything else I can help with! \ud83d\ude0a",
+   "q8_0": "I don't have that information stored. Let me know if there's anything else I can help with! \n\n(Note: The user asked about their favorite drink, but none of the provided details mention"
+  },
+  {
+   "user": "When is my partner's birthday?",
+   "f16": "I don't have information about your partner Sam's birthday. Could you tell me?\n\n**Answer:** I don't have that detail. Let me know! \ud83d\ude0a",
+   "q8_0": "I don't have information about your partner Sam's birthday. Could you please provide it?\n\n**Answer:** I don't have that detail. Let me know! \ud83d\ude0a"
+  },
+  {
+   "user": "What motorbike do I own?",
+   "f16": "You own a **green Volvo** car (not a motorbike). Wait\u2014let me check again: \"Your car is a green Volvo.\" That's a car, not a mot",
+   "q8_0": "You own a **green Volvo** car (not a motorbike). If you meant your **bike**, it's named **Rocket**. Let me know if you need more details!"
+  },
+  {
+   "user": "What's my son's favorite toy?",
+   "f16": "I don't have that information in my memory. Do you want to tell me?\n\n**Answer:** I don't have that info. Could you share it?",
+   "q8_0": "I don't have that information in my memory. Do you want to tell me? \ud83d\ude0a\n\n(Note: I'll keep track of new details as they come up.) \n\n**Answer:** I"
+  },
+  {
+   "user": "What's my grandmother called?",
+   "f16": "I don't have any information about your grandmother in my memory. Could you tell me her name?\n\n**Answer:** I don't have that detail stored. Please share it! \ud83d\ude0a",
+   "q8_0": "I don't have any information about your grandmother being named. Could you tell me her name?\n\n**Answer:** I don't have that detail. Please share it! \ud83d\ude0a"
+  },
+  {
+   "user": "What instrument do I play?",
+   "f16": "I don't have any information about an instrument you play. Let me know if there's something else you'd like to ask! \n\n(Note: This might be a trick question or missing data from",
+   "q8_0": "I don't have that information in my memory. Could you tell me?\n\n**Answer:** I'm sorry, but I don't have any record of an instrument you play. Let me know if there"
+  },
+  {
+   "user": "What is my phone number?",
+   "f16": "I don't have your phone number stored in my memory. Could you please provide it?\n\n**Answer:** I don't have that information. Please share your phone number when you can!",
+   "q8_0": "I don't have your phone number stored in my memory. Could you please provide it?\n\n**Answer:** I don't have that information. Please share your phone number so I can remember it for next"
+  }
+ ]
+}
