@@ -293,12 +293,16 @@ begin
   Result := True;
 end;
 
+const
+  NotNameStart: array[0..17] of string = ('on', 'at', 'in', 'every', 'each', 'about', 'back', 'after', 'before',
+    'once', 'twice', 'today', 'tomorrow', 'tonight', 'again', 'to', 'from', 'with');
+
 { memlib._extra_facts: the first EXTRA_RULES pattern that matches, as a fact; nil if none }
 function ExtraFact(const ASentence: string; ABoost: Double): TJSONObject;
 var
   S, V, P: string;
   I, K: Integer;
-  R: TRegExpr;
+  R, R2: TRegExpr;
   LQs: TJSONArray;
 begin
   Result := nil;
@@ -313,6 +317,24 @@ begin
         Continue;
       P := CleanPhrase(R.Match[EXTRA_RULES[I].ValueGroup]);
       V := CleanValue(R.Match[EXTRA_RULES[I].ValueGroup]);
+      { "I call my mom on Sundays": a name is never said after a preposition or "every" (memlib._NOT_NAME_START) }
+      if EXTRA_RULES[I].Proper and InList(LowerCase(SplitString(Trim(R.Match[EXTRA_RULES[I].ValueGroup]), ' ')[0]),
+        NotNameStart) then
+        Continue;
+      { "a beat-up Ford Fiesta": a name starts at its first capital, after a word or two }
+      if EXTRA_RULES[I].Proper and (V <> '') and not ((V[1] in ['A'..'Z']) or (Ord(V[1]) > 127)) then
+      begin
+        R2 := Rx('^(?:[a-z][\w-]* ){1,2}([A-Z\x80-\xFF].*)$', False);
+        try
+          if R2.Exec(V) then
+          begin
+            V := R2.Match[1];
+            P := V;
+          end;
+        finally
+          R2.Free;
+        end;
+      end;
       if (V = '') or InList(LowerCase(V), StopValues) or
         not Plausible(V, EXTRA_RULES[I].Proper, EXTRA_RULES[I].Subject) then
         Continue;
@@ -352,7 +374,8 @@ begin
   RName := Rx('\bmy name is ([A-Z][\w''-]*(?:\s+[A-Z][\w''-]*)?)', False);
   RMy := Rx('\bmy ([a-z][\w'' -]{1,40}?) (is|are|was) (.+)$', True);
   RLive := Rx('\bi live in (.+)$', True);
-  RWork := Rx('\bi(?: work|''ve been working| have been working) (?:at|for) (.+?)(?:\s+(?:for|since)\s+.*)?$', True);
+  RWork := Rx('\bi(?: work|''ve been working| have been working|''ve worked| have worked|''ve been| have been) ' +
+    '(?:at|for) (.+?)(?:\s+(?:for|since)\s+.*)?$', True);
   RRelation := Rx('\b[Mm]y (son|daughter|wife|husband|partner|sister|brother|mom|mum|mother|dad|father|friend|' +
     'boss|manager|dog|cat|baby|grandma|grandpa|aunt|uncle|cousin|niece|nephew) ([A-Z][\w''-]*)', False);
   RIs := Rx('(\w)''s (on|in|at)\b', False);
