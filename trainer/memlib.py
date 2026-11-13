@@ -181,11 +181,11 @@ _DAYS = "mondays|tuesdays|wednesdays|thursdays|fridays|saturdays|sundays|weekend
 # into the weights. Mirrored in memagent/Mem.Extract.pas (EXTRA_RULES);
 # memagent/tests/extract_test.lpr checks the two agree.
 EXTRA_RULES = [
-    (r"\b(?:i|we) have (?:a|an) ([a-z][a-z' -]{1,30}?) (?:called|named) (.+)$", True, 2,
+    (r"\b(?:i|we) (?:have|'ve got|have got) (?:a|an) ([a-z][a-z' -]{1,30}?) (?:called|named) (.+)$", True, 2,
      "Your {1} is called {v}.", "my {1}'s name",
      ["What is my {1} called?", "What's my {1}'s name?", "What did I name my {1}?", "Do you remember my {1}'s name?",
       "Remind me what my {1} is called.", "What is the name of my {1}?"], "proper"),
-    (r"\b(?:i|we) named (?:our|my) ([a-z][a-z' -]{1,30}?) (.+)$", True, 2,
+    (r"\b(?:i|we|my \w+) (?:named|call|called) (?:our|my|the) ([a-z][a-z' -]{1,30}?) (.+)$", True, 2,
      "Your {1} is called {v}.", "my {1}'s name",
      ["What is my {1} called?", "What's my {1}'s name?", "What did I name my {1}?", "Do you remember my {1}'s name?",
       "Remind me what my {1} is called.", "What is the name of my {1}?"], "proper"),
@@ -209,23 +209,23 @@ EXTRA_RULES = [
      "You drive {p}.", "my car",
      ["What car do I drive?", "What do I drive?", "Which car is mine?", "Do you remember my car?",
       "Remind me what I drive.", "What kind of car do I have?"], "proper"),
-    (r"\bi moved to (.+?)(?:\s+(?:last|this)\s+\w+|\s+\w+ ago)?$", True, 1,
+    (r"\bi (?:just |recently |have |'ve )?moved to (.+?)(?:\s+(?:last|this)\s+\w+|\s+\w+ ago)?$", True, 1,
      "You live in {v}.", "where I live",
      ["Where do I live?", "Where is my home?", "Do you remember where I live?",
       "Which city do I live in?", "Remind me where I live.", "Do you know where I live?"], "proper"),
-    (r"^i (?:really )?love (.+?)(?:\s+more than anything)?$", True, 1,
+    (r"^i (?:really |absolutely |just )?(?:love|adore) (.+?)(?:\s+more than anything)?$", True, 1,
      "You love {v}.", "my love of {v}",
      ["What do I love?", "What is something I really like?", "What do I like most?", "Do you remember what I love?",
       "Remind me what I love.", "What am I a big fan of?"], "any"),
-    (r"^i (?:really )?hate (.+)$", True, 1,
+    (r"^i (?:really |absolutely )?(?:hate|dislike|can't stand|cannot stand) (.+)$", True, 1,
      "You hate {v}.", "my dislike of {v}",
      ["What do I hate?", "What don't I like?", "Is there something I dislike?", "Do you remember what I hate?",
       "Remind me what I hate.", "What do I dislike?"], "any"),
-    (r"^(?:please )?call me (.+)$", True, 1,
+    (r"^(?:please |you can |just )?call me (.+)$", True, 1,
      "You like to be called {v}.", "what to call me",
      ["What should you call me?", "What do I like to be called?", "How should you address me?",
       "What's my nickname?", "Remind me what to call me.", "Do you know what to call me?"], "proper"),
-    (r"\bi speak (\w+)", True, 1,
+    (r"\b(?:i|we) speak (\w+)", True, 1,
      "You speak {v}.", "the language I speak",
      ["What language do I speak?", "Which language do I speak at home?", "What do I speak?",
       "Do you remember my language?", "Remind me what language I speak.", "Which language is mine?"], "proper"),
@@ -237,15 +237,15 @@ EXTRA_RULES = [
      "You are training for {v}.", "what I'm training for",
      ["What am I training for?", "What race am I training for?", "What is my training goal?",
       "Do you remember what I'm training for?", "Remind me what I'm training for.", "What am I preparing for?"], "any"),
-    (r"\bi use (?:a|an|my) (.+?)(?:\s+for\s+.+)?$", True, 1,
+    (r"\bi (?:use|code on|work on) (?:a|an|my) (.+?)(?:\s+for\s+.+)?$", True, 1,
      "You use a {v}.", "the device I use",
      ["What do I use?", "Which laptop do I use?", "What computer do I use?", "What do I use for work?",
       "Remind me what I use.", "Do you know what I use?"], "proper"),
-    (r"\bi support (.+)$", True, 1,
+    (r"\bi (?:support|root for|cheer for) (.+)$", True, 1,
      "You support {v}.", "my team",
      ["Which team do I support?", "Who do I support?", "What is my team?", "Which club do I follow?",
       "Remind me which team I support.", "Do you know my team?"], "proper"),
-    (r"\bi graduated from (.+)$", True, 1,
+    (r"\bi (?:graduated from|studied at|went to (?:university|college) (?:in|at)) (.+)$", True, 1,
      "You graduated from {v}.", "where I studied",
      ["Where did I study?", "Which university did I go to?", "Where did I graduate from?",
       "What is my alma mater?", "Remind me where I studied.", "Do you know where I studied?"], "proper"),
@@ -261,7 +261,7 @@ EXTRA_RULES = [
      "Your {1} lives in {v}.", "where my {1} lives",
      ["Where does my {1} live?", "Which city does my {1} live in?", "Do you remember where my {1} lives?",
       "Where is my {1}'s home?", "Remind me where my {1} lives.", "Do you know where my {1} lives?"], "proper"),
-    (r"\bi take the (\S+) (train|bus|tram|ferry)\b", True, 1,
+    (r"\bi (?:take|catch|get) the (\S+) (train|bus|tram|ferry)\b", True, 1,
      "You take the {v} {2}.", "my {2}",
      ["Which {2} do I take?", "What {2} do I catch?", "When is my {2}?", "Do you remember my {2}?",
       "Remind me which {2} I take.", "What time is my {2}?"], "any"),
@@ -289,6 +289,18 @@ EXTRA_RULES = [
      "Your {1} works as a {v}.", "my {1}'s job",
      ["What does my {1} do?", "What is my {1}'s job?", "What does my {1} work as?",
       "Do you remember my {1}'s job?", "Remind me what my {1} does.", "What is my {1}'s profession?"], "any"),
+    (r"^(?:i'm|i am) (lactose|gluten|fructose|histamine) intolerant$", True, 1,
+     "You are {v} intolerant.", "my food intolerance",
+     ["Do I have a food intolerance?", "What can't I eat?", "What am I intolerant to?",
+      "Do you remember my intolerance?", "Remind me what I'm intolerant to.", "Is there food I should avoid?"], "any"),
+    (r"^(?:my friends|everyone|everybody|people|my family) calls? me (.+)$", True, 1,
+     "You are called {v}.", "what to call me",
+     ["What should you call me?", "What do people call me?", "How should you address me?",
+      "What's my nickname?", "Remind me what to call me.", "Do you know what to call me?"], "proper"),
+    (r"^i (?:just )?turned (\d{1,3})\b", True, 1,
+     "You are {v} years old.", "my age",
+     ["How old am I?", "What is my age?", "Do you know my age?", "Remind me how old I am.",
+      "What age am I?", "Do you remember how old I am?"], "any"),
     (r"^(?:i'm|i am) (?:a|an) ([a-z][a-z' -]{1,30})$", True, 1,
      "You are a {v}.", "being a {v}",
      ["What kind of person am I?", "Am I a {v}?", "What am I like?", "Do you remember what I'm like?",
@@ -306,6 +318,10 @@ def _fill(template, groups, v, p):
 _FILLER_START = {"it", "that", "this", "these", "those", "you", "me", "him", "her", "them", "us", "lot", "lots",
                  "bit", "little", "something", "anything", "everything", "nothing", "so", "too", "how", "when",
                  "what", "why", "there", "here", "more", "much", "some", "fan", "later", "now"}
+
+
+_NOT_NAME_START = {"on", "at", "in", "every", "each", "about", "back", "after", "before", "once", "twice", "today",
+                   "tomorrow", "tonight", "again", "to", "from", "with"}
 
 
 def _plausible(v, check, subject):
@@ -326,6 +342,14 @@ def _extra_facts(sent, boost):
         if not m:
             continue
         p, v = _clean_phrase(m.group(vg)), _clean_value(m.group(vg))
+        # "I call my mom on Sundays": a name is never said after a preposition or "every"
+        if check == "proper" and m.group(vg).strip().split(" ")[0].lower() in _NOT_NAME_START:
+            continue
+        if check == "proper" and v and not ("A" <= v[0] <= "Z" or ord(v[0]) > 127):
+            # "a beat-up Ford Fiesta": the name starts at the first capital, after a word or two
+            m2 = re.search(r"^(?:[a-z][\w-]* ){1,2}([A-Z\u0080-\uffff].*)$", v)
+            if m2:
+                v = p = m2.group(1)
         if not v or v.lower() in _STOP_VALUES or not _plausible(v, check, subject):
             continue
         g = m.groups()
@@ -398,7 +422,7 @@ def extract_facts_rules(text):
                                 "Which city do I live in?", "Remind me where I live.", "Do you know where I live?"],
                                min(1.0, 0.8 + boost)))
             continue
-        m = re.search(r"\bi(?: work|'ve been working| have been working) (?:at|for) (.+?)(?:\s+(?:for|since)\s+.*)?$",
+        m = re.search(r"\bi(?: work|'ve been working| have been working|'ve worked| have worked|'ve been| have been) (?:at|for) (.+?)(?:\s+(?:for|since)\s+.*)?$",
                       sent, re.I)
         if m:
             v = _clean_value(m.group(1))
@@ -410,13 +434,17 @@ def extract_facts_rules(text):
         m = re.match(r"^(?:the|our) ([a-z][\w' -]{1,40}?) is (.+)$", sent, re.I)
         if m:
             what, v = m.group(1).strip(), _clean_value(m.group(2))
-            if v and v.lower() not in _STOP_VALUES:
+            # "the one with all the serverless things is the wrong account": a subject that
+            # points at something in the conversation names no lasting thing
+            if v and v.lower() not in _STOP_VALUES and what.split()[0].lower() not in _POINTERS:
                 facts.append(_fact(f"The {what} is {v}.", f"the {what}", v,
                                    subject_questions(f"the {what}"), min(1.0, 0.6 + boost), kind="world"))
             continue
         facts += _extra_facts(sent, boost)
     return facts
 
+
+_POINTERS = {'one', 'ones', 'other', 'others', 'same', 'rest', 'former', 'latter', 'first', 'second', 'last', 'next', 'thing', 'problem', 'issue', 'bug', 'error', 'fix', 'answer', 'question', 'point', 'reason', 'idea', 'result', 'way'}
 
 LLM_EXTRACT_PROMPT = """Extract durable facts about the user or their world from the message below.
 Only facts worth remembering for weeks (names, relations, places, jobs, dates, preferences).

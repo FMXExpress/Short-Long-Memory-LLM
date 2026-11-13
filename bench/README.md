@@ -860,8 +860,8 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
 - How much memory the 4B (gpu12) preset uses while answering and training on one card.
   Gemma 4 E2B (gpu8 with a CUDA llama.cpp) answered and trained on a 24 GB card; its peak
   on an 8 GB card was not measured.
-- The `cpu` and `cpu-lite` presets with the small trainable models (LFM3-1.7B, LFM2-1.2B,
-  Qwen3-0.6B) in the 96-question agent run. Their numbers are from the memory benchmark.
+- The `cpu` and `cpu-lite` presets' trained memory (the consolidated arm) in the 96-question
+  agent run; the retrieval arm is measured ("The new defaults in the agent").
   The deep sleep times were measured on 4 training threads; the presets train on a
   quarter of the cores, so on a 4-core machine (1 thread) a deep sleep takes longer, up to 4×.
 - Two GPUs, and hours of continuous background training. The next test streams facts in
@@ -1671,3 +1671,62 @@ Qwen3-0.6B with retrieval and a chat context loaded.
 
 **Not measured:** the per-token cost on a GPU (the card keeps its own rule), and the estimate
 on a third model.
+
+## Rule extraction on real wording (2026-11-13)
+
+`/import` runs the rule extractor alone by default (the model pass is 5–8 s a message), so
+what the rules miss never becomes memory.
+
+**Precision on real messages.** All 134 user messages of a real Claude Code history (kept
+out of the repository) gave one fact, and it was wrong: "the one with all the serverless
+things is the wrong account" became "The one with all the serverless things is wrong
+account." A subject that points at something in the conversation (the one, the other, the
+problem, the fix, ...) is now skipped: 0/134.
+
+**Recall on natural wording.** The rules had been widened against the dev set (40/40), and
+held-out showed they had learned its words: 26/40. The misses were near variants, "I've got"
+for "I have", "can't stand" for "hate", "catch the bus" for "take the bus", "We call our dog"
+for "We named our cat". A third set (`heldout2`, 40 statements) was written before the
+change, as a check the fixes were not fitted to held-out alone:
+
+| set | before | after |
+|---|---|---|
+| dev | 40/40 | 40/40 |
+| held-out (the misses were read, so this is tuned on) | 26/40 | 39/40 |
+| heldout2 (fresh, written first) | 24/40 | 39/40 |
+| chatter, false positives | 0/40 | 0/40 |
+| real messages, false positives | 1/134 | 0/134 |
+| `facts.json`, `facts_heldout.json`, `facts_integration.json` | 162/162 | 162/162, the same facts |
+
+- **Widened:** wording variants of 13 rules, three new ones (food intolerance, "everyone
+  calls me", "I just turned 29"), and present-perfect work ("I've been at Kestrel Bank").
+- **Name values:** a value that opens with lower-case words ("a beat-up Ford Fiesta") starts
+  at its first capital. A value that opens with a preposition or "every" is no name, so "I
+  call my mom on Sundays" is no longer "Your mom is called Sundays".
+- **Both copies:** the Python rules (`memlib`) generate the Pascal ones (`Mem.ExtractRules.inc`);
+  `extract_test` checks the two agree, 808 checks. FPC 3.2.2's regex engine has no
+  lookahead, so the checks are code, not patterns.
+- **Not measured:** facts said in a longer message alongside other things, and the model
+  pass (`--llm`) on these sets.
+
+## The new defaults in the agent (96 questions, 4 cores, 2026-11-13)
+
+The CPU presets had been switched to small trainable models on the memory benchmark alone
+(single facts, 10–30 of them). `bench_integration.py`, retrieval arm, the same settings as the
+1.5B's 90/96 (retrieve twice, derived facts, 8 earlier messages):
+
+| model | all | direct | bridge | inverse | verify | time |
+|---|---|---|---|---|---|---|
+| small (Qwen2.5-1.5B), before | 90/96 | 24 | 22 | 22 | 22 | 2,962 s |
+| **qwen3-0.6b** | **93/96** | 24 | 24 | 22 | 23 | **769 s** |
+| lfm3-1.7b | 89/96 | 24 | 24 | 23 | 18 | 4,458 s |
+
+- **Qwen3-0.6B is the better agent and 3.9× faster** than the 1.5B. Two of its three misses
+  are questions whose fact retrieval did not find; the third is a wrong "No".
+- **LFM3-1.7B answers facts as well, but loses the yes/no questions.** It reasons aloud ("We
+  need to check if ..."), writes half a tool call into the answer, or says it does not
+  know with the fact in its prompt: 13/19 verify questions right with the facts retrieved.
+- **So both CPU presets use Qwen3-0.6B** (`cpu` was LFM3-1.7B, picked on its 0.85 from
+  the weights against Qwen3's 0.883 on a different number of facts). `cpu` trains on a
+  quarter of the cores, `cpu-lite` on one.
+- Results: `bench/results/integration-{qwen3-0.6b,lfm3-1.7b}.json`.

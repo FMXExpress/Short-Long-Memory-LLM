@@ -27,9 +27,15 @@ texts = [
     "My keys are in the drawer\n\nI work for the Acme Corp", "My son's teacher was Mrs. Ito; she retired.",
     "Remember, my gate code is 1234 because I forget", "My mother is called an Annie",
     "My favourite band is \"The Cure\".", "  ", "", "Ok cool thanks a lot", "Good morning! My boss is Priya.",
+    # a subject that points at something in the conversation (a real /import false positive)
+    "The one with all the serverless things is the wrong account.", "The problem is the cache.",
+    "The other one is broken.", "The fix is in the second commit.",
+    # values that open with lower-case words before the name
+    "I drive a beat-up Ford Fiesta.", "I drive to work.", "I work on a project for school.",
+    "I call my mom on Sundays.", "My kids call the cat Mochi.",
 ]
 natural = json.load(open(os.path.join(REPO, "bench", "facts_natural.json"), encoding="utf-8"))
-texts += [f["say"] for split in ("dev", "heldout") for f in natural[split]]
+texts += [f["say"] for split in ("dev", "heldout", "heldout2") for f in natural[split]]
 texts += json.load(open(os.path.join(REPO, "bench", "chatter.json"), encoding="utf-8"))["lines"]
 for name in ("facts.json", "facts_heldout.json"):
     data = json.load(open(os.path.join(REPO, "bench", name), encoding="utf-8"))

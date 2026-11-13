@@ -29,7 +29,7 @@ for ($i = 0; $i -lt $args.Count; $i++) {
 
 $Presets = [ordered]@{
     'cpu-lite' = 'qwen3-0.6b on CPU (42 t/s on 4 cores), trains on 1 core: 30 facts, 0.88 from the weights. Under 4 GB RAM: tiny (SmolLM2-135M), a demo.'
-    'cpu'      = 'lfm3-1.7b on CPU (21 t/s on 4 cores; 0.85 from the weights), lfm2-1.2b under 16 GB RAM (35 t/s; 0.80); trains on a quarter of the cores.'
+    'cpu'      = 'qwen3-0.6b on CPU, training on a quarter of the cores: 93/96 in the agent benchmark (1.5B: 90, LFM3-1.7B: 89), 13 min on 4 cores.'
     'gpu8'     = 'one 8-11 GB GPU: gemma4-e2b (0.90 from the weights, 16 s a deep sleep) with a CUDA llama.cpp; else small (Qwen2.5-1.5B) through Python, retrieval only.'
     'gpu12'    = 'medium (Qwen3-4B) on one 12-39 GB GPU, answering and training on it: the smallest size where trained memory helped.'
     'gpu40'    = 'large (Magistral-Small 24B) on one 40 GB+ GPU, answering and training on it (~43 GB at peak).'
@@ -78,7 +78,7 @@ $TrainThreads = 1; $Infer = -1; $Train = -1; $Trainer = 'llama'; $Engine = 'llam
 switch ($Preset) {
     'cpu-lite' { if ($RamGB -ge 4) { $Profile_ = 'qwen3-0.6b' } else { $Profile_ = 'tiny' } }
     'cpu'      {
-        if ($RamGB -ge 15) { $Profile_ = 'lfm3-1.7b' } else { $Profile_ = 'lfm2-1.2b' }
+        $Profile_ = 'qwen3-0.6b'
         $TrainThreads = [math]::Max(1, [math]::Floor($Cores / 4))
     }
     'gpu8'     { $Profile_ = 'small';  $Auto = 0; $Infer = 0; $Train = 0; $Gpu = $true }
