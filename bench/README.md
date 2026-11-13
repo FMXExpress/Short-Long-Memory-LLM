@@ -860,8 +860,8 @@ the guard withheld 40 of them. So the 1.5B presets do not train in the backgroun
 - How much memory the 4B (gpu12) preset uses while answering and training on one card.
   Gemma 4 E2B (gpu8 with a CUDA llama.cpp) answered and trained on a 24 GB card; its peak
   on an 8 GB card was not measured.
-- The `cpu` and `cpu-lite` presets' trained memory (the consolidated arm) in the 96-question
-  agent run; the retrieval arm is measured ("The new defaults in the agent").
+- Measured since: the `cpu` presets' trained memory in the agent ("Trained memory in the
+  agent at 0.6B").
   The deep sleep times were measured on 4 training threads; the presets train on a
   quarter of the cores, so on a 4-core machine (1 thread) a deep sleep takes longer, up to 4×.
 - Two GPUs, and hours of continuous background training. The next test streams facts in
@@ -1730,3 +1730,29 @@ The CPU presets had been switched to small trainable models on the memory benchm
   the weights against Qwen3's 0.883 on a different number of facts). `cpu` trains on a
   quarter of the cores, `cpu-lite` on one.
 - Results: `bench/results/integration-{qwen3-0.6b,lfm3-1.7b}.json`.
+
+## Trained memory in the agent at 0.6B (2026-11-13)
+
+The CPU presets had background training on (`auto=1`) since the small models learned in the
+memory benchmark. The same 96 questions with Qwen3-0.6B after one deep sleep over all 112
+facts (160 with the derived ones): every fact passed the recall gate (1.00), drift 1.23,
+1.7 h on 4 cores (`bench/results/integration-qwen3-0.6b-consolidated.json`).
+
+| Qwen3-0.6B | all | direct | bridge | inverse | verify |
+|---|---|---|---|---|---|
+| retrieval only | **93/96** | 24 | 24 | 22 | 23 |
+| retrieval + the trained LoRA | 81/96 | 24 | 24 | 17 | 16 |
+| the trained weights alone, no retrieval | 63/96 | 24 | 24 | 0 | 15 |
+
+- **The weights did learn.** With nothing in the prompt they answer all 48 direct and bridge
+  questions; the reverse questions ("which of my relatives is a chemist?") get none, the
+  reversal the weights never saw.
+- **With the LoRA on, the agent loses 12 answers retrieval had right**, in two ways:
+  - **A "yes" habit.** All 7 lost yes/no questions wanted "No"; with the LoRA every one is
+    "Yes". Training shows only true statements, so the model learns to agree.
+  - **Clipped reverse answers.** "Which of my relatives works as a glassblower?" gets
+    "glassblower." or "You haven't told me that yet.": the short question-to-value answers
+    it was trained on.
+- **So the CPU presets do not train in the background** (`auto=0`, as for the 1.5B); `/sleep`
+  still trains on demand. The next step is in the training data: false statements answered
+  "No", and questions asked the other way round, then this run again.
