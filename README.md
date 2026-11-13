@@ -77,8 +77,8 @@ scripts/run.sh --dry-run    # show the choice and the config, change nothing (ru
 
 | Preset | Picked when | Model | Answers on | Trains on |
 |---|---|---|---|---|
-| `cpu-lite` | under 4 cores or 8 GB RAM | Qwen3-0.6B (SmolLM2-135M under 4 GB) | CPU | 1 core |
-| `cpu` | no GPU | Qwen3-0.6B | CPU | a quarter of the cores |
+| `cpu-lite` | under 4 cores or 8 GB RAM | Qwen3-0.6B (SmolLM2-135M under 4 GB) | CPU | off: `/sleep` on 1 core |
+| `cpu` | no GPU | Qwen3-0.6B | CPU | off: `/sleep` on a quarter of the cores |
 | `gpu8` | one 8–11 GB GPU | Gemma 4 E2B with a CUDA llama.cpp, else Qwen2.5-1.5B | GPU | the same GPU (Qwen2.5-1.5B: off, `/sleep` on demand) |
 | `gpu12` | one 12–39 GB GPU | Qwen3-4B | GPU | the same GPU |
 | `gpu40` | one 40 GB+ GPU | Magistral-Small 24B | GPU | the same GPU |
@@ -90,9 +90,13 @@ What the presets are based on (bench/README.md, "One-shot presets"):
   (32/96 against 58/96), so that model does not train in the background.
 - The small models tuned for llama.cpp's trainer do learn: 0.80–0.90 of 10 facts from the
   weights (LFM2-1.2B, LFM3-1.7B, Gemma 4 E2B), 0.88 of 30 (Qwen3-0.6B), with a deep sleep
-  of 17–32 min on 4 CPU cores. The CPU presets use them and train in the background.
-  In the 96-question agent benchmark Qwen3-0.6B scored 93, the old 1.5B 90 and LFM3-1.7B
-  89, so both CPU presets use Qwen3-0.6B (bench/README.md, "The new defaults in the agent").
+  of 17–32 min on 4 CPU cores. In the 96-question agent benchmark Qwen3-0.6B scored 93,
+  the old 1.5B 90 and LFM3-1.7B 89, so both CPU presets use Qwen3-0.6B.
+- But in the agent, trained memory still costs answers below 4B: Qwen3-0.6B with its
+  LoRA on scored 81 against 93 with retrieval alone. The LoRA says "Yes" to every yes/no
+  question and clips answers to questions asked the other way round. So the CPU presets
+  do not train in the background; `/sleep` trains on demand (bench/README.md, "Trained
+  memory in the agent at 0.6B").
 - The 24B trains gently, because its first settings learned every fact and broke the model.
 - On Windows, and anywhere llama.cpp was built without CUDA, GPU presets answer through the
   Python engine (PyTorch with CUDA), which the launcher installs.

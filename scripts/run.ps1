@@ -28,8 +28,8 @@ for ($i = 0; $i -lt $args.Count; $i++) {
 }
 
 $Presets = [ordered]@{
-    'cpu-lite' = 'qwen3-0.6b on CPU (42 t/s on 4 cores), trains on 1 core: 30 facts, 0.88 from the weights. Under 4 GB RAM: tiny (SmolLM2-135M), a demo.'
-    'cpu'      = 'qwen3-0.6b on CPU, training on a quarter of the cores: 93/96 in the agent benchmark (1.5B: 90, LFM3-1.7B: 89), 13 min on 4 cores.'
+    'cpu-lite' = 'qwen3-0.6b on CPU (42 t/s on 4 cores; 93/96 in the agent benchmark), /sleep trains on 1 core. Under 4 GB RAM: tiny (SmolLM2-135M), a demo.'
+    'cpu'      = 'qwen3-0.6b on CPU: 93/96 in the agent benchmark (1.5B: 90, LFM3-1.7B: 89); /sleep trains on a quarter of the cores.'
     'gpu8'     = 'one 8-11 GB GPU: gemma4-e2b (0.90 from the weights, 16 s a deep sleep) with a CUDA llama.cpp; else small (Qwen2.5-1.5B) through Python, retrieval only.'
     'gpu12'    = 'medium (Qwen3-4B) on one 12-39 GB GPU, answering and training on it: the smallest size where trained memory helped.'
     'gpu40'    = 'large (Magistral-Small 24B) on one 40 GB+ GPU, answering and training on it (~43 GB at peak).'
@@ -76,9 +76,9 @@ if (-not $Presets.Contains($Preset)) {
 # ---------------------------------------------------------------- the preset
 $TrainThreads = 1; $Infer = -1; $Train = -1; $Trainer = 'llama'; $Engine = 'llama'; $Gpu = $false; $Auto = 1
 switch ($Preset) {
-    'cpu-lite' { if ($RamGB -ge 4) { $Profile_ = 'qwen3-0.6b' } else { $Profile_ = 'tiny' } }
+    'cpu-lite' { if ($RamGB -ge 4) { $Profile_ = 'qwen3-0.6b'; $Auto = 0 } else { $Profile_ = 'tiny' } }
     'cpu'      {
-        $Profile_ = 'qwen3-0.6b'
+        $Profile_ = 'qwen3-0.6b'; $Auto = 0
         $TrainThreads = [math]::Max(1, [math]::Floor($Cores / 4))
     }
     'gpu8'     { $Profile_ = 'small';  $Auto = 0; $Infer = 0; $Train = 0; $Gpu = $true }
@@ -114,7 +114,7 @@ if ($py) { $Python = $py.Source }
 $srcDir = '; src_dir: the converters in cache\llama.cpp'
 if (Test-Path (Join-Path $Root 'llama.cpp')) { $srcDir = 'src_dir=..\llama.cpp' }
 $AutoNote = '; 1: a fast LoRA after each new fact, a deep sleep after 8'
-if ($Auto -eq 0) { $AutoNote = '; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand' }
+if ($Auto -eq 0) { $AutoNote = '; 0: trained memory lost to retrieval in the agent at 1.5B and at Qwen3-0.6B (81 against 93 of 96, bench/README.md); /sleep still trains on demand' }
 $stamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mmZ')
 $Ini = @"
 ; written by run.ps1 for preset $Preset ($stamp); rerun it to regenerate.

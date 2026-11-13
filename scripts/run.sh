@@ -40,8 +40,8 @@ cd "$ROOT"
 PRESETS="cpu-lite cpu gpu8 gpu12 gpu40 2gpu"
 describe() {
   case $1 in
-    cpu-lite) echo "qwen3-0.6b on CPU (42 t/s on 4 cores), trains on 1 core: 30 facts, 0.88 from the weights. Under 4 GB RAM: tiny (SmolLM2-135M), a demo." ;;
-    cpu)      echo "qwen3-0.6b on CPU, training on a quarter of the cores: 93/96 in the agent benchmark (1.5B: 90, LFM3-1.7B: 89), 13 min on 4 cores." ;;
+    cpu-lite) echo "qwen3-0.6b on CPU (42 t/s on 4 cores; 93/96 in the agent benchmark), /sleep trains on 1 core. Under 4 GB RAM: tiny (SmolLM2-135M), a demo." ;;
+    cpu)      echo "qwen3-0.6b on CPU: 93/96 in the agent benchmark (1.5B: 90, LFM3-1.7B: 89); /sleep trains on a quarter of the cores." ;;
     gpu8)     echo "one 8-11 GB GPU: gemma4-e2b (0.90 from the weights, 16 s a deep sleep) with a CUDA llama.cpp; else small (Qwen2.5-1.5B) through Python, retrieval only." ;;
     gpu12)    echo "medium (Qwen3-4B) on one 12-39 GB GPU, answering and training on it: the smallest size where trained memory helped." ;;
     gpu40)    echo "large (Magistral-Small 24B) on one 40 GB+ GPU, answering and training on it (~43 GB at peak)." ;;
@@ -89,8 +89,8 @@ case " $PRESETS " in *" $PRESET "*) ;; *) echo "unknown preset '$PRESET' (have: 
 # ---------------------------------------------------------------- the preset
 TRAIN_THREADS=1 INFER=-1 TRAIN=-1 TRAINER=llama GPU_BUILD=0 ENGINE=llama AUTO=1
 case $PRESET in
-  cpu-lite) if [ "$RAM_GB" -ge 4 ]; then PROFILE=qwen3-0.6b; else PROFILE=tiny; fi ;;
-  cpu)      PROFILE=qwen3-0.6b
+  cpu-lite) if [ "$RAM_GB" -ge 4 ]; then PROFILE=qwen3-0.6b; AUTO=0; else PROFILE=tiny; fi ;;
+  cpu)      PROFILE=qwen3-0.6b; AUTO=0
             TRAIN_THREADS=$(( CORES / 4 > 0 ? CORES / 4 : 1 )) ;;
   gpu8)     PROFILE=small;  AUTO=0; INFER=0; TRAIN=0; TRAINER=python; GPU_BUILD=1 ;;
   gpu12)    PROFILE=medium; INFER=0; TRAIN=0; TRAINER=python; GPU_BUILD=1 ;;
@@ -144,7 +144,7 @@ train=$TRAIN
 [consolidate]
 trainer=$TRAINER
 threads=$TRAIN_THREADS
-$( [ "$AUTO" = 0 ] && echo '; 0 at 1.5B: trained memory lost to retrieval there (bench/README.md); /sleep still trains on demand' || echo '; 1: a fast LoRA after each new fact, a deep sleep after 8' )
+$( [ "$AUTO" = 0 ] && echo '; 0: trained memory lost to retrieval in the agent at 1.5B and at Qwen3-0.6B (81 against 93 of 96, bench/README.md); /sleep still trains on demand' || echo '; 1: a fast LoRA after each new fact, a deep sleep after 8' )
 auto=$AUTO
 tiers=auto
 
