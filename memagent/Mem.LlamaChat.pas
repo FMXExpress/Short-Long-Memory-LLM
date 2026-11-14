@@ -246,6 +246,39 @@ begin
   end;
 end;
 
+(* the CPUs this process may use. FPC 3.2.2's TThread.ProcessorCount returned 1 on a
+   4-core Linux machine, so "all cores but one" meant one thread for chat, training and
+   the judge; Linux counts its processors in /proc/cpuinfo *)
+function CpuCount: Integer;
+var
+  L: TStringList;
+  I: Integer;
+begin
+  Result := 0;
+  {$IFDEF LINUX}
+  if FileExists('/proc/cpuinfo') then
+  begin
+    L := TStringList.Create;
+    try
+      try
+        L.LoadFromFile('/proc/cpuinfo');
+        for I := 0 to L.Count - 1 do
+          if Copy(L[I], 1, 9) = 'processor' then
+            Inc(Result);
+      except
+        Result := 0;
+      end;
+    finally
+      L.Free;
+    end;
+  end;
+  {$ENDIF}
+  if Result <= 0 then
+    Result := TThread.ProcessorCount;
+  if Result <= 0 then
+    Result := 1;
+end;
+
 function LlamaThreads(AThreads: Integer): Integer;
 begin
   (* All cores but one: ggml's workers spin while they wait, and with every
@@ -253,7 +286,7 @@ begin
      cores (tiny, 5 turns): 4 threads 1506 ms/turn, 3 threads 625 ms. *)
   Result := AThreads;
   if Result <= 0 then
-    Result := Max(1, Integer(TThread.ProcessorCount) - 1);
+    Result := Max(1, CpuCount - 1);
 end;
 
 function ChatMessages(const APairs: array of string): TJSONArray;

@@ -64,6 +64,9 @@ type
     function Replaces(const AOld, ANew: string): Double;
     (* P(AMessage, what the user said, states AFact: same person, attribute and value) *)
     function Supports(const AMessage, AFact: string): Double;
+    (* P(AAnswer gives one of AExpected for AQuestion): a benchmark's grader, read like
+       the other decisions; the answer is quoted state, so it cannot argue the question *)
+    function Correct(const AQuestion, AAnswer: string; const AExpected: array of string): Double;
     (* P(AObservations, what a robot reported while acting, show that AClaim is now true) *)
     function Observed(const AClaim: string; const AObservations: array of string): Double;
     property Describe: string read FDesc;
@@ -75,7 +78,7 @@ function JudgeModelPath(ACfg: TMemConfig; AVerbose: Boolean): string;
 implementation
 
 uses
-  Mem.Https;
+  StrUtils, Mem.Https;
 
 const
   { name, repo file, T, noul_t (the model card's calibration for the family) }
@@ -104,6 +107,13 @@ const
     'the message does not state, or states about someone else or with another value, is not supported.';
   SUPPORTS_YES = 'the message states the fact';
   SUPPORTS_NO = 'the message does not state it, or states something else';
+
+  GRADE_QUESTION = 'Grade the assistant''s answer to the user''s question against the expected answers. ' +
+    'It is correct when it gives one of the expected answers or an equivalent (the same name, place or ' +
+    'value; for a yes/no question the same yes or no), however it is worded and whatever else it adds. ' +
+    'It is wrong when it gives another value, the opposite yes or no, says it does not know, or does not answer.';
+  GRADE_YES = 'the answer gives an expected answer';
+  GRADE_NO = 'the answer is wrong, refuses, or does not answer';
 
   OBSERVED_QUESTION = 'A robot reported these observations while it did a task. Decide whether they show ' +
     'that the claim is true in the world now. A step the robot says it did is not proof; what it saw is.';
@@ -309,6 +319,22 @@ begin
   end;
   LState := LState + '], "claim": ' + JsonStr(AClaim) + '}';
   P := Readout(LState, OBSERVED_QUESTION, ['yes', OBSERVED_YES, 'no', OBSERVED_NO]);
+  LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
+  Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
+end;
+
+function TJudge.Correct(const AQuestion, AAnswer: string; const AExpected: array of string): Double;
+var
+  LState: string;
+  I: Integer;
+  P: TDoubleArray;
+  LYes: Double;
+begin
+  LState := '{"user_question": ' + JsonStr(AQuestion) + ', "expected_answers": [';
+  for I := 0 to High(AExpected) do
+    LState := LState + IfThen(I > 0, ', ', '') + JsonStr(AExpected[I]);
+  LState := LState + '], "assistant_answer": ' + JsonStr(AAnswer) + '}';
+  P := Readout(LState, GRADE_QUESTION, ['yes', GRADE_YES, 'no', GRADE_NO]);
   LYes := EnsureRange(P[0], 1e-4, 1 - 1e-4);
   Result := 1 / (1 + Exp(-(Ln(LYes / (1 - LYes)) / FNoulT)));
 end;

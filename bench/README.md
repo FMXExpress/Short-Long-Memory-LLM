@@ -1789,3 +1789,40 @@ Capped at 110 windows (82 of 768 tokens) it drifted ×1.29:
 - Results: `bench/results/integration-qwen3-0.6b-memory-block.json` (run with the gate at ×3
   so the adapter would be kept whatever its drift; it passed ×1.5 anyway) and
   `integration-small-qwen3-0.6b-*.json`.
+
+## One thread, not three; and how much a score can move by itself (2026-11-14)
+
+**memagent ran llama.cpp on one thread.** `threads=0` (the default, and what `run.sh` writes
+for chat) meant "all cores but one" through FPC's `TThread.ProcessorCount`, which returns 1
+on a 4-core Linux machine. So chat, the trainer and the judge each used one core. CPUs are
+now counted from `/proc/cpuinfo` (`Mem.LlamaChat.CpuCount`). On 4 cores (3 threads):
+
+| | 1 thread (before) | 3 threads |
+|---|---|---|
+| 64 questions, retrieval arm (`facts_integration_small.json`) | 524 s | 246 s |
+| one OpenJev-Flash-9B decision | 35 s | 12.5 s |
+
+Every CPU time measured through memagent before this, the agent runs and the deep sleeps,
+was single-threaded. llama-bench's tokens per second picked their own threads and stand.
+
+**The thread count changes answers.** With the same prompts (retrieval returned the same facts
+in the same order with the same scores), 3 threads changed 8 of 64 greedy answers against 1
+thread, and the score went 61 -> 57: other summation orders tip a 0.6B model at close calls.
+Each count repeats itself exactly (3 threads twice: 64/64 identical). So one run of these
+benchmarks is one sample: a difference of a few questions (91 against 93 of 96, 62 against
+61 of 64) is inside that noise. Runs compared here so far all used one thread, so they are
+comparable with each other; a claim of a few questions needs runs at more than one thread
+count.
+
+## A decision model as the benchmarks' grader (`build/grade`, 2026-11-14)
+
+Substring scoring marks "Yes. According to memory, your uncle Tara's job is dentist" wrong
+and an answer that lists two people right. `TJudge.Correct` asks OpenJev-Flash-9B whether an
+answer gives one of the expected answers (the answer is quoted state, so it cannot argue its
+case), read as a calibrated probability like the guard's. `build/grade IN.json OUT.json`.
+
+On LFM3-1.7B's 96 answers (`bench/results/grade-lfm3-1.7b-openjev.json`) it agreed with
+substring scoring on 92. Of the 4 disagreements it was right on 3: the "Yes. According to
+memory ..." answer, a reply that listed two people and asked which one, and a ramble that
+never answered. It was wrong on one ramble that never answered either (p 0.98). So it is
+reported beside substring scoring, not instead of it. 12.5 s a decision on 3 CPU threads.
