@@ -280,6 +280,7 @@
         "max_len": 256,
         "paraphrases": 6,
         "anchors": 32,
+        "max_windows": 110,
         "grad_checkpointing": true
       },
       "gate": {

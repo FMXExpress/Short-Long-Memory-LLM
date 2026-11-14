@@ -17,6 +17,14 @@ unit Mem.Examples;
          name?" -> "No. ..."), which ties the value to its own subject
        fill in the blank, and two facts asked together
 
+   Half the facts take their yes/no checks and the value asked from the other side
+   with a memory block in the system prompt, as the agent asks them: the fact, the
+   other fact whose value the check proposes, and one more, under "Relevant memory:".
+   Trained only without one, a LoRA answered from its weights with retrieval in the
+   prompt: "Yes." to every check with a wrong value, and the bare value for "Which
+   of my relatives ...?" (Qwen3-0.6B: 81/96 in the agent against 93 with retrieval
+   alone, bench/README.md "Trained memory in the agent at 0.6B").
+
    Built from the fact's text, subject and value with rules, so it works for
    a 135M model that cannot write its own paraphrases. *)
 
@@ -38,6 +46,7 @@ type
 
   TQA = record
     Q, A: string;
+    Memory: string;  { "Relevant memory:" lines for the system prompt, '' for none }
   end;
   TQAs = array of TQA;
 
@@ -54,6 +63,7 @@ function QA(const AQ, AA: string): TQA;
 begin
   Result.Q := AQ;
   Result.A := AA;
+  Result.Memory := '';
 end;
 
 function TemplateExamples(const AFact: TFact; AN: Integer): TQAs;
@@ -127,6 +137,43 @@ var
     Result := AFacts[J];
   end;
 
+  (* the fact, the other fact when the check proposes its value, and one more, in a
+     random order, as retrieval returns them *)
+  function MemoryLines(AWithOther: Boolean): string;
+  var
+    L: array of string;
+    J, K: Integer;
+    T: string;
+  begin
+    L := nil;
+    SetLength(L, 1);
+    L[0] := F.Text;
+    if AWithOther and LHasOther then
+    begin
+      SetLength(L, Length(L) + 1);
+      L[High(L)] := LOther.Text;
+    end;
+    if Length(AFacts) > 2 then
+    begin
+      J := ARand(Length(AFacts));
+      if (J <> AIndex) and not (AWithOther and LHasOther and SameText(AFacts[J].Text, LOther.Text)) then
+      begin
+        SetLength(L, Length(L) + 1);
+        L[High(L)] := AFacts[J].Text;
+      end;
+    end;
+    for J := High(L) downto 1 do
+    begin
+      K := ARand(J + 1);
+      T := L[J];
+      L[J] := L[K];
+      L[K] := T;
+    end;
+    Result := '';
+    for J := 0 to High(L) do
+      Result := Result + '- ' + L[J] + LineEnding;
+  end;
+
 begin
   Result := nil;
   F := AFacts[AIndex];
@@ -198,6 +245,9 @@ begin
     else
       Result[High(Result)] := QA(Question(0), F.Text);
     end;
+    { the agent's view: half the facts read their checks and reverse questions from memory }
+    if (AIndex mod 2 = 0) and (LKind in [2, 3, 4]) then
+      Result[High(Result)].Memory := MemoryLines(LKind = 4);
   end;
 end;
 

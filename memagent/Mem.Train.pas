@@ -249,10 +249,17 @@ var
     LMark := Now;
   end;
 
-  function Chat(const AQuestion, AAnswer: string): TJSONArray;
+  { AMemory: "Relevant memory:" lines, as the agent puts them after the priors (Mem.Agent.BuildMessages) }
+  function Chat(const AQuestion, AAnswer: string; const AMemory: string = ''): TJSONArray;
+  var
+    LSys: string;
   begin
-    if LPriors <> '' then
-      Result := ChatMessages(['system', LPriors, 'user', AQuestion])
+    LSys := LPriors;
+    if AMemory <> '' then
+      LSys := LSys + IfThen(LSys = '', '', LineEnding + LineEnding) + 'Relevant memory:' + LineEnding +
+        TrimRight(AMemory);
+    if LSys <> '' then
+      Result := ChatMessages(['system', LSys, 'user', AQuestion])
     else
       Result := ChatMessages(['user', AQuestion]);
     if AAnswer <> '' then
@@ -260,11 +267,11 @@ var
   end;
 
   { memlib.tokenize_example: the full chat, loss only after the prompt }
-  function Example(const AQuestion, AAnswer: string): TExample;
+  function Example(const AQuestion, AAnswer: string; const AMemory: string = ''): TExample;
   var
     LM: TJSONArray;
   begin
-    LM := Chat(AQuestion, AAnswer);
+    LM := Chat(AQuestion, AAnswer, AMemory);
     try
       Result.Tokens := LChat.Tokenize(LChat.Prompt(LM, False));
       LM.Delete(LM.Count - 1);
@@ -596,7 +603,7 @@ begin
       for J := 0 to High(LQAs) do
       begin
         SetLength(LTrain, Length(LTrain) + 1);
-        LTrain[High(LTrain)] := Example(LQAs[J].Q, LQAs[J].A);
+        LTrain[High(LTrain)] := Example(LQAs[J].Q, LQAs[J].A, LQAs[J].Memory);
       end;
     end;
     Log(Format('[consolidate] examples=%d (facts %d, anchors %d), held-out anchors %d',

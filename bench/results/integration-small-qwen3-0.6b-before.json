@@ -1,0 +1,1071 @@
+{
+ "label": "small set, qwen3-0.6b, training as before",
+ "profile": "qwen3-0.6b",
+ "settings": [],
+ "rag_k": 3,
+ "hops": 2,
+ "derive": true,
+ "all_facts": false,
+ "n_facts": 32,
+ "n_questions": 64,
+ "seconds": {
+  "remember": 49.40541195869446,
+  "recall": 12.80909776687622,
+  "retrieval": 524.353052854538,
+  "deep_sleep": 2180.4993793964386,
+  "consolidated": 479.5168526172638,
+  "weights": 120.25366711616516
+ },
+ "work": "/tmp/claude-0/-home-user-Short-Long-Memory-LLM/339c8ae1-0251-5229-9aa0-f2a2565fac18/scratchpad/small-base",
+ "stored": 48,
+ "train": {
+  "id": "mem-20261113T143507",
+  "tier": "deep",
+  "n_facts": 48,
+  "n_passed": 44,
+  "recall": 0.9167000000000001,
+  "ppl_ratio": 1.1684,
+  "seconds": 2176.5
+ },
+ "coverage": {
+  "direct": 1.0,
+  "bridge": 1.0,
+  "inverse": 0.75,
+  "verify": 0.938
+ },
+ "accuracy": {
+  "all": {
+   "retrieval": "61/64 = 0.953",
+   "consolidated": "56/64 = 0.875",
+   "weights": "38/64 = 0.594"
+  },
+  "bridge": {
+   "retrieval": "16/16 = 1.000",
+   "consolidated": "16/16 = 1.000",
+   "weights": "14/16 = 0.875"
+  },
+  "bridge / found": {
+   "retrieval": "16/16 = 1.000",
+   "consolidated": "16/16 = 1.000",
+   "weights": "14/16 = 0.875"
+  },
+  "direct": {
+   "retrieval": "16/16 = 1.000",
+   "consolidated": "16/16 = 1.000",
+   "weights": "15/16 = 0.938"
+  },
+  "direct / found": {
+   "retrieval": "16/16 = 1.000",
+   "consolidated": "16/16 = 1.000",
+   "weights": "15/16 = 0.938"
+  },
+  "inverse": {
+   "retrieval": "15/16 = 0.938",
+   "consolidated": "14/16 = 0.875",
+   "weights": "2/16 = 0.125"
+  },
+  "inverse / found": {
+   "retrieval": "12/12 = 1.000",
+   "consolidated": "11/12 = 0.917",
+   "weights": "2/12 = 0.167"
+  },
+  "inverse / missed": {
+   "retrieval": "3/4 = 0.750",
+   "consolidated": "3/4 = 0.750",
+   "weights": "0/4 = 0.000"
+  },
+  "verify": {
+   "retrieval": "14/16 = 0.875",
+   "consolidated": "10/16 = 0.625",
+   "weights": "7/16 = 0.438"
+  },
+  "verify / found": {
+   "retrieval": "13/15 = 0.867",
+   "consolidated": "10/15 = 0.667",
+   "weights": "7/15 = 0.467"
+  },
+  "verify / missed": {
+   "retrieval": "1/1 = 1.000",
+   "consolidated": "0/1 = 0.000",
+   "weights": "0/1 = 0.000"
+  }
+ },
+ "answers": [
+  {
+   "type": "direct",
+   "q": "What does Tara do for work?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": true,
+   "recalled": "fact #15  cos 0.72  rerank 0.9991  Tara's job is dentist.\n  fact #16  cos 0.59  rerank 0.9957  Your uncle Tara's job is dentist.\n  fact #46  cos 0.59  rerank 0.0056  Tara's city is Krakow.\n  fact #11  cos 0.50  rerank 0.0032  Your uncle's name is Tara.\n  fact #47  cos 0.00  rerank 0.0017  Your uncle Tara's city is Krakow.",
+   "retrieval": "Tara works as a dentist.",
+   "retrieval_ok": true,
+   "consolidated": "dentist.",
+   "consolidated_ok": true,
+   "weights": "Tara's job is dentist.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Mia live?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": "fact #3   cos 0.61  rerank 0.9924  Mia's city is Tallinn.\n  fact #41  cos 0.54  rerank 0.9788  Your mother Mia's city is Tallinn.\n  fact #44  cos 0.56  rerank 0.0106  Mia's job is nurse.\n  fact #40  cos 0.50  rerank 0.0021  Your mother's name is Mia.\n  fact #45  cos 0.49  rerank 0.0012  Your mother Mia's job is nurse.\n  fact #48  cos 0.39  rerank 0.0002  Greta's city is Tallinn.",
+   "retrieval": "Mia lives in Tallinn.",
+   "retrieval_ok": true,
+   "consolidated": "Tallinn.",
+   "consolidated_ok": true,
+   "weights": "Mia's city is Tallinn.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Lucia live?",
+   "accept": [
+    "Lisbon"
+   ],
+   "covered": true,
+   "recalled": "fact #2   cos 0.70  rerank 0.9975  Lucia's city is Lisbon.\n  fact #18  cos 0.65  rerank 0.9898  Your cousin Lucia's city is Lisbon.\n  fact #27  cos 0.69  rerank 0.0215  Lucia's job is architect.\n  fact #17  cos 0.53  rerank 0.0093  Your cousin's name is Lucia.\n  fact #28  cos 0.49  rerank 0.0034  Your cousin Lucia's job is architect.\n  fact #26  cos 0.33  rerank 0.0001  Your partner Sofia's city is Bologna.",
+   "retrieval": "Lucia lives in Lisbon.",
+   "retrieval_ok": true,
+   "consolidated": "Lisbon.",
+   "consolidated_ok": true,
+   "weights": "Lucia's city is Lisbon.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Sofia live?",
+   "accept": [
+    "Bologna"
+   ],
+   "covered": true,
+   "recalled": "fact #25  cos 0.68  rerank 0.9958  Sofia's city is Bologna.\n  fact #26  cos 0.53  rerank 0.9629  Your partner Sofia's city is Bologna.\n  fact #19  cos 0.57  rerank 0.0317  Sofia's job is beekeeper.\n  fact #8   cos 0.41  rerank 0.0095  Your partner's name is Sofia.\n  fact #20  cos 0.00  rerank 0.0045  Your partner Sofia's job is beekeeper.\n  fact #18  cos 0.48  rerank 0.0005  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "Sofia lives in Bologna.",
+   "retrieval_ok": true,
+   "consolidated": "Sofia's city is Bologna.",
+   "consolidated_ok": true,
+   "weights": "Sofia's city is Bologna.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Dana do for work?",
+   "accept": [
+    "firefighter"
+   ],
+   "covered": true,
+   "recalled": "fact #12  cos 0.73  rerank 0.9991  Dana's job is firefighter.\n  fact #13  cos 0.64  rerank 0.9872  Your aunt Dana's job is firefighter.\n  fact #29  cos 0.49  rerank 0.0030  Dana's city is Utrecht.\n  fact #5   cos 0.47  rerank 0.0008  Your aunt's name is Dana.\n  fact #30  cos 0.00  rerank 0.0004  Your aunt Dana's city is Utrecht.",
+   "retrieval": "Dana works as a firefighter.",
+   "retrieval_ok": true,
+   "consolidated": "firefighter.",
+   "consolidated_ok": true,
+   "weights": "Dana's job is firefighter.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Hana live?",
+   "accept": [
+    "Graz"
+   ],
+   "covered": true,
+   "recalled": "fact #4   cos 0.69  rerank 0.9943  Hana's city is Graz.\n  fact #22  cos 0.63  rerank 0.9733  Your sister Hana's city is Graz.\n  fact #32  cos 0.59  rerank 0.0375  Hana's job is surveyor.\n  fact #21  cos 0.54  rerank 0.0102  Your sister's name is Hana.\n  fact #33  cos 0.47  rerank 0.0036  Your sister Hana's job is surveyor.\n  fact #48  cos 0.43  rerank 0.0001  Greta's city is Tallinn.",
+   "retrieval": "Hana lives in Graz.",
+   "retrieval_ok": true,
+   "consolidated": "Graz.",
+   "consolidated_ok": true,
+   "weights": "Graz.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Priya live?",
+   "accept": [
+    "Dublin"
+   ],
+   "covered": true,
+   "recalled": "fact #23  cos 0.63  rerank 0.9976  Priya's city is Dublin.\n  fact #24  cos 0.52  rerank 0.9810  Your father Priya's city is Dublin.\n  fact #36  cos 0.48  rerank 0.0662  Priya's job is baker.\n  fact #9   cos 0.52  rerank 0.0273  Your father's name is Priya.\n  fact #37  cos 0.40  rerank 0.0169  Your father Priya's job is baker.",
+   "retrieval": "Priya lives in Dublin.",
+   "retrieval_ok": true,
+   "consolidated": "Dublin.",
+   "consolidated_ok": true,
+   "weights": "Dublin.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Priya do for work?",
+   "accept": [
+    "baker"
+   ],
+   "covered": true,
+   "recalled": "fact #36  cos 0.64  rerank 0.9980  Priya's job is baker.\n  fact #37  cos 0.56  rerank 0.9691  Your father Priya's job is baker.\n  fact #23  cos 0.49  rerank 0.0270  Priya's city is Dublin.\n  fact #9   cos 0.47  rerank 0.0116  Your father's name is Priya.\n  fact #24  cos 0.34  rerank 0.0066  Your father Priya's city is Dublin.",
+   "retrieval": "Priya works as a baker.",
+   "retrieval_ok": true,
+   "consolidated": "baker.",
+   "consolidated_ok": true,
+   "weights": "baker.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Yusuf do for work?",
+   "accept": [
+    "chemist"
+   ],
+   "covered": true,
+   "recalled": "fact #42  cos 0.76  rerank 0.9991  Yusuf's job is chemist.\n  fact #43  cos 0.63  rerank 0.9928  Your brother Yusuf's job is chemist.\n  fact #34  cos 0.51  rerank 0.0199  Yusuf's city is Ghent.\n  fact #38  cos 0.48  rerank 0.0045  Your brother's name is Yusuf.\n  fact #39  cos 0.36  rerank 0.0025  Your brother Yusuf's city is Ghent.",
+   "retrieval": "Yusuf works as a chemist.",
+   "retrieval_ok": true,
+   "consolidated": "chemist.",
+   "consolidated_ok": true,
+   "weights": "chemist.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Dana live?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": true,
+   "recalled": "fact #29  cos 0.60  rerank 0.9947  Dana's city is Utrecht.\n  fact #30  cos 0.53  rerank 0.9646  Your aunt Dana's city is Utrecht.\n  fact #12  cos 0.54  rerank 0.0167  Dana's job is firefighter.\n  fact #5   cos 0.50  rerank 0.0057  Your aunt's name is Dana.\n  fact #13  cos 0.48  rerank 0.0023  Your aunt Dana's job is firefighter.",
+   "retrieval": "Dana lives in Utrecht.",
+   "retrieval_ok": true,
+   "consolidated": "Dana's city is Utrecht.",
+   "consolidated_ok": true,
+   "weights": "Dana's city is Utrecht.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Hana do for work?",
+   "accept": [
+    "surveyor"
+   ],
+   "covered": true,
+   "recalled": "fact #32  cos 0.74  rerank 0.9990  Hana's job is surveyor.\n  fact #33  cos 0.63  rerank 0.9869  Your sister Hana's job is surveyor.\n  fact #4   cos 0.59  rerank 0.0038  Hana's city is Graz.\n  fact #21  cos 0.47  rerank 0.0028  Your sister's name is Hana.\n  fact #22  cos 0.50  rerank 0.0008  Your sister Hana's city is Graz.",
+   "retrieval": "Hana works as a surveyor.",
+   "retrieval_ok": true,
+   "consolidated": "surveyor.",
+   "consolidated_ok": true,
+   "weights": "surveyor.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Mia do for work?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": true,
+   "recalled": "fact #44  cos 0.76  rerank 0.9978  Mia's job is nurse.\n  fact #45  cos 0.70  rerank 0.9909  Your mother Mia's job is nurse.\n  fact #3   cos 0.50  rerank 0.0026  Mia's city is Tallinn.\n  fact #40  cos 0.49  rerank 0.0011  Your mother's name is Mia.\n  fact #41  cos 0.00  rerank 0.0006  Your mother Mia's city is Tallinn.\n  fact #33  cos 0.46  rerank 0.0002  Your sister Hana's job is surveyor.",
+   "retrieval": "Mia works as a nurse.",
+   "retrieval_ok": true,
+   "consolidated": "nurse.",
+   "consolidated_ok": true,
+   "weights": "Mia's job is architect.",
+   "weights_ok": false
+  },
+  {
+   "type": "direct",
+   "q": "What does Sofia do for work?",
+   "accept": [
+    "beekeeper"
+   ],
+   "covered": true,
+   "recalled": "fact #19  cos 0.70  rerank 0.9988  Sofia's job is beekeeper.\n  fact #20  cos 0.54  rerank 0.9932  Your partner Sofia's job is beekeeper.\n  fact #25  cos 0.58  rerank 0.0177  Sofia's city is Bologna.\n  fact #8   cos 0.42  rerank 0.0148  Your partner's name is Sofia.\n  fact #26  cos 0.48  rerank 0.0188  Your partner Sofia's city is Bologna.\n  fact #27  cos 0.44  rerank 0.0004  Lucia's job is architect.",
+   "retrieval": "Sofia works as a beekeeper.",
+   "retrieval_ok": true,
+   "consolidated": "beekeeper.",
+   "consolidated_ok": true,
+   "weights": "beekeeper.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "What does Lucia do for work?",
+   "accept": [
+    "architect"
+   ],
+   "covered": true,
+   "recalled": "fact #27  cos 0.81  rerank 0.9987  Lucia's job is architect.\n  fact #28  cos 0.62  rerank 0.9906  Your cousin Lucia's job is architect.\n  fact #2   cos 0.61  rerank 0.0123  Lucia's city is Lisbon.\n  fact #17  cos 0.46  rerank 0.0029  Your cousin's name is Lucia.\n  fact #18  cos 0.54  rerank 0.0024  Your cousin Lucia's city is Lisbon.\n  fact #19  cos 0.42  rerank 0.0006  Sofia's job is beekeeper.",
+   "retrieval": "Lucia works as an architect.",
+   "retrieval_ok": true,
+   "consolidated": "architect.",
+   "consolidated_ok": true,
+   "weights": "architect.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Tara live?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": true,
+   "recalled": "fact #46  cos 0.66  rerank 0.9966  Tara's city is Krakow.\n  fact #47  cos 0.56  rerank 0.9868  Your uncle Tara's city is Krakow.\n  fact #15  cos 0.56  rerank 0.0242  Tara's job is dentist.\n  fact #11  cos 0.50  rerank 0.0076  Your uncle's name is Tara.\n  fact #16  cos 0.44  rerank 0.0031  Your uncle Tara's job is dentist.",
+   "retrieval": "Tara lives in Krakow.",
+   "retrieval_ok": true,
+   "consolidated": "Krakow.",
+   "consolidated_ok": true,
+   "weights": "Tara's city is Krakow.",
+   "weights_ok": true
+  },
+  {
+   "type": "direct",
+   "q": "Where does Yusuf live?",
+   "accept": [
+    "Ghent"
+   ],
+   "covered": true,
+   "recalled": "fact #34  cos 0.61  rerank 0.9965  Yusuf's city is Ghent.\n  fact #39  cos 0.48  rerank 0.9665  Your brother Yusuf's city is Ghent.\n  fact #42  cos 0.60  rerank 0.0541  Yusuf's job is chemist.\n  fact #38  cos 0.54  rerank 0.0183  Your brother's name is Yusuf.\n  fact #43  cos 0.49  rerank 0.0047  Your brother Yusuf's job is chemist.",
+   "retrieval": "Yusuf lives in Ghent.",
+   "retrieval_ok": true,
+   "consolidated": "Yusuf's city is Ghent.",
+   "consolidated_ok": true,
+   "weights": "Yusuf's city is Ghent.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my partner do for a living?",
+   "accept": [
+    "beekeeper"
+   ],
+   "covered": true,
+   "recalled": "fact #20  cos 0.50  rerank 0.0162  Your partner Sofia's job is beekeeper.\n  fact #26  cos 0.00  rerank 0.0009  Your partner Sofia's city is Bologna.\n  fact #8   cos 0.26  rerank 0.0006  Your partner's name is Sofia.\n  fact #19  cos 0.58  rerank 0.0939  Sofia's job is beekeeper.",
+   "retrieval": "Your partner works as a beekeeper.",
+   "retrieval_ok": true,
+   "consolidated": "beekeeper.",
+   "consolidated_ok": true,
+   "weights": "Your partner Sofia's job is beekeeper.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my aunt do for a living?",
+   "accept": [
+    "firefighter"
+   ],
+   "covered": true,
+   "recalled": "fact #13  cos 0.55  rerank 0.3729  Your aunt Dana's job is firefighter.\n  fact #5   cos 0.38  rerank 0.0036  Your aunt's name is Dana.\n  fact #12  cos 0.59  rerank 0.0038  Dana's job is firefighter.\n  fact #30  cos 0.34  rerank 0.0027  Your aunt Dana's city is Utrecht.\n  fact #29  cos 0.48  rerank 0.0003  Dana's city is Utrecht.\n  fact #16  cos 0.44  rerank 0.0008  Your uncle Tara's job is dentist.",
+   "retrieval": "My aunt works as a firefighter.",
+   "retrieval_ok": true,
+   "consolidated": "firefighter.",
+   "consolidated_ok": true,
+   "weights": "Your aunt Dana's job is firefighter.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my mother do for a living?",
+   "accept": [
+    "nurse"
+   ],
+   "covered": true,
+   "recalled": "fact #45  cos 0.47  rerank 0.0835  Your mother Mia's job is nurse.\n  fact #40  cos 0.26  rerank 0.0008  Your mother's name is Mia.\n  fact #44  cos 0.62  rerank 0.0096  Mia's job is nurse.\n  fact #41  cos 0.26  rerank 0.0005  Your mother Mia's city is Tallinn.\n  fact #48  cos 0.55  rerank 0.0003  Greta's city is Tallinn.",
+   "retrieval": "My mother works as a nurse.",
+   "retrieval_ok": true,
+   "consolidated": "nurse.",
+   "consolidated_ok": true,
+   "weights": "Your mother Mia's job is firefighter.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my aunt live in?",
+   "accept": [
+    "Utrecht"
+   ],
+   "covered": true,
+   "recalled": "fact #30  cos 0.57  rerank 0.9997  Your aunt Dana's city is Utrecht.\n  fact #29  cos 0.56  rerank 0.6686  Dana's city is Utrecht.\n  fact #5   cos 0.38  rerank 0.0061  Your aunt's name is Dana.\n  fact #12  cos 0.49  rerank 0.0002  Dana's job is firefighter.\n  fact #13  cos 0.37  rerank 0.0025  Your aunt Dana's job is firefighter.\n  fact #3   cos 0.00  rerank 0.0037  Mia's city is Tallinn.",
+   "retrieval": "Your aunt lives in Utrecht.",
+   "retrieval_ok": true,
+   "consolidated": "Dana's city is Utrecht.",
+   "consolidated_ok": true,
+   "weights": "Your aunt Dana's city is Utrecht.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my cousin do for a living?",
+   "accept": [
+    "architect"
+   ],
+   "covered": true,
+   "recalled": "fact #28  cos 0.53  rerank 0.5172  Your cousin Lucia's job is architect.\n  fact #17  cos 0.29  rerank 0.0156  Your cousin's name is Lucia.\n  fact #27  cos 0.66  rerank 0.0152  Lucia's job is architect.\n  fact #18  cos 0.31  rerank 0.0089  Your cousin Lucia's city is Lisbon.\n  fact #16  cos 0.41  rerank 0.0003  Your uncle Tara's job is dentist.\n  fact #13  cos 0.46  rerank 0.0002  Your aunt Dana's job is firefighter.",
+   "retrieval": "Your cousin Lucia works as an architect.",
+   "retrieval_ok": true,
+   "consolidated": "architect.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is architect.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my partner live in?",
+   "accept": [
+    "Bologna"
+   ],
+   "covered": true,
+   "recalled": "fact #26  cos 0.59  rerank 0.9992  Your partner Sofia's city is Bologna.\n  fact #25  cos 0.68  rerank 0.2001  Sofia's city is Bologna.\n  fact #8   cos 0.38  rerank 0.0134  Your partner's name is Sofia.\n  fact #19  cos 0.50  rerank 0.0032  Sofia's job is beekeeper.\n  fact #20  cos 0.34  rerank 0.0024  Your partner Sofia's job is beekeeper.\n  fact #18  cos 0.47  rerank 0.0714  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "Your partner lives in Bologna.",
+   "retrieval_ok": true,
+   "consolidated": "Bologna.",
+   "consolidated_ok": true,
+   "weights": "Your partner Sofia's city is Bologna.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my sister do for a living?",
+   "accept": [
+    "surveyor"
+   ],
+   "covered": true,
+   "recalled": "fact #33  cos 0.52  rerank 0.2496  Your sister Hana's job is surveyor.\n  fact #21  cos 0.25  rerank 0.0035  Your sister's name is Hana.\n  fact #32  cos 0.63  rerank 0.0093  Hana's job is surveyor.\n  fact #22  cos 0.31  rerank 0.0010  Your sister Hana's city is Graz.\n  fact #31  cos 0.00  rerank 0.0002  Emil's city is Graz.\n  fact #13  cos 0.43  rerank 0.0002  Your aunt Dana's job is firefighter.",
+   "retrieval": "Hana works as a surveyor.",
+   "retrieval_ok": true,
+   "consolidated": "Hana's job is surveyor.",
+   "consolidated_ok": true,
+   "weights": "Your sister Hana's job is surveyor.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my father do for a living?",
+   "accept": [
+    "baker"
+   ],
+   "covered": true,
+   "recalled": "fact #37  cos 0.49  rerank 0.0394  Your father Priya's job is baker.\n  fact #9   cos 0.29  rerank 0.0010  Your father's name is Priya.\n  fact #36  cos 0.51  rerank 0.0276  Priya's job is baker.\n  fact #24  cos 0.34  rerank 0.0005  Your father Priya's city is Dublin.",
+   "retrieval": "My father works as a baker.",
+   "retrieval_ok": true,
+   "consolidated": "baker.",
+   "consolidated_ok": true,
+   "weights": "Your father Priya's job is baker.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my sister live in?",
+   "accept": [
+    "Graz"
+   ],
+   "covered": true,
+   "recalled": "fact #22  cos 0.58  rerank 0.9995  Your sister Hana's city is Graz.\n  fact #4   cos 0.56  rerank 0.8174  Hana's city is Graz.\n  fact #21  cos 0.36  rerank 0.0132  Your sister's name is Hana.\n  fact #32  cos 0.55  rerank 0.0006  Hana's job is surveyor.\n  fact #33  cos 0.36  rerank 0.0027  Your sister Hana's job is surveyor.\n  fact #3   cos 0.00  rerank 0.0231  Mia's city is Tallinn.",
+   "retrieval": "Your sister lives in Graz.",
+   "retrieval_ok": true,
+   "consolidated": "Graz.",
+   "consolidated_ok": true,
+   "weights": "Your sister Hana's city is Graz.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my brother do for a living?",
+   "accept": [
+    "chemist"
+   ],
+   "covered": true,
+   "recalled": "fact #43  cos 0.45  rerank 0.3524  Your brother Yusuf's job is chemist.\n  fact #38  cos 0.25  rerank 0.0030  Your brother's name is Yusuf.\n  fact #42  cos 0.61  rerank 0.0756  Yusuf's job is chemist.\n  fact #39  cos 0.32  rerank 0.0018  Your brother Yusuf's city is Ghent.\n  fact #34  cos 0.44  rerank 0.0003  Yusuf's city is Ghent.",
+   "retrieval": "Your brother Yusuf works as a chemist.",
+   "retrieval_ok": true,
+   "consolidated": "chemist.",
+   "consolidated_ok": true,
+   "weights": "Your brother Yusuf's job is chemist.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my cousin live in?",
+   "accept": [
+    "Lisbon"
+   ],
+   "covered": true,
+   "recalled": "fact #18  cos 0.59  rerank 0.9996  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.56  rerank 0.1414  Lucia's city is Lisbon.\n  fact #17  cos 0.43  rerank 0.0763  Your cousin's name is Lucia.\n  fact #27  cos 0.61  rerank 0.0005  Lucia's job is architect.\n  fact #28  cos 0.39  rerank 0.0232  Your cousin Lucia's job is architect.\n  fact #3   cos 0.00  rerank 0.0027  Mia's city is Tallinn.",
+   "retrieval": "Lisbon.",
+   "retrieval_ok": true,
+   "consolidated": "Lisbon.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Lisbon.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my brother live in?",
+   "accept": [
+    "Ghent"
+   ],
+   "covered": true,
+   "recalled": "fact #39  cos 0.55  rerank 0.9995  Your brother Yusuf's city is Ghent.\n  fact #34  cos 0.51  rerank 0.5603  Yusuf's city is Ghent.\n  fact #38  cos 0.36  rerank 0.0111  Your brother's name is Yusuf.\n  fact #42  cos 0.50  rerank 0.0024  Yusuf's job is chemist.\n  fact #43  cos 0.29  rerank 0.0030  Your brother Yusuf's job is chemist.\n  fact #24  cos 0.48  rerank 0.1338  Your father Priya's city is Dublin.",
+   "retrieval": "Your brother lives in Ghent.",
+   "retrieval_ok": true,
+   "consolidated": "Yusuf's city is Ghent.",
+   "consolidated_ok": true,
+   "weights": "Your brother Yusuf's city is Ghent.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "What does my uncle do for a living?",
+   "accept": [
+    "dentist"
+   ],
+   "covered": true,
+   "recalled": "fact #16  cos 0.52  rerank 0.3344  Your uncle Tara's job is dentist.\n  fact #11  cos 0.36  rerank 0.0061  Your uncle's name is Tara.\n  fact #15  cos 0.61  rerank 0.0808  Tara's job is dentist.\n  fact #47  cos 0.33  rerank 0.0024  Your uncle Tara's city is Krakow.\n  fact #46  cos 0.39  rerank 0.0002  Tara's city is Krakow.\n  fact #13  cos 0.42  rerank 0.0064  Your aunt Dana's job is firefighter.",
+   "retrieval": "My uncle works as a dentist.",
+   "retrieval_ok": true,
+   "consolidated": "dentist.",
+   "consolidated_ok": true,
+   "weights": "Your uncle Tara's job is dentist.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my uncle live in?",
+   "accept": [
+    "Krakow"
+   ],
+   "covered": true,
+   "recalled": "fact #47  cos 0.59  rerank 0.9997  Your uncle Tara's city is Krakow.\n  fact #46  cos 0.50  rerank 0.6037  Tara's city is Krakow.\n  fact #11  cos 0.38  rerank 0.0204  Your uncle's name is Tara.\n  fact #15  cos 0.53  rerank 0.0010  Tara's job is dentist.\n  fact #16  cos 0.35  rerank 0.0026  Your uncle Tara's job is dentist.\n  fact #3   cos 0.00  rerank 0.0021  Mia's city is Tallinn.",
+   "retrieval": "Your uncle lives in Krakow.",
+   "retrieval_ok": true,
+   "consolidated": "Krakow.",
+   "consolidated_ok": true,
+   "weights": "Your uncle Tara's city is Dublin.",
+   "weights_ok": false
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my father live in?",
+   "accept": [
+    "Dublin"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.65  rerank 0.9995  Your father Priya's city is Dublin.\n  fact #23  cos 0.52  rerank 0.2025  Priya's city is Dublin.\n  fact #9   cos 0.37  rerank 0.0035  Your father's name is Priya.\n  fact #36  cos 0.42  rerank 0.0024  Priya's job is baker.\n  fact #37  cos 0.33  rerank 0.0012  Your father Priya's job is baker.\n  fact #47  cos 0.44  rerank 0.5631  Your uncle Tara's city is Krakow.",
+   "retrieval": "Your father lives in Dublin.",
+   "retrieval_ok": true,
+   "consolidated": "Dublin.",
+   "consolidated_ok": true,
+   "weights": "Your father Priya's city is Dublin.",
+   "weights_ok": true
+  },
+  {
+   "type": "bridge",
+   "q": "Which city does my mother live in?",
+   "accept": [
+    "Tallinn"
+   ],
+   "covered": true,
+   "recalled": "fact #41  cos 0.60  rerank 0.9997  Your mother Mia's city is Tallinn.\n  fact #48  cos 0.64  rerank 0.7455  Greta's city is Tallinn.\n  fact #40  cos 0.36  rerank 0.0030  Your mother's name is Mia.\n  fact #3   cos 0.65  rerank 0.9754  Mia's city is Tallinn.\n  fact #45  cos 0.33  rerank 0.0005  Your mother Mia's job is nurse.\n  fact #30  cos 0.52  rerank 0.8412  Your aunt Dana's city is Utrecht.",
+   "retrieval": "Your mother lives in Tallinn.",
+   "retrieval_ok": true,
+   "consolidated": "Tallinn.",
+   "consolidated_ok": true,
+   "weights": "Your mother Mia's city is Tallinn.",
+   "weights_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a beekeeper?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": true,
+   "recalled": "fact #11  cos 0.32  rerank 0.0002  Your uncle's name is Tara.\n  fact #15  cos 0.51  rerank 0.0469  Tara's job is dentist.\n  fact #17  cos 0.25  rerank 0.0001  Your cousin's name is Lucia.\n  fact #27  cos 0.56  rerank 0.0320  Lucia's job is architect.\n  fact #19  cos 0.62  rerank 0.1102  Sofia's job is beekeeper.\n  fact #8   cos 0.35  rerank 0.0017  Your partner's name is Sofia.",
+   "retrieval": "Sofia works as a beekeeper.",
+   "retrieval_ok": true,
+   "consolidated": "Sofia's job is beekeeper.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is beekeeper.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a nurse?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": false,
+   "recalled": "fact #11  cos 0.36  rerank 0.0003  Your uncle's name is Tara.\n  fact #15  cos 0.56  rerank 0.1308  Tara's job is dentist.\n  fact #17  cos 0.31  rerank 0.0002  Your cousin's name is Lucia.\n  fact #27  cos 0.59  rerank 0.0495  Lucia's job is architect.\n  fact #5   cos 0.33  rerank 0.0001  Your aunt's name is Dana.\n  fact #12  cos 0.54  rerank 0.0384  Dana's job is firefighter.",
+   "retrieval": "You haven't told me that yet.",
+   "retrieval_ok": false,
+   "consolidated": "You haven't told me that yet.",
+   "consolidated_ok": false,
+   "weights": "Your cousin Lucia's job is nurse.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Ghent?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": true,
+   "recalled": "fact #39  cos 0.63  rerank 0.7172  Your brother Yusuf's city is Ghent.\n  fact #34  cos 0.48  rerank 0.0341  Yusuf's city is Ghent.\n  fact #38  cos 0.51  rerank 0.0178  Your brother's name is Yusuf.\n  fact #18  cos 0.42  rerank 0.0001  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.52  rerank 0.0002  Lucia's city is Lisbon.\n  fact #30  cos 0.42  rerank 0.0001  Your aunt Dana's city is Utrecht.",
+   "retrieval": "Your brother lives in Ghent.",
+   "retrieval_ok": true,
+   "consolidated": "Yusuf's city is Ghent.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Ghent.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a baker?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": false,
+   "recalled": "fact #11  cos 0.25  rerank 0.0002  Your uncle's name is Tara.\n  fact #15  cos 0.50  rerank 0.0499  Tara's job is dentist.\n  fact #17  cos 0.30  rerank 0.0001  Your cousin's name is Lucia.\n  fact #27  cos 0.61  rerank 0.0660  Lucia's job is architect.\n  fact #37  cos 0.63  rerank 0.3427  Your father Priya's job is baker.\n  fact #36  cos 0.54  rerank 0.0418  Priya's job is baker.",
+   "retrieval": "Your father, Priya, works as a baker.",
+   "retrieval_ok": true,
+   "consolidated": "Your father Priya's job is baker.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is baker.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Krakow?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": true,
+   "recalled": "fact #47  cos 0.64  rerank 0.9780  Your uncle Tara's city is Krakow.\n  fact #46  cos 0.49  rerank 0.0352  Tara's city is Krakow.\n  fact #11  cos 0.53  rerank 0.0469  Your uncle's name is Tara.\n  fact #18  cos 0.40  rerank 0.0002  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.51  rerank 0.0002  Lucia's city is Lisbon.",
+   "retrieval": "Your uncle Tara lives in Krakow.",
+   "retrieval_ok": true,
+   "consolidated": "Tara's city is Krakow.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Krakow.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Graz?",
+   "accept": [
+    "Hana",
+    "sister"
+   ],
+   "covered": true,
+   "recalled": "fact #22  cos 0.59  rerank 0.3600  Your sister Hana's city is Graz.\n  fact #31  cos 0.49  rerank 0.0156  Emil's city is Graz.\n  fact #6   cos 0.00  rerank 0.0009  Emil's job is glassblower.\n  fact #4   cos 0.48  rerank 0.0074  Hana's city is Graz.\n  fact #21  cos 0.60  rerank 0.0053  Your sister's name is Hana.",
+   "retrieval": "Your sister Hana lives in Graz.",
+   "retrieval_ok": true,
+   "consolidated": "Your sister Hana's city is Graz.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Graz.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a firefighter?",
+   "accept": [
+    "Dana",
+    "aunt"
+   ],
+   "covered": true,
+   "recalled": "fact #11  cos 0.30  rerank 0.0012  Your uncle's name is Tara.\n  fact #15  cos 0.51  rerank 0.0891  Tara's job is dentist.\n  fact #17  cos 0.28  rerank 0.0007  Your cousin's name is Lucia.\n  fact #27  cos 0.57  rerank 0.0891  Lucia's job is architect.\n  fact #5   cos 0.30  rerank 0.0002  Your aunt's name is Dana.\n  fact #12  cos 0.77  rerank 0.9773  Dana's job is firefighter.",
+   "retrieval": "Your aunt works as a firefighter.",
+   "retrieval_ok": true,
+   "consolidated": "Dana's job is firefighter.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is firefighter.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a surveyor?",
+   "accept": [
+    "Hana",
+    "sister"
+   ],
+   "covered": true,
+   "recalled": "fact #17  cos 0.26  rerank 0.0002  Your cousin's name is Lucia.\n  fact #27  cos 0.62  rerank 0.2945  Lucia's job is architect.\n  fact #33  cos 0.64  rerank 0.6978  Your sister Hana's job is surveyor.\n  fact #32  cos 0.53  rerank 0.0283  Hana's job is surveyor.\n  fact #21  cos 0.48  rerank 0.0098  Your sister's name is Hana.\n  fact #28  cos 0.48  rerank 0.0196  Your cousin Lucia's job is architect.",
+   "retrieval": "Your sister Hana works as a surveyor.",
+   "retrieval_ok": true,
+   "consolidated": "Hana's job is surveyor.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is surveyor.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Lisbon?",
+   "accept": [
+    "Lucia",
+    "cousin"
+   ],
+   "covered": true,
+   "recalled": "fact #17  cos 0.40  rerank 0.0002  Your cousin's name is Lucia.\n  fact #27  cos 0.56  rerank 0.0012  Lucia's job is architect.\n  fact #18  cos 0.70  rerank 0.9495  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.54  rerank 0.0039  Lucia's city is Lisbon.",
+   "retrieval": "Your cousin Lucia lives in Lisbon.",
+   "retrieval_ok": true,
+   "consolidated": "Lucia's city is Lisbon.",
+   "consolidated_ok": true,
+   "weights": "Lucia's city is Lisbon.",
+   "weights_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Bologna?",
+   "accept": [
+    "Sofia",
+    "partner"
+   ],
+   "covered": false,
+   "recalled": "fact #25  cos 0.59  rerank 0.0036  Sofia's city is Bologna.\n  fact #19  cos 0.40  rerank 0.0017  Sofia's job is beekeeper.\n  fact #26  cos 0.63  rerank 0.0031  Your partner Sofia's city is Bologna.\n  fact #18  cos 0.46  rerank 0.0002  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.51  rerank 0.0002  Lucia's city is Lisbon.",
+   "retrieval": "Your partner Sofia lives in Bologna.",
+   "retrieval_ok": true,
+   "consolidated": "Sofia's city is Bologna.",
+   "consolidated_ok": true,
+   "weights": "Lucia's city is Bologna.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a dentist?",
+   "accept": [
+    "Tara",
+    "uncle"
+   ],
+   "covered": true,
+   "recalled": "fact #11  cos 0.28  rerank 0.0011  Your uncle's name is Tara.\n  fact #15  cos 0.74  rerank 0.9879  Tara's job is dentist.\n  fact #17  cos 0.30  rerank 0.0003  Your cousin's name is Lucia.\n  fact #27  cos 0.58  rerank 0.0676  Lucia's job is architect.\n  fact #5   cos 0.29  rerank 0.0002  Your aunt's name is Dana.\n  fact #12  cos 0.48  rerank 0.0090  Dana's job is firefighter.",
+   "retrieval": "Your uncle's job is a dentist.",
+   "retrieval_ok": true,
+   "consolidated": "You haven't told me that yet.",
+   "consolidated_ok": false,
+   "weights": "Your cousin Lucia's job is dentist.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Utrecht?",
+   "accept": [
+    "Dana",
+    "aunt"
+   ],
+   "covered": true,
+   "recalled": "fact #30  cos 0.69  rerank 0.9623  Your aunt Dana's city is Utrecht.\n  fact #29  cos 0.54  rerank 0.0349  Dana's city is Utrecht.\n  fact #5   cos 0.45  rerank 0.0155  Your aunt's name is Dana.\n  fact #14  cos 0.50  rerank 0.0216  Marek's city is Utrecht.\n  fact #7   cos 0.46  rerank 0.0016  Marek's job is translator.\n  fact #18  cos 0.36  rerank 0.0001  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "Your aunt Dana lives in Utrecht.",
+   "retrieval_ok": true,
+   "consolidated": "Dana's city is Utrecht.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Utrecht.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a chemist?",
+   "accept": [
+    "Yusuf",
+    "brother"
+   ],
+   "covered": false,
+   "recalled": "fact #11  cos 0.29  rerank 0.0008  Your uncle's name is Tara.\n  fact #15  cos 0.53  rerank 0.0441  Tara's job is dentist.\n  fact #17  cos 0.28  rerank 0.0007  Your cousin's name is Lucia.\n  fact #27  cos 0.57  rerank 0.0464  Lucia's job is architect.\n  fact #43  cos 0.61  rerank 0.8555  Your brother Yusuf's job is chemist.\n  fact #42  cos 0.50  rerank 0.0486  Yusuf's job is chemist.",
+   "retrieval": "Your brother Yusuf works as a chemist.",
+   "retrieval_ok": true,
+   "consolidated": "Yusuf's job is chemist.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is chemist.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Dublin?",
+   "accept": [
+    "Priya",
+    "father"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.56  rerank 0.0813  Your father Priya's city is Dublin.\n  fact #23  cos 0.45  rerank 0.0023  Priya's city is Dublin.\n  fact #9   cos 0.48  rerank 0.0373  Your father's name is Priya.\n  fact #18  cos 0.40  rerank 0.0002  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.50  rerank 0.0002  Lucia's city is Lisbon.",
+   "retrieval": "Your father, Priya, lives in Dublin.",
+   "retrieval_ok": true,
+   "consolidated": "Priya's city is Dublin.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Dublin.",
+   "weights_ok": false
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives works as a architect?",
+   "accept": [
+    "Lucia",
+    "cousin"
+   ],
+   "covered": true,
+   "recalled": "fact #11  cos 0.28  rerank 0.0003  Your uncle's name is Tara.\n  fact #15  cos 0.52  rerank 0.0314  Tara's job is dentist.\n  fact #17  cos 0.27  rerank 0.0002  Your cousin's name is Lucia.\n  fact #27  cos 0.80  rerank 0.9846  Lucia's job is architect.\n  fact #28  cos 0.69  rerank 0.9853  Your cousin Lucia's job is architect.\n  fact #16  cos 0.37  rerank 0.0005  Your uncle Tara's job is dentist.",
+   "retrieval": "Your cousin Lucia works as an architect.",
+   "retrieval_ok": true,
+   "consolidated": "Lucia's job is architect.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's job is architect.",
+   "weights_ok": true
+  },
+  {
+   "type": "inverse",
+   "q": "Which of my relatives lives in Tallinn?",
+   "accept": [
+    "Mia",
+    "mother"
+   ],
+   "covered": true,
+   "recalled": "fact #41  cos 0.67  rerank 0.2853  Your mother Mia's city is Tallinn.\n  fact #48  cos 0.55  rerank 0.0366  Greta's city is Tallinn.\n  fact #35  cos 0.36  rerank 0.0003  Greta's job is pilot.\n  fact #3   cos 0.61  rerank 0.0164  Mia's city is Tallinn.\n  fact #40  cos 0.42  rerank 0.0007  Your mother's name is Mia.",
+   "retrieval": "Your mother lives in Tallinn.",
+   "retrieval_ok": true,
+   "consolidated": "Mia's city is Tallinn.",
+   "consolidated_ok": true,
+   "weights": "Your cousin Lucia's city is Tallinn.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose city is Tallinn? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #30  cos 0.34  rerank 0.6637  Your aunt Dana's city is Utrecht.\n  fact #14  cos 0.59  rerank 0.0865  Marek's city is Utrecht.\n  fact #5   cos 0.00  rerank 0.0003  Your aunt's name is Dana.\n  fact #29  cos 0.44  rerank 0.3144  Dana's city is Utrecht.\n  fact #41  cos 0.72  rerank 0.9799  Your mother Mia's city is Tallinn.\n  fact #3   cos 0.70  rerank 0.6648  Mia's city is Tallinn.",
+   "retrieval": "Yes.",
+   "retrieval_ok": false,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my father the one whose city is Tallinn? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #24  cos 0.48  rerank 0.2555  Your father Priya's city is Dublin.\n  fact #23  cos 0.50  rerank 0.0123  Priya's city is Dublin.\n  fact #9   cos 0.26  rerank 0.0002  Your father's name is Priya.\n  fact #37  cos 0.40  rerank 0.3324  Your father Priya's job is baker.\n  fact #41  cos 0.67  rerank 0.9788  Your mother Mia's city is Tallinn.\n  fact #48  cos 0.61  rerank 0.5813  Greta's city is Tallinn.",
+   "retrieval": "Yes.",
+   "retrieval_ok": false,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose job is chemist? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #45  cos 0.42  rerank 0.0674  Your mother Mia's job is nurse.\n  fact #40  cos 0.29  rerank 0.0003  Your mother's name is Mia.\n  fact #44  cos 0.63  rerank 0.3430  Mia's job is nurse.\n  fact #43  cos 0.56  rerank 0.2579  Your brother Yusuf's job is chemist.\n  fact #42  cos 0.51  rerank 0.1231  Yusuf's job is chemist.\n  fact #13  cos 0.45  rerank 0.0005  Your aunt Dana's job is firefighter.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my sister the one whose job is surveyor? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #33  cos 0.74  rerank 0.9987  Your sister Hana's job is surveyor.\n  fact #21  cos 0.00  rerank 0.0017  Your sister's name is Hana.\n  fact #32  cos 0.85  rerank 0.9951  Hana's job is surveyor.\n  fact #22  cos 0.00  rerank 0.0005  Your sister Hana's city is Graz.\n  fact #31  cos 0.36  rerank 0.0010  Emil's city is Graz.\n  fact #28  cos 0.49  rerank 0.0035  Your cousin Lucia's job is architect.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my father the one whose job is baker? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #37  cos 0.76  rerank 0.9970  Your father Priya's job is baker.\n  fact #9   cos 0.29  rerank 0.0003  Your father's name is Priya.\n  fact #36  cos 0.85  rerank 0.9948  Priya's job is baker.\n  fact #24  cos 0.28  rerank 0.0001  Your father Priya's city is Dublin.\n  fact #43  cos 0.42  rerank 0.0009  Your brother Yusuf's job is chemist.\n  fact #6   cos 0.00  rerank 0.0002  Emil's job is glassblower.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my sister the one whose city is Graz? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #22  cos 0.71  rerank 0.9984  Your sister Hana's city is Graz.\n  fact #31  cos 0.61  rerank 0.7373  Emil's city is Graz.\n  fact #21  cos 0.32  rerank 0.0004  Your sister's name is Hana.\n  fact #33  cos 0.53  rerank 0.0523  Your sister Hana's job is surveyor.\n  fact #4   cos 0.55  rerank 0.6330  Hana's city is Graz.\n  fact #2   cos 0.00  rerank 0.0001  Lucia's city is Lisbon.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my brother the one whose job is chemist? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #43  cos 0.72  rerank 0.9983  Your brother Yusuf's job is chemist.\n  fact #38  cos 0.00  rerank 0.0013  Your brother's name is Yusuf.\n  fact #42  cos 0.85  rerank 0.9977  Yusuf's job is chemist.\n  fact #39  cos 0.00  rerank 0.0003  Your brother Yusuf's city is Ghent.\n  fact #34  cos 0.38  rerank 0.0008  Yusuf's city is Ghent.\n  fact #16  cos 0.40  rerank 0.0006  Your uncle Tara's job is dentist.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose job is beekeeper? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #20  cos 0.78  rerank 0.9980  Your partner Sofia's job is beekeeper.\n  fact #8   cos 0.00  rerank 0.0009  Your partner's name is Sofia.\n  fact #19  cos 0.86  rerank 0.9975  Sofia's job is beekeeper.\n  fact #26  cos 0.00  rerank 0.0003  Your partner Sofia's city is Bologna.\n  fact #25  cos 0.45  rerank 0.0003  Sofia's city is Bologna.\n  fact #1   cos 0.00  rerank 0.0003  Leo's job is jeweler.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose city is Krakow? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #47  cos 0.70  rerank 0.9989  Your uncle Tara's city is Krakow.\n  fact #11  cos 0.30  rerank 0.0008  Your uncle's name is Tara.\n  fact #16  cos 0.50  rerank 0.0724  Your uncle Tara's job is dentist.\n  fact #46  cos 0.50  rerank 0.6649  Tara's city is Krakow.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my aunt the one whose job is chemist? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": false,
+   "recalled": "fact #13  cos 0.52  rerank 0.2474  Your aunt Dana's job is firefighter.\n  fact #5   cos 0.34  rerank 0.0011  Your aunt's name is Dana.\n  fact #12  cos 0.61  rerank 0.1494  Dana's job is firefighter.\n  fact #30  cos 0.29  rerank 0.0003  Your aunt Dana's city is Utrecht.\n  fact #29  cos 0.46  rerank 0.0007  Dana's city is Utrecht.\n  fact #11  cos 0.29  rerank 0.0002  Your uncle's name is Tara.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my cousin the one whose city is Graz? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #18  cos 0.49  rerank 0.4728  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.59  rerank 0.0152  Lucia's city is Lisbon.\n  fact #17  cos 0.38  rerank 0.0019  Your cousin's name is Lucia.\n  fact #27  cos 0.64  rerank 0.0006  Lucia's job is architect.\n  fact #28  cos 0.38  rerank 0.0003  Your cousin Lucia's job is architect.\n  fact #22  cos 0.60  rerank 0.9247  Your sister Hana's city is Graz.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my cousin the one whose job is surveyor? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #28  cos 0.52  rerank 0.7685  Your cousin Lucia's job is architect.\n  fact #17  cos 0.00  rerank 0.0061  Your cousin's name is Lucia.\n  fact #27  cos 0.69  rerank 0.7888  Lucia's job is architect.\n  fact #18  cos 0.00  rerank 0.0013  Your cousin Lucia's city is Lisbon.\n  fact #2   cos 0.44  rerank 0.0004  Lucia's city is Lisbon.\n  fact #33  cos 0.64  rerank 0.7010  Your sister Hana's job is surveyor.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": false,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my mother the one whose city is Bologna? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #41  cos 0.51  rerank 0.0637  Your mother Mia's city is Tallinn.\n  fact #48  cos 0.65  rerank 0.0733  Greta's city is Tallinn.\n  fact #40  cos 0.36  rerank 0.0001  Your mother's name is Mia.\n  fact #3   cos 0.60  rerank 0.0415  Mia's city is Tallinn.\n  fact #26  cos 0.70  rerank 0.1527  Your partner Sofia's city is Bologna.\n  fact #25  cos 0.69  rerank 0.1705  Sofia's city is Bologna.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "No.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my brother the one whose city is Lisbon? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #39  cos 0.49  rerank 0.8187  Your brother Yusuf's city is Ghent.\n  fact #34  cos 0.53  rerank 0.1591  Yusuf's city is Ghent.\n  fact #38  cos 0.32  rerank 0.0015  Your brother's name is Yusuf.\n  fact #42  cos 0.48  rerank 0.0041  Yusuf's job is chemist.\n  fact #43  cos 0.28  rerank 0.0003  Your brother Yusuf's job is chemist.\n  fact #18  cos 0.70  rerank 0.9149  Your cousin Lucia's city is Lisbon.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "No.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": false
+  },
+  {
+   "type": "verify",
+   "q": "Is my partner the one whose city is Bologna? Answer yes or no.",
+   "accept": [
+    "yes"
+   ],
+   "covered": true,
+   "recalled": "fact #26  cos 0.81  rerank 0.9982  Your partner Sofia's city is Bologna.\n  fact #8   cos 0.29  rerank 0.0005  Your partner's name is Sofia.\n  fact #20  cos 0.46  rerank 0.3896  Your partner Sofia's job is beekeeper.\n  fact #25  cos 0.65  rerank 0.2342  Sofia's city is Bologna.\n  fact #31  cos 0.45  rerank 0.0003  Emil's city is Graz.\n  fact #22  cos 0.43  rerank 0.0002  Your sister Hana's city is Graz.",
+   "retrieval": "Yes.",
+   "retrieval_ok": true,
+   "consolidated": "Yes.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": true
+  },
+  {
+   "type": "verify",
+   "q": "Is my uncle the one whose job is architect? Answer yes or no.",
+   "accept": [
+    "no"
+   ],
+   "covered": true,
+   "recalled": "fact #16  cos 0.43  rerank 0.2715  Your uncle Tara's job is dentist.\n  fact #11  cos 0.30  rerank 0.0039  Your uncle's name is Tara.\n  fact #15  cos 0.62  rerank 0.5398  Tara's job is dentist.\n  fact #47  cos 0.31  rerank 0.0006  Your uncle Tara's city is Krakow.\n  fact #46  cos 0.42  rerank 0.0009  Tara's city is Krakow.\n  fact #28  cos 0.65  rerank 0.9668  Your cousin Lucia's job is architect.",
+   "retrieval": "No.",
+   "retrieval_ok": true,
+   "consolidated": "No.",
+   "consolidated_ok": true,
+   "weights": "Yes.",
+   "weights_ok": false
+  }
+ ]
+}

@@ -20,9 +20,14 @@ Questions (each with the values that count as right):
 Deterministic: the same file every run.
 
   python3 bench/gen_integration.py > bench/facts_integration.json
+  python3 bench/gen_integration.py --small > bench/facts_integration_small.json
+
+--small: 8 relatives, city and job, 4 strangers (32 facts, 16 questions per type), for
+trying training changes in under an hour on a CPU before the full set.
 """
 import json
 import random
+import sys
 
 R = random.Random(7)
 
@@ -62,13 +67,16 @@ USE = ("city", "job", "pet")
 
 
 def main():
+    small = "--small" in sys.argv[1:]
+    use = ("city", "job") if small else USE
+    relations = RELATIONS[:8] if small else RELATIONS
     for a in list(ATTRS):
-        if a not in USE:
+        if a not in use:
             del ATTRS[a]
     names = NAMES[:]
     R.shuffle(names)
-    people = [{"relation": r, "name": names[i]} for i, r in enumerate(RELATIONS)]
-    strangers = [{"relation": None, "name": n} for n in names[len(RELATIONS):len(RELATIONS) + 16]]
+    people = [{"relation": r, "name": names[i]} for i, r in enumerate(relations)]
+    strangers = [{"relation": None, "name": n} for n in names[len(relations):len(relations) + (4 if small else 16)]]
     facts, attr_of = [], {}
     for p in people:
         facts.append({"say": f"My {p['relation']}'s name is {p['name']}.", "value": p["name"], "kind": "person"})
