@@ -1826,3 +1826,15 @@ substring scoring on 92. Of the 4 disagreements it was right on 3: the "Yes. Acc
 memory ..." answer, a reply that listed two people and asked which one, and a ramble that
 never answered. It was wrong on one ramble that never answered either (p 0.98). So it is
 reported beside substring scoring, not instead of it. 12.5 s a decision on 3 CPU threads.
+
+`bench_integration.py --grade` adds `accuracy_judged` per arm and each answer's `<arm>_judge`
+probability. On Qwen3-0.6B's 64 small-set answers the two agree on all 64 (57/64 each):
+Qwen3 answers tersely, and the judge earns its keep on chattier models.
+
+**Scoring many questions over one shared input** (Gemini Decision's design, reusing the
+state's prefill from llama.cpp's cache) was not built. OpenJev reads the state first and the
+question after, as trained, and memagent's decisions rarely share a state: one guard decision
+per turn, a different answer in each grading, the stored fact first in a merge. Only
+dreaming checks facts against the message they came from, and on the benchmarks and a real
+Claude Code history no message gave more than one fact. A dream pass runs in the background
+once per deep sleep, so a saved prefill would save seconds nobody waits for.

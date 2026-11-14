@@ -130,6 +130,8 @@ def main():
     ap.add_argument("--keep", help="reuse (or keep) the work directory, e.g. to skip a finished deep sleep")
     ap.add_argument("--memory", help="a prepared data dir with an active LoRA: runs arms NAME and NAME-weights")
     ap.add_argument("--name", default="edited", help="arm name for --memory")
+    ap.add_argument("--grade", action="store_true",
+                    help="also grade every answer with the decision model (build/grade, OpenJev-Flash-9B)")
     ap.add_argument("--out")
     ap.add_argument("--label", default="")
     a = ap.parse_args()
@@ -246,6 +248,24 @@ def main():
                                 max(1, sum(1 for r in rows if r["type"] == t)), 3) for t in d["questions"]}
     res["accuracy"] = {k: {arm: f"{c[0]}/{c[1]} = {c[0] / c[1]:.3f}" for arm, c in v.items()}
                        for k, v in sorted(table.items())}
+    if a.grade:
+        # the decision model's verdict beside substring scoring (bench/README.md, "A decision
+        # model as the benchmarks' grader"): one judgement per answer, ~12 s each on 3 CPU threads
+        items = [{"q": r["q"], "accept": r["accept"], "answer": r[arm], "arm": arm, "i": i}
+                 for i, r in enumerate(rows) for arm in answers]
+        src, dst = os.path.join(work, "grade-in.json"), os.path.join(work, "grade-out.json")
+        json.dump(items, open(src, "w", encoding="utf-8"))
+        subprocess.run([os.path.join(REPO, "build", "grade"), "--config", os.path.join(REPO, "memagent.ini"),
+                        src, dst], check=True)
+        judged = {}
+        for it in json.load(open(dst, encoding="utf-8")):
+            rows[it["i"]][it["arm"] + "_judge"] = round(it["p_correct"], 3)
+            for key in (rows[it["i"]]["type"], "all"):
+                cell = judged.setdefault(key, {}).setdefault(it["arm"], [0, 0])
+                cell[0] += it["p_correct"] >= 0.5
+                cell[1] += 1
+        res["accuracy_judged"] = {k: {arm: f"{c[0]}/{c[1]} = {c[0] / c[1]:.3f}" for arm, c in v.items()}
+                                  for k, v in sorted(judged.items())}
     print(json.dumps({k: v for k, v in res.items()}, indent=1))
     if a.out:
         res["answers"] = rows
