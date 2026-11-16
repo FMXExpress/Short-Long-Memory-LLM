@@ -1838,3 +1838,27 @@ per turn, a different answer in each grading, the stored fact first in a merge. 
 dreaming checks facts against the message they came from, and on the benchmarks and a real
 Claude Code history no message gave more than one fact. A dream pass runs in the background
 once per deep sleep, so a saved prefill would save seconds nobody waits for.
+
+### The comparisons again, at 1, 2 and 3 threads (2026-11-16)
+
+The small set (64 questions), Qwen3-0.6B. Each adapter is trained once and answered at three
+thread counts; the old training was trained twice, at 3 and at 2 threads
+(`bench/results/threads/`):
+
+| | 1 thread | 2 threads | 3 threads |
+|---|---|---|---|
+| retrieval only | 61 | 61 | 57 |
+| retrieval + LoRA, training before (trained at 3 / at 2 threads) | 56 / 56 | 56 / 56 | 56 / 56 |
+| **retrieval + LoRA, memory-block checks** | **62** | **62** | **62** |
+
+- **Training does not depend on the thread count.** Trained at 3 and at 2 threads, the old
+  training gave the same recall and drift to four digits (0.9167, ×1.1684, as the
+  single-thread run before the fix), and the memory-block training matched its earlier run
+  (0.94, ×1.190). Only answering moves with the threads.
+- **The memory-block fix holds:** 62 against 56 at every thread count.
+- **With it, trained memory is at least as good as retrieval alone** at every count (62
+  against 61, 61, 57), by one question at best: "at least as good", not "better".
+- **The LoRA steadies the answers.** With it every thread count gives the same score;
+  retrieval alone moves between 57 and 61.
+- **Training gains little from threads:** 33 min at 3 threads against 36 at 1. The backward
+  pass is where the time goes, and it gains little from more threads here.
