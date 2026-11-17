@@ -99,6 +99,9 @@ case $PRESET in
     INFER=0; TRAIN=1; TRAINER=python; GPU_BUILD=1
     if [ "$MIN_GB" -ge 24 ]; then PROFILE=large; elif [ "$MIN_GB" -ge 12 ]; then PROFILE=medium; else PROFILE=small; fi ;;
 esac
+# with background training off, training runs only on /sleep, while you wait: all cores but one
+# (a training thread count is obeyed since 2026-11-17; 3 threads train 2.75x faster than 1)
+if [ "$AUTO" = 0 ] && [ "$TRAIN" -lt 0 ]; then TRAIN_THREADS=$(( CORES > 1 ? CORES - 1 : 1 )); fi
 # answering on the GPU needs a CUDA llama.cpp: one already built, or nvcc to build it in a
 # clone. Otherwise the Python engine (PyTorch, CUDA) answers on the GPU instead.
 cuda_llama() {  # either place will do (ls on both fails when one is missing)

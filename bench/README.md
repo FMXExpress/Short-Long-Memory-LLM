@@ -1862,3 +1862,32 @@ thread counts; the old training was trained twice, at 3 and at 2 threads
   retrieval alone moves between 57 and 61.
 - **Training gains little from threads:** 33 min at 3 threads against 36 at 1. The backward
   pass is where the time goes, and it gains little from more threads here.
+
+## The trainer ignored its thread count (2026-11-17)
+
+A deep sleep took 36 min at 1 thread and 33 at 3 (above), so it looked as if the backward
+pass could not use more cores. It was the other way round: the training steps never saw
+the thread count. llama.cpp hands the context's threads to the backends in `graph_compute`;
+the trainer's `ggml_opt_eval` computes on the scheduler directly, so the CPU backend kept
+ggml's default of 4 threads. The anchors (the base model answering, before training)
+obeyed `[consolidate] threads`; every training step used 4. The patch now sets the threads
+before each step (`llama_context::opt_epoch_iter`).
+
+One epoch, 10 facts, Qwen3-0.6B, f32 copy, 4 cores, training phase only:
+
+| `[consolidate] threads` | training | CPU |
+|---|---|---|
+| 1 | 683 s | 100% |
+| 2 | 367 s | 210% |
+| 3 | 248 s | 310% |
+| (before: any setting) | about 4 threads | 400% |
+
+- **Deep sleeps were not slowed by threads:** they had all four cores already, so there is
+  no 2-3× to win here. The time is the backward pass itself.
+- **What was wrong is the setting:** the `cpu` preset's "train on a quarter of the cores", so
+  that chat stays quick while training runs, took every core. It is obeyed now.
+- **The CPU presets train on all cores but one** (`run.sh`, `run.ps1`), since with background
+  training off they train only on `/sleep`, while you wait; a quarter of the cores would now
+  make that 2.75× slower than it was.
+- `bench_memory.py` deletes its work directory after a run (`--keep-work` keeps it): 74 of them,
+  140 MB each, had filled the disk.

@@ -89,6 +89,8 @@ switch ($Preset) {
         if ($MinGB -ge 24) { $Profile_ = 'large' } elseif ($MinGB -ge 12) { $Profile_ = 'medium' } else { $Profile_ = 'small' }
     }
 }
+# with background training off, training runs only on /sleep, while you wait: all cores but one
+if ($Auto -eq 0 -and $Train -lt 0) { $TrainThreads = [math]::Max(1, $Cores - 1) }
 if ($Gpu) {
     $Trainer = 'python'
     # a CUDA llama.cpp (ggml-cuda.dll next to the exe) answers on the GPU itself; the
