@@ -1789,3 +1789,76 @@ Capped at 110 windows (82 of 768 tokens) it drifted ×1.29:
 - Results: `bench/results/integration-qwen3-0.6b-memory-block.json` (run with the gate at ×3
   so the adapter would be kept whatever its drift; it passed ×1.5 anyway) and
   `integration-small-qwen3-0.6b-*.json`.
+
+## One thread, not three; and how much a score can move by itself (2026-11-14)
+
+**memagent ran llama.cpp on one thread.** `threads=0` (the default, and what `run.sh` writes
+for chat) meant "all cores but one" through FPC's `TThread.ProcessorCount`, which returns 1
+on a 4-core Linux machine. So chat, the trainer and the judge each used one core. CPUs are
+now counted from `/proc/cpuinfo` (`Mem.LlamaChat.CpuCount`). On 4 cores (3 threads):
+
+| | 1 thread (before) | 3 threads |
+|---|---|---|
+| 64 questions, retrieval arm (`facts_integration_small.json`) | 524 s | 246 s |
+| one OpenJev-Flash-9B decision | 35 s | 12.5 s |
+
+Every CPU time measured through memagent before this, the agent runs and the deep sleeps,
+was single-threaded. llama-bench's tokens per second picked their own threads and stand.
+
+**The thread count changes answers.** With the same prompts (retrieval returned the same facts
+in the same order with the same scores), 3 threads changed 8 of 64 greedy answers against 1
+thread, and the score went 61 -> 57: other summation orders tip a 0.6B model at close calls.
+Each count repeats itself exactly (3 threads twice: 64/64 identical). So one run of these
+benchmarks is one sample: a difference of a few questions (91 against 93 of 96, 62 against
+61 of 64) is inside that noise. Runs compared here so far all used one thread, so they are
+comparable with each other; a claim of a few questions needs runs at more than one thread
+count.
+
+## A decision model as the benchmarks' grader (`build/grade`, 2026-11-14)
+
+Substring scoring marks "Yes. According to memory, your uncle Tara's job is dentist" wrong
+and an answer that lists two people right. `TJudge.Correct` asks OpenJev-Flash-9B whether an
+answer gives one of the expected answers (the answer is quoted state, so it cannot argue its
+case), read as a calibrated probability like the guard's. `build/grade IN.json OUT.json`.
+
+On LFM3-1.7B's 96 answers (`bench/results/grade-lfm3-1.7b-openjev.json`) it agreed with
+substring scoring on 92. Of the 4 disagreements it was right on 3: the "Yes. According to
+memory ..." answer, a reply that listed two people and asked which one, and a ramble that
+never answered. It was wrong on one ramble that never answered either (p 0.98). So it is
+reported beside substring scoring, not instead of it. 12.5 s a decision on 3 CPU threads.
+
+`bench_integration.py --grade` adds `accuracy_judged` per arm and each answer's `<arm>_judge`
+probability. On Qwen3-0.6B's 64 small-set answers the two agree on all 64 (57/64 each):
+Qwen3 answers tersely, and the judge earns its keep on chattier models.
+
+**Scoring many questions over one shared input** (Gemini Decision's design, reusing the
+state's prefill from llama.cpp's cache) was not built. OpenJev reads the state first and the
+question after, as trained, and memagent's decisions rarely share a state: one guard decision
+per turn, a different answer in each grading, the stored fact first in a merge. Only
+dreaming checks facts against the message they came from, and on the benchmarks and a real
+Claude Code history no message gave more than one fact. A dream pass runs in the background
+once per deep sleep, so a saved prefill would save seconds nobody waits for.
+
+### The comparisons again, at 1, 2 and 3 threads (2026-11-16)
+
+The small set (64 questions), Qwen3-0.6B. Each adapter is trained once and answered at three
+thread counts; the old training was trained twice, at 3 and at 2 threads
+(`bench/results/threads/`):
+
+| | 1 thread | 2 threads | 3 threads |
+|---|---|---|---|
+| retrieval only | 61 | 61 | 57 |
+| retrieval + LoRA, training before (trained at 3 / at 2 threads) | 56 / 56 | 56 / 56 | 56 / 56 |
+| **retrieval + LoRA, memory-block checks** | **62** | **62** | **62** |
+
+- **Training does not depend on the thread count.** Trained at 3 and at 2 threads, the old
+  training gave the same recall and drift to four digits (0.9167, ×1.1684, as the
+  single-thread run before the fix), and the memory-block training matched its earlier run
+  (0.94, ×1.190). Only answering moves with the threads.
+- **The memory-block fix holds:** 62 against 56 at every thread count.
+- **With it, trained memory is at least as good as retrieval alone** at every count (62
+  against 61, 61, 57), by one question at best: "at least as good", not "better".
+- **The LoRA steadies the answers.** With it every thread count gives the same score;
+  retrieval alone moves between 57 and 61.
+- **Training gains little from threads:** 33 min at 3 threads against 36 at 1. The backward
+  pass is where the time goes, and it gains little from more threads here.
