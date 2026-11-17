@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -123,6 +124,8 @@ def main():
     ap.add_argument("--memory-header", help="wording of the memory block header (prompt experiments)")
     ap.add_argument("--trainer", default="python", choices=["python", "llama"],
                     help="llama: train and answer in-process (build/bench_llama), as the agent does by default")
+    ap.add_argument("--keep-work", action="store_true",
+                    help="keep the work directory (the trained adapter, logs); deleted by default")
     ap.add_argument("--set", action="append", metavar="KEY=VALUE",
                     help="llama trainer: override a training setting (examples, per_fact, epochs, lr, rank, targets)")
     a = ap.parse_args()
@@ -209,6 +212,12 @@ def main():
     if a.out:
         os.makedirs(os.path.dirname(a.out), exist_ok=True)
         json.dump(res, open(a.out, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    # each run's work directory (memory, trained adapter, logs) is ~140 MB: 74 of them filled
+    # a disk; --keep-work keeps it (the adapter is in it, for --adapter later)
+    if a.keep_work:
+        print(f"[bench_memory] work directory kept: {work}", file=sys.stderr)
+    else:
+        shutil.rmtree(work, ignore_errors=True)
 
 
 def evaluate(model, tok, priors, facts, data, a, ext_ok, train):
